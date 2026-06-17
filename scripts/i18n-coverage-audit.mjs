@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { extname, join, relative, resolve } from 'node:path';
+import { extname, join, relative, resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = resolve(new URL('..', import.meta.url).pathname);
+// See scripts/i18n-locale-check.mjs for the rationale on this root resolution.
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const failures = [];
 const hanText = /\p{Script=Han}/u;
 const scannableExtensions = new Set(['.js', '.jsx', '.json', '.mjs', '.ts', '.tsx']);

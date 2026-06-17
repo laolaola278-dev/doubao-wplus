@@ -125,7 +125,7 @@ import {
 } from '../core/mcp/store';
 import { refreshMcpServerDiscovery } from '../core/mcp/discovery';
 import { getMcpOriginPattern, requestMcpServerOriginPermission } from '../core/mcp/transports';
-import { SHELL_MCP_NATIVE_HOST, SHELL_MCP_SERVER_NAME, createShellMcpPresetInput } from '../core/shell';
+import { SHELL_MCP_NATIVE_HOST, SHELL_MCP_SERVER_NAME, createShellMcpPresetInput, getShellNativeHostName } from '../core/shell';
 import { getWebToolSettings, setWebToolEnabled } from '../core/tool/web-settings';
 import { getAllScenarios, applyScenarioTemplate } from '../core/scenario/store';
 import { getChatEnabled } from '../core/chat/store';
@@ -418,11 +418,14 @@ async function openSidePanelAndSendText(text: string, tab?: chrome.tabs.Tab) {
 
 async function ensureShellMcpPreset() {
   const servers = await getAllMcpServers();
+  const nativeHost = await getShellNativeHostName();
   const exists = servers.some((s) =>
-    s.displayName === SHELL_MCP_SERVER_NAME || s.transport.nativeHost === SHELL_MCP_NATIVE_HOST
+    s.displayName === SHELL_MCP_SERVER_NAME || s.transport.nativeHost === nativeHost
   );
   if (!exists) {
-    await createMcpServer(createShellMcpPresetInput({ enabled: false }));
+    // B-13 fix: pass the user-configured native host name so unpacked
+    // builds don't end up registering under the Web Store's host name.
+    await createMcpServer(createShellMcpPresetInput({ enabled: false, nativeHost }));
   }
 }
 
@@ -677,6 +680,24 @@ async function handleMessage(
       return server;
     }
 
+    // B-05 fix: re-execute a previously-gated high-risk MCP tool call after
+    // the user has approved it in the sidepanel. The runtime guard in
+    // core/mcp/discovery.ts only lets the call through when
+    // call.confirmed is true.
+    case 'CONFIRM_MCP_TOOL_CALL': {
+      const { call, source } = (message.payload ?? {}) as {
+        call: ToolCall;
+        source?: ToolExecutionTrigger;
+      };
+      if (!call || !call.name) {
+        return { ok: false, error: { code: 'invalid_call', message: 'call is required', retryable: false } };
+      }
+      return executeBackgroundRuntimeToolCall(
+        { ...call, confirmed: true },
+        source ?? 'sidepanel_chat',
+      );
+    }
+
     case 'UPDATE_MCP_SERVER': {
       const { id, patch } = message.payload as { id: string; patch: McpServerUpdateInput };
       const server = await updateMcpServer(id, patch);
@@ -704,6 +725,40 @@ async function handleMessage(
       await broadcastMcpServersUpdate(sender.tab?.id);
       await broadcastToolDescriptorsUpdate(sender.tab?.id);
       return cache;
+    }
+
+    // B-08: 在系统文件管理器里定位一个刚下下来的 ref_file 附件。
+    // chrome.downloads.show 仅 Windows / macOS 可用，Linux 上返回 supported=false。
+    case 'REVEAL_DOWNLOAD': {
+      const { downloadId } = (message.payload ?? {}) as { downloadId?: unknown };
+      if (typeof downloadId !== 'number' || !Number.isFinite(downloadId) || downloadId < 0) {
+        return { ok: false, supported: true, error: 'invalid_download_id' };
+      }
+      if (typeof chrome.downloads?.show !== 'function') {
+        return { ok: false, supported: false, error: 'unsupported_platform' };
+      }
+      try {
+        await new Promise<void>((resolve, reject) => {
+          (chrome.downloads.show as (id: number) => void)(downloadId);
+          // 不同 Chrome 版本的 chrome.downloads.show 回调签名不一致；
+          // 不传 callback，而是轮询 runtime.lastError 即可拿到错误。
+          queueMicrotask(() => {
+            const last = chrome.runtime.lastError;
+            if (last) {
+              reject(new Error(last.message ?? 'chrome.downloads.show failed'));
+              return;
+            }
+            resolve();
+          });
+        });
+        return { ok: true, supported: true };
+      } catch (error) {
+        return {
+          ok: false,
+          supported: true,
+          error: error instanceof Error ? error.message : 'reveal_failed',
+        };
+      }
     }
 
     case 'REQUEST_MCP_SERVER_PERMISSION': {

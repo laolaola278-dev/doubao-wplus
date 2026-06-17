@@ -43,6 +43,9 @@ export interface PlatformDownload {
     mimeType: string;
     content: string;
   }): Promise<void>;
+  // 在系统文件管理器里定位一个已下载的文件（chrome.downloads.show）。
+  // 在不支持的浏览器上可以返回 false 让 UI 退化成只显示路径。
+  show?(downloadId: number): Promise<boolean>;
 }
 
 export interface PlatformFilePicker {

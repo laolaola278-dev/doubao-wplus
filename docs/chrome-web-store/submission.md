@@ -143,6 +143,12 @@ Lists browser tabs and lets the user choose which tab Browser Control should ope
 Provides the extension's management UI in Chrome's side panel for memories, skills, presets, MCP tools, automation, sync, and settings.
 ```
 
+#### `downloads`
+
+```text
+Writes files through the browser's local download flow for conversation exports, generated artifacts, and side-panel downloads. Also backs the `download_attached_file` tool, which copies a DeepSeek chat attachment (referenced as `ref_file_id` in the chat payload) into the user's `Downloads/deepseek-pp/` directory so it can be handed to local CLIs such as `officecli`. Files are written only when the model (and ultimately the user) requests the download; the extension does not read or modify downloaded files afterwards.
+```
+
 #### Host permission: `*://chat.deepseek.com/*`
 
 ```text

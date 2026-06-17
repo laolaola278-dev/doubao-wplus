@@ -85,6 +85,10 @@ export interface ToolCall {
   parseError?: ToolError;
   source?: ToolCallSource;
   createdAt?: number;
+  // B-05 fix: set to true when the user has approved a high-risk tool call
+  // (e.g. shell_exec under `mode: 'manual'`) via the confirmation prompt.
+  // The runtime guard checks this flag and lets the call through.
+  confirmed?: boolean;
 }
 
 export interface ToolError {
@@ -108,6 +112,14 @@ export interface ToolResult {
   completedAt?: number;
   durationMs?: number;
   truncated?: boolean;
+  // B-05 fix: when set, the tool was *not* executed; the UI must show a
+  // confirmation prompt and call back into the runtime with this token to
+  // actually run it. Used for high-risk tools (shell_exec, python_exec) on
+  // servers configured with `execution.mode === 'manual'`.
+  requiresConfirmation?: boolean;
+  confirmationToken?: string;
+  riskLevel?: ToolRiskLevel;
+  executionMode?: ToolExecutionMode;
 }
 
 export interface ToolExecutionContext {

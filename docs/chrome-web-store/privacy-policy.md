@@ -77,6 +77,7 @@ DeepSeek++ requests these Chrome permissions for the following purposes:
 - `debugger`: attach to a user-selected browser tab only when Browser Control is enabled, so DeepSeek++ can read an Accessibility Tree snapshot and perform user-visible browser actions requested through `browser_*` tools.
 - `tabs`: list browser tabs and select the target tab for Browser Control. Tab group names may be shown when the browser exposes them without an additional required permission.
 - `sidePanel`: provide the extension management UI in Chrome's side panel.
+- `downloads`: write files (conversation exports, artifacts, side-panel downloads, and the `download_attached_file` tool that pulls DeepSeek chat attachments into the user's local `Downloads/deepseek-pp/` directory) through the browser's local download flow, so the user can hand them to local CLIs such as `officecli`.
 - `*://chat.deepseek.com/*`: run on the DeepSeek web app so the extension can apply user-selected context, render tool results, export user-requested conversation history, support local downloads, and support automation inside DeepSeek conversations.
 - `https://api.deepseek.com/*`: send side-panel chat requests to the official DeepSeek API when the user configures an API Key.
 - Optional `http://*/*` and `https://*/*` host permissions: connect to user-configured WebDAV or MCP endpoints. These permissions are requested for specific origins when needed.
@@ -212,6 +213,7 @@ DeepSeek++ 请求以下 Chrome 权限：
 - `debugger`：仅在用户启用浏览器控制后附着到用户选择的浏览器标签页，用于读取 Accessibility Tree 快照并执行用户可见的 `browser_*` 工具动作。
 - `tabs`：列出浏览器标签页并选择浏览器控制的目标标签页；如果浏览器无需额外必需权限即可提供标签组名称，界面可能显示该信息帮助用户识别目标标签页。
 - `sidePanel`：在 Chrome 侧边栏中提供扩展管理界面。
+- `downloads`：通过浏览器本地下载流程写入文件（对话导出、产物、侧边栏下载，以及 `download_attached_file` 工具把 DeepSeek 对话里的附件拉到用户本地 `Downloads/deepseek-pp/` 目录），方便用户交给 `officecli` 等本地 CLI 工具处理。
 - `*://chat.deepseek.com/*`：在 DeepSeek 网页版中运行，用于应用用户选择的上下文、展示工具结果、导出用户主动请求的对话历史、支持本地下载，并支持 DeepSeek 对话内的自动化。
 - `https://api.deepseek.com/*`：当用户配置 API Key 时，将侧边栏对话请求发送到 DeepSeek 官方 API。
 - 可选的 `http://*/*` 和 `https://*/*` 主机权限：连接用户配置的 WebDAV 或 MCP 端点。扩展只会在需要时针对具体来源请求权限。

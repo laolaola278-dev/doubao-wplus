@@ -65,7 +65,14 @@ export function augmentRequestBody(
     ? null
     : promptSettings.forceResponseLanguage;
 
-  if (state.modelType) {
+  // B-01 fix: respect the user's manual choice and skip injection when files are attached.
+  // DeepSeek's R1 (expert mode) renders file attachments unreliably — when the
+  // user uploads a file in the page UI we must not force the page into "深度思考"
+  // mode. Likewise, if the user already picked a model in the web UI, the
+  // extension should not override it.
+  const hasUserFileAttachments = Array.isArray(body.ref_file_ids) && (body.ref_file_ids as unknown[]).length > 0;
+  const userSelectedModel = typeof body.model_type === 'string' && body.model_type.length > 0;
+  if (state.modelType && !hasUserFileAttachments && !userSelectedModel) {
     body.model_type = state.modelType;
   }
 

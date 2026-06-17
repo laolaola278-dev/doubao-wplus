@@ -87,13 +87,20 @@ export async function runInlineAgentLoop(
 
       post('AGENT_STEP_STARTED', { loopId, stepIndex: step });
 
+      // B-04 fix: never inherit `modelType`/`thinkingEnabled` from the
+      // original user request for agent continuations. If the user picked
+      // R1 (expert mode) for their first turn, every continuation turn
+      // would otherwise also run on R1 — which inflates latency, burns
+      // PoW budget, and pollutes the page UI into "深度思考" mode for the
+      // entire tool loop. Continuations are tool-result processing; they
+      // don't need expert thinking.
       const input: SubmitPromptInput = {
         chatSessionId,
         parentMessageId,
-        modelType: promptOptions.modelType,
+        modelType: null,
         prompt,
         refFileIds: promptOptions.refFileIds,
-        thinkingEnabled: promptOptions.thinkingEnabled,
+        thinkingEnabled: false,
         searchEnabled: promptOptions.searchEnabled,
         clientHeaders,
         powHeaders,
@@ -277,13 +284,16 @@ export async function runInlineAgentLoop(
 
         const powHeaders = await createPowHeaders(clientHeaders, powWasmUrl);
         const finalizationPrompt = buildFinalizationPrompt(payload.originalPrompt, allExecutions, locale);
+        // B-04 fix: see the comment above — finalization is also a
+        // tool-result summary step, so it must stay on the default model
+        // even if the user originally picked expert mode.
         const finalInput: SubmitPromptInput = {
           chatSessionId,
           parentMessageId,
-          modelType: promptOptions.modelType,
+          modelType: null,
           prompt: finalizationPrompt,
           refFileIds: promptOptions.refFileIds,
-          thinkingEnabled: promptOptions.thinkingEnabled,
+          thinkingEnabled: false,
           searchEnabled: promptOptions.searchEnabled,
           clientHeaders,
           powHeaders,

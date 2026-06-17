@@ -15,6 +15,11 @@ import type { BackgroundConfig, Memory, PetConfig, PetPosition, SyncConfig, Sync
 import { SVG_PATHS } from '../constants';
 import { getChatEnabled, setChatEnabled } from '../../../core/chat/store';
 import { validateImportedMemory } from '../../../core/sync/schema';
+import {
+  SHELL_MCP_NATIVE_HOST as DEFAULT_SHELL_NATIVE_HOST,
+  getShellNativeHostName,
+  setShellNativeHostName,
+} from '../../../core/shell';
 import PageIntro from '../components/PageIntro';
 import PromptControlPanel from '../components/PromptControlPanel';
 import ScenarioManager from '../components/ScenarioManager';
@@ -67,6 +72,13 @@ export default function SettingsPage() {
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [apiKeyStatus, setApiKeyStatus] = useState<'idle' | 'saving' | 'clearing' | 'success' | 'error'>('idle');
   const [apiKeyMessage, setApiKeyMessage] = useState('');
+  // B-14 fix: surface the native host name and current extension ID in the
+  // Settings page so unpacked builds can re-install the shell host against
+  // their own ID without reading the README.
+  const [shellHostName, setShellHostName] = useState(DEFAULT_SHELL_NATIVE_HOST);
+  const [shellHostInput, setShellHostInput] = useState(DEFAULT_SHELL_NATIVE_HOST);
+  const [extensionId, setExtensionId] = useState<string>('');
+  const [shellHostMessage, setShellHostMessage] = useState<'' | 'saved' | 'cleared' | 'error'>('');
 
   useEffect(() => {
     getChatEnabled().then(setChatEnabledState);
@@ -75,6 +87,17 @@ export default function SettingsPage() {
         setApiKeyConfigured(result?.configured === true);
       })
       .catch(() => setApiKeyConfigured(false));
+    // B-14: also load the configured shell host name and current extension ID
+    // so the install card can show a copy-pasteable command.
+    void getShellNativeHostName().then((name) => {
+      setShellHostName(name);
+      setShellHostInput(name);
+    });
+    try {
+      setExtensionId(chrome.runtime?.id ?? '');
+    } catch {
+      setExtensionId('');
+    }
   }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -713,6 +736,96 @@ export default function SettingsPage() {
                 }}
               />
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* B-14 fix: surface the native host name and a copy-pasteable install
+          command so unpacked builds can re-install the shell host without
+          reading the README. */}
+      <section className="space-y-3">
+        <h2 className="text-[13px] font-medium" style={{ color: 'var(--ds-text)' }}>
+          {t('sidepanel.settings.shellHostSection')}
+        </h2>
+        <div className="ds-surface-panel rounded-xl p-4 space-y-3 text-[11px]" style={{ color: 'var(--ds-text-secondary)' }}>
+          <div>
+            <div className="text-[11px]" style={{ color: 'var(--ds-text-tertiary)' }}>
+              {t('sidepanel.settings.extensionId')}
+            </div>
+            <div
+              className="font-mono mt-1 px-2 py-1 rounded text-[11px] select-all"
+              style={{ background: 'var(--ds-surface)', color: 'var(--ds-text)' }}
+            >
+              {extensionId || '—'}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[11px]" style={{ color: 'var(--ds-text-tertiary)' }}>
+              {t('sidepanel.settings.shellHostName')}
+            </div>
+            <div className="flex gap-2 mt-1">
+              <input
+                value={shellHostInput}
+                onChange={(e) => setShellHostInput(e.target.value)}
+                placeholder={DEFAULT_SHELL_NATIVE_HOST}
+                className={inputClass}
+                style={inputStyle}
+              />
+              <button
+                onClick={async () => {
+                  try {
+                    await setShellNativeHostName(shellHostInput);
+                    const next = await getShellNativeHostName();
+                    setShellHostName(next);
+                    setShellHostInput(next);
+                    setShellHostMessage(shellHostInput.trim() === '' || shellHostInput.trim() === DEFAULT_SHELL_NATIVE_HOST
+                      ? 'cleared'
+                      : 'saved');
+                  } catch {
+                    setShellHostMessage('error');
+                  }
+                }}
+                className="ds-btn-secondary shrink-0 px-3 py-2 text-[11px] font-medium rounded-lg"
+              >
+                {t('common.save')}
+              </button>
+            </div>
+            <div className="text-[10px] mt-1" style={{ color: 'var(--ds-text-tertiary)' }}>
+              {t('sidepanel.settings.shellHostNameHint')}
+            </div>
+            {shellHostMessage && (
+              <div
+                className="text-[11px] mt-1"
+                style={{
+                  color: shellHostMessage === 'error' ? 'var(--ds-danger)' : 'var(--ds-success)',
+                }}
+              >
+                {shellHostMessage === 'saved'
+                  ? t('sidepanel.settings.shellHostSaved')
+                  : shellHostMessage === 'cleared'
+                    ? t('sidepanel.settings.shellHostCleared')
+                    : t('sidepanel.settings.shellHostError')}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="text-[11px]" style={{ color: 'var(--ds-text-tertiary)' }}>
+              {t('sidepanel.settings.shellHostInstallCommand')}
+            </div>
+            <pre
+              className="font-mono mt-1 px-3 py-2 rounded text-[10.5px] whitespace-pre-wrap break-all"
+              style={{ background: 'var(--ds-surface)', color: 'var(--ds-text)' }}
+            >
+{`npx deepseek-pp-shell-host install \\
+  --browser chrome \\
+  --extension-id ${extensionId || '<your-extension-id>'} \\
+  --host-name ${shellHostName}`}
+            </pre>
+            <div className="text-[10px] mt-1" style={{ color: 'var(--ds-text-tertiary)' }}>
+              {t('sidepanel.settings.shellHostInstallHint')}
+            </div>
           </div>
         </div>
       </section>

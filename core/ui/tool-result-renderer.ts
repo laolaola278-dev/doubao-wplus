@@ -31,6 +31,7 @@ export function registerDefaultToolResultRenderers(): void {
   registerToolResultRenderer(renderArtifactResult);
   registerToolResultRenderer(renderSkillDraftResult);
   registerToolResultRenderer(renderMemoryImportPreviewResult);
+  registerToolResultRenderer(renderDownloadAttachedFileResult);
 }
 
 function renderSkillDraftResult(input: {
@@ -428,6 +429,127 @@ function getMemoryImportPreviewOutput(value: unknown): { kind: 'memory_import_pr
   return value as { kind: 'memory_import_preview'; memories: Array<{ name: string }>; duplicates: number; rejected: number };
 }
 
+function renderDownloadAttachedFileResult(input: {
+  target: HTMLElement;
+  result: ToolCardResult;
+  sendMessage: <T = unknown>(message: unknown) => Promise<T | undefined>;
+}): boolean {
+  // B-08: 给 `download_attached_file` 的成功结果加上"打开文件夹 / 复制路径"按钮，
+  // 让用户在网页对话里就能直接定位刚拉下来的附件。
+  if (!input.result.ok) return false;
+  const output = input.result.output;
+  if (!isDownloadAttachedFileOutput(output)) return false;
+
+  const wrapper = createResultPanel('dpp-download-attached-file-result');
+  const meta = document.createElement('div');
+  meta.className = 'dpp-result-meta';
+  meta.textContent = `📁 ${output.fileName} · ${formatBytes(output.sizeBytes)}`;
+
+  const pathLine = document.createElement('div');
+  pathLine.className = 'dpp-result-text dpp-download-attached-file-path';
+  pathLine.textContent = output.localPath;
+
+  const actions = document.createElement('div');
+  actions.className = 'dpp-artifact-actions';
+
+  const copyButton = createSmallButton('📋 复制路径');
+  copyButton.addEventListener('click', () => {
+    void copyTextToClipboard(output.localPath, copyButton);
+  });
+  actions.appendChild(copyButton);
+
+  if (typeof output.downloadId === 'number' && output.downloadId >= 0) {
+    const revealButton = createSmallButton('📂 打开文件夹');
+    revealButton.addEventListener('click', () => {
+      void revealDownload(output.downloadId as number, input.sendMessage, revealButton);
+    });
+    actions.appendChild(revealButton);
+  }
+
+  wrapper.append(meta, pathLine, actions);
+  input.target.appendChild(wrapper);
+  ensureResultStyles();
+  return true;
+}
+
+interface DownloadAttachedFileOutput {
+  localPath: string;
+  fileName: string;
+  sizeBytes: number;
+  mimeType: string | null;
+  fileId: string;
+  downloadId?: number | null;
+}
+
+function isDownloadAttachedFileOutput(value: unknown): value is DownloadAttachedFileOutput {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const candidate = value as Record<string, unknown>;
+  return typeof candidate.localPath === 'string'
+    && typeof candidate.fileName === 'string'
+    && typeof candidate.sizeBytes === 'number'
+    && typeof candidate.fileId === 'string'
+    && candidate.localPath.length > 0;
+}
+
+async function copyTextToClipboard(text: string, button: HTMLButtonElement): Promise<void> {
+  button.disabled = true;
+  const previous = button.textContent;
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else if (typeof document !== 'undefined') {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    } else {
+      throw new Error('clipboard_unavailable');
+    }
+    button.textContent = '✅ 已复制';
+  } catch {
+    button.textContent = '❌ 复制失败';
+  } finally {
+    setTimeout(() => {
+      button.disabled = false;
+      button.textContent = previous;
+    }, 2000);
+  }
+}
+
+async function revealDownload(
+  downloadId: number,
+  sendMessage: <T = unknown>(message: unknown) => Promise<T | undefined>,
+  button: HTMLButtonElement,
+): Promise<void> {
+  button.disabled = true;
+  const previous = button.textContent;
+  button.textContent = '⏳ 打开中…';
+  try {
+    const result = await sendMessage<{ ok?: boolean; supported?: boolean; error?: string }>({
+      type: 'REVEAL_DOWNLOAD',
+      payload: { downloadId },
+    });
+    if (result?.ok === false && result?.supported === false) {
+      button.textContent = '❌ 当前浏览器不支持';
+    } else if (result?.ok === false) {
+      button.textContent = `❌ ${result.error ?? '打开失败'}`;
+    } else {
+      button.textContent = '✅ 已打开';
+    }
+  } catch (error) {
+    button.textContent = error instanceof Error ? `❌ ${error.message}` : '❌ 打开失败';
+  } finally {
+    setTimeout(() => {
+      button.disabled = false;
+      button.textContent = previous;
+    }, 2000);
+  }
+}
+
 function createResultPanel(className: string): HTMLDivElement {
   const wrapper = document.createElement('div');
   wrapper.className = `dpp-rich-result ${className}`;
@@ -506,6 +628,16 @@ function ensureResultStyles(): void {
   white-space: pre-wrap;
   font-size: 12px;
   color: var(--dpp-ui-text-muted);
+}
+.dpp-download-attached-file-path {
+  font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
+  font-size: 11px;
+  word-break: break-all;
+  user-select: all;
+  margin-top: 4px;
+}
+.dpp-download-attached-file-result {
+  display: block;
 }
 .dpp-artifact-preview-panel {
   position: fixed;

@@ -204,6 +204,68 @@ describe('augmentRequestBody', () => {
     expect(body.prompt).toContain('[project reference] Project memory');
     expect(body.prompt).not.toContain('Do not include me.');
   });
+
+  // B-01 regression: do not force expert mode when the user uploaded files.
+  it('does not override model_type when ref_file_ids is non-empty (file upload scenario)', () => {
+    const result = augmentRequestBody(JSON.stringify({
+      prompt: 'analyze the uploaded report',
+      parent_message_id: null,
+      thinking_enabled: false,
+      ref_file_ids: ['file_abc123'],
+    }), {
+      memories: [],
+      skills: [],
+      activePreset: null,
+      modelType: 'expert', // 扩展里勾了专家模式
+      toolDescriptors: DEFAULT_TOOL_DESCRIPTORS,
+      messageCount: 0,
+      locale: 'en',
+    });
+
+    const body = JSON.parse(result?.body ?? '{}') as { model_type?: string };
+    expect(body.model_type).toBeUndefined();
+  });
+
+  // B-01 regression: do not override model_type when the user already picked a model in the page UI.
+  it('does not override model_type when the user already chose a model in the web UI', () => {
+    const result = augmentRequestBody(JSON.stringify({
+      prompt: 'continue conversation',
+      parent_message_id: 123,
+      thinking_enabled: false,
+      model_type: 'chat', // 用户在网页手动选了 chat
+    }), {
+      memories: [],
+      skills: [],
+      activePreset: null,
+      modelType: 'expert', // 扩展里勾了专家模式
+      toolDescriptors: DEFAULT_TOOL_DESCRIPTORS,
+      messageCount: 5,
+      locale: 'en',
+    });
+
+    const body = JSON.parse(result?.body ?? '{}') as { model_type?: string };
+    expect(body.model_type).toBe('chat');
+  });
+
+  // B-01 positive: still apply expert mode when no files and no user pick.
+  it('still applies expert mode when no files are attached and user has no model pick', () => {
+    const result = augmentRequestBody(JSON.stringify({
+      prompt: 'plain text question',
+      parent_message_id: null,
+      thinking_enabled: false,
+    }), {
+      memories: [],
+      skills: [],
+      activePreset: null,
+      modelType: 'expert',
+      toolDescriptors: DEFAULT_TOOL_DESCRIPTORS,
+      messageCount: 0,
+      locale: 'en',
+    });
+
+    const body = JSON.parse(result?.body ?? '{}') as { model_type?: string };
+    expect(body.model_type).toBe('expert');
+  });
 });
 
 function memory(

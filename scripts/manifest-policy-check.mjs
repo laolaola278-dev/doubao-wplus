@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = resolve(new URL('..', import.meta.url).pathname);
+const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const failures = [];
 const packageJson = readJson('package.json');
 
@@ -10,12 +11,12 @@ const targets = [
   {
     browser: 'chrome',
     manifestPath: 'dist/chrome-mv3/manifest.json',
-    permissions: ['storage', 'alarms', 'nativeMessaging', 'contextMenus', 'offscreen', 'debugger', 'tabs', 'sidePanel'],
+    permissions: ['storage', 'alarms', 'nativeMessaging', 'contextMenus', 'offscreen', 'debugger', 'tabs', 'sidePanel', 'downloads'],
   },
   {
     browser: 'edge',
     manifestPath: 'dist/edge-mv3/manifest.json',
-    permissions: ['storage', 'alarms', 'nativeMessaging', 'contextMenus', 'offscreen', 'debugger', 'tabs', 'sidePanel'],
+    permissions: ['storage', 'alarms', 'nativeMessaging', 'contextMenus', 'offscreen', 'debugger', 'tabs', 'sidePanel', 'downloads'],
   },
   {
     browser: 'firefox',
@@ -83,6 +84,7 @@ const background = readText('entrypoints/background.ts');
 const nativeTransport = readText('core/mcp/transports/native.ts');
 const browserControlConnection = readText('core/browser-control/cdp.ts');
 const browserControlService = readText('core/browser-control/service.ts');
+const platformBrowser = readText('core/platform/browser.ts');
 const wxtConfig = readText('wxt.config.ts');
 const privacyPolicy = readText('docs/chrome-web-store/privacy-policy.md');
 const submission = readText('docs/chrome-web-store/submission.md');
@@ -97,6 +99,10 @@ assertIncludes(background, 'chrome.sidePanel', 'sidePanel permission must use th
 assertIncludes(browserControlConnection, 'chromeApi.debugger', 'debugger permission must use the debugger API');
 assertIncludes(browserControlService, 'chromeApi.tabs', 'tabs permission must use the tabs API');
 assertIncludes(browserControlService, 'chromeApi.tabGroups', 'tabGroups API must be optional browser-control metadata');
+// B-08: `downloads` permission backs the `download_attached_file` tool, which calls
+// `chrome.downloads.download` from `core/platform/browser.ts` (and from the new
+// `core/shell/attached-file-downloader.ts` short-circuit path). Manifest must declare it.
+assertIncludes(platformBrowser, 'chrome.downloads.download', 'downloads permission must use chrome.downloads.download');
 assertIncludes(wxtConfig, 'web_accessible_resources', 'web accessible resources must be declared in manifest config');
 assertIncludes(wxtConfig, "default_locale: 'en'", 'manifest config must declare default locale');
 assertIncludes(wxtConfig, '__MSG_extension_name__', 'manifest config must use localized name');
@@ -104,7 +110,7 @@ assertIncludes(wxtConfig, '__MSG_extension_description__', 'manifest config must
 assertIncludes(wxtConfig, '__MSG_extension_action_title__', 'manifest config must use localized action title');
 assertIncludes(wxtConfig, 'pyodideAssetsPlugin', 'manifest build must bundle Pyodide assets for browser Python sandbox');
 
-for (const permission of ['storage', 'alarms', 'contextMenus', 'nativeMessaging', 'offscreen', 'debugger', 'tabs', 'sidePanel']) {
+for (const permission of ['storage', 'alarms', 'contextMenus', 'nativeMessaging', 'offscreen', 'debugger', 'tabs', 'sidePanel', 'downloads']) {
   assertIncludes(privacyPolicy, `\`${permission}\``, `privacy policy must document ${permission}`);
   assertIncludes(submission, `#### \`${permission}\``, `Chrome Web Store submission notes must justify ${permission}`);
 }

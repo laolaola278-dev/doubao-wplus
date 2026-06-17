@@ -208,6 +208,66 @@ describe('tool result renderer registry', () => {
     expect(document.body.classList.contains('dpp-artifact-preview-panel-open')).toBe(false);
   });
 
+  // B-08: download_attached_file 渲染器要展示 localPath 并提供"打开文件夹 / 复制路径"按钮。
+  it('renders the download_attached_file result with a localPath card and reveal/copy actions', () => {
+    registerDefaultToolResultRenderers();
+    const target = document.createElement('div');
+    const sendMessage = vi.fn().mockResolvedValue({ ok: true, supported: true });
+    const result: ToolCardResult = {
+      ok: true,
+      summary: '已下载到本机',
+      output: {
+        localPath: 'C:\\Users\\me\\Downloads\\deepseek-pp\\report.docx',
+        fileName: 'report.docx',
+        sizeBytes: 12345,
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        fileId: 'file_abc',
+        downloadId: 42,
+      },
+    };
+
+    const rendered = renderToolResultWithRegistry({ target, result, sendMessage });
+    expect(rendered).toBe(true);
+    expect(target.querySelector('.dpp-download-attached-file-result')).not.toBeNull();
+    expect(target.textContent).toContain('report.docx');
+    expect(target.textContent).toContain('12.1 KB');
+    expect(target.textContent).toContain('C:\\Users\\me\\Downloads\\deepseek-pp\\report.docx');
+    const buttons = Array.from(target.querySelectorAll('button'));
+    const copyButton = buttons.find((btn) => btn.textContent?.includes('复制路径'));
+    const revealButton = buttons.find((btn) => btn.textContent?.includes('打开文件夹'));
+    expect(copyButton).toBeDefined();
+    expect(revealButton).toBeDefined();
+
+    void revealButton?.click();
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'REVEAL_DOWNLOAD',
+      payload: { downloadId: 42 },
+    });
+  });
+
+  it('hides the reveal button when downloadId is missing', () => {
+    registerDefaultToolResultRenderers();
+    const target = document.createElement('div');
+    const result: ToolCardResult = {
+      ok: true,
+      summary: '已下载到本机',
+      output: {
+        localPath: '/tmp/deepseek-pp/a.bin',
+        fileName: 'a.bin',
+        sizeBytes: 7,
+        mimeType: 'application/octet-stream',
+        fileId: 'file_a',
+        downloadId: null,
+      },
+    };
+
+    const rendered = renderToolResultWithRegistry({ target, result, sendMessage: vi.fn() });
+    expect(rendered).toBe(true);
+    const buttons = Array.from(target.querySelectorAll('button'));
+    expect(buttons.some((btn) => btn.textContent?.includes('打开文件夹'))).toBe(false);
+    expect(buttons.some((btn) => btn.textContent?.includes('复制路径'))).toBe(true);
+  });
+
   it('runs Python artifacts through the artifact code runner', async () => {
     registerDefaultToolResultRenderers();
     const target = document.createElement('div');

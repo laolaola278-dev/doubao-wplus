@@ -22,7 +22,12 @@ const CHAT_STREAM_PATHS = [COMPLETION_PATH, REGENERATE_PATH];
 const HISTORY_PATH = '/api/v0/chat/history_messages';
 const BYPASS_HOOK_HEADER = 'X-DPP-Bypass-Hook';
 const TOKEN_SPEED_EMIT_INTERVAL_MS = 250;
-const INITIAL_HOOK_STATE_WAIT_MS = 1_500;
+// B-07 fix: the original 1.5s was too short for slow first paints on the
+// DeepSeek web app — by the time the content script's hook state pushed
+// across, the user's first request had already been let through without any
+// augmentation. Bump to 5s and also requeue once instead of dropping the
+// request entirely.
+const INITIAL_HOOK_STATE_WAIT_MS = 5_000;
 const DEFAULT_APP_VERSION = '2.0.0';
 const DEEPSEEK_CLIENT_PLATFORM = 'web';
 const RESPONSE_TOOL_FALLBACK_PARSE_MAX_CHARS = 120_000;
@@ -233,15 +238,40 @@ function markInitialHookStateReady() {
 async function waitForInitialHookState(): Promise<void> {
   if (initialHookStateWaitComplete) return;
 
+  // First wait: prefer the real ready signal, fall back to timeout.
+  await waitOnce(INITIAL_HOOK_STATE_WAIT_MS);
+
+  if (initialHookStateReadyResolved) {
+    initialHookStateWaitComplete = true;
+    return;
+  }
+
+  // B-07 fix: timed out once. Log it loudly so this never silently drops
+  // a request, then try one more time before giving up.
+  if (typeof console !== 'undefined' && console.warn) {
+    console.warn(
+      `[DPP] initial hook state not ready within ${INITIAL_HOOK_STATE_WAIT_MS}ms; retrying once.`,
+    );
+  }
+  await waitOnce(INITIAL_HOOK_STATE_WAIT_MS);
+
+  initialHookStateWaitComplete = true;
+  if (!initialHookStateReadyResolved && typeof console !== 'undefined' && console.warn) {
+    console.warn(
+      '[DPP] initial hook state still not ready after retry; this request will fall through without augmentation.',
+    );
+  }
+}
+
+async function waitOnce(timeoutMs: number): Promise<void> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   await Promise.race([
     initialHookStateReady,
     new Promise<void>((resolve) => {
-      timeoutId = setTimeout(resolve, INITIAL_HOOK_STATE_WAIT_MS);
+      timeoutId = setTimeout(resolve, timeoutMs);
     }),
   ]);
   if (timeoutId) clearTimeout(timeoutId);
-  initialHookStateWaitComplete = true;
 }
 
 function createRequestContext(bodyStr: string, overrides: RequestContextOverrides = {}): RequestContext {

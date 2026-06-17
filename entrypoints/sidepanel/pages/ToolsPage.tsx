@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { SHELL_MCP_NATIVE_HOST, SHELL_MCP_SERVER_NAME, createShellMcpPresetInput } from '../../../core/shell';
+import {
+  SHELL_MCP_NATIVE_HOST,
+  SHELL_MCP_SERVER_NAME,
+  createShellMcpPresetInput,
+  getShellNativeHostName,
+} from '../../../core/shell';
 import { isShellNativeHostSupported } from '../../../core/platform';
 import type { LocaleMessageKey } from '../../../core/i18n';
 import type { McpServerConfig, McpToolAllowlist, McpToolCacheEntry, PlatformEnvironment, ToolDescriptor } from '../../../core/types';
@@ -293,7 +298,10 @@ export default function ToolsPage() {
       }
       await chrome.runtime.sendMessage({
         type: 'CREATE_MCP_SERVER',
-        payload: createShellMcpPresetInput(),
+        // B-13 fix: respect the user-configured native host name (so
+        // unpacked builds can use a different host name from the Web
+        // Store build's `com.deepseek_pp.shell`).
+        payload: createShellMcpPresetInput({ nativeHost: await getShellNativeHostName() }),
       });
       setPythonMessage(t('sidepanel.toolsPage.shellCreated'));
       await loadPythonTool();

@@ -3,6 +3,7 @@ import {
   SHELL_MCP_NATIVE_HOST,
   SHELL_MCP_SERVER_NAME,
   createShellMcpPresetInput,
+  getShellNativeHostName,
 } from '../../../core/shell';
 import {
   getSupportedMcpTransportKinds,
@@ -196,7 +197,8 @@ export default function McpPage() {
 
     const server: McpServerConfig | null = await chrome.runtime.sendMessage({
       type: 'CREATE_MCP_SERVER',
-      payload: createShellMcpPresetInput(),
+      // B-13 fix: see ToolsPage.tsx.
+      payload: createShellMcpPresetInput({ nativeHost: await getShellNativeHostName() }),
     });
     if (!server) {
       setMessage(t('sidepanel.mcpPage.messages.shellCreateFailed'));

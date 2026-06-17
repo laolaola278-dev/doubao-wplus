@@ -69,6 +69,7 @@ const MAX_LOCAL_RESOURCE_FILES_PER_SKILL = 16;
 const MAX_LOCAL_RESOURCE_BYTES_PER_SKILL = 100_000;
 const MAX_LOCAL_RESOURCE_FILE_BYTES = 40_000;
 const MAX_LOCAL_TOTAL_CONTENT_BYTES = 420_000;
+const MAX_READ_LOCAL_FILE_BYTES = 16 * 1024 * 1024; // 16 MB；与扩展侧 upload 上限（64 MB）保持安全差
 const LOCAL_TEXT_RESOURCE_EXTENSIONS = new Set(['.md', '.txt', '.yaml', '.yml', '.json', '.tex']);
 const LOCAL_SCRIPT_EXTENSIONS = new Set(['.py', '.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx', '.sh', '.bash', '.zsh', '.ps1', '.rb', '.pl', '.php', '.lua', '.r']);
 const DEFAULT_SHELL = platform() === 'win32' ? 'powershell.exe' : process.env.SHELL || '/bin/sh';
@@ -158,6 +159,33 @@ const TOOL_DEFINITIONS = [
       additionalProperties: false,
     },
     annotations: { operation: 'read', risk: 'low' },
+  },
+  {
+    // B-08 输出回路的桥接工具：扩展需要把本机文件上传到 chat.deepseek.com
+    // 但浏览器侧没有 file:// 权限。Native host 跑在用户机器上、有 fs 访问，
+    // 由它读取文件内容（base64 编码）并回给扩展，扩展再走 fetch 上传。
+    // 风险 medium：用户必须显式提供 local_path；size 有上限防滥用。
+    name: 'read_local_file',
+    title: 'Read Local File',
+    description: '读取本机文件的原始字节（base64 编码），返回给调用方。常用于把 officecli 等工具生成的文档回传给浏览器侧的扩展，以便上传到 DeepSeek。',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        local_path: {
+          type: 'string',
+          description: '本机绝对路径。',
+        },
+        max_bytes: {
+          type: 'integer',
+          minimum: 1,
+          maximum: MAX_READ_LOCAL_FILE_BYTES,
+          description: '可选。允许读取的最大字节数；默认 ' + MAX_READ_LOCAL_FILE_BYTES + '。',
+        },
+      },
+      required: ['local_path'],
+      additionalProperties: false,
+    },
+    annotations: { operation: 'read', risk: 'medium' },
   },
 ];
 
@@ -337,6 +365,10 @@ async function handleCallTool(id, params) {
     return jsonRpcResult(id, createLocalFolderPickResult(args));
   }
 
+  if (name === 'read_local_file') {
+    return jsonRpcResult(id, createReadLocalFileResult(args));
+  }
+
   return jsonRpcError(id, -32602, `Unknown tool: ${name}`);
 }
 
@@ -371,6 +403,72 @@ function createLocalFolderPickResult(args) {
       content: [{ type: 'text', text: normalizeFolderPickerError(err) }],
     };
   }
+}
+
+// B-08: 读取本机文件并以 base64 返回，供 upload_attached_file 工具回填到浏览器侧。
+function createReadLocalFileResult(args) {
+  const localPath = typeof args?.local_path === 'string' ? args.local_path.trim() : '';
+  if (!localPath) {
+    return {
+      isError: true,
+      content: [{ type: 'text', text: 'local_path is required and must be a non-empty string.' }],
+    };
+  }
+  const resolved = resolveLocalPath(localPath);
+  let stat;
+  try {
+    stat = statSync(resolved);
+  } catch (err) {
+    return {
+      isError: true,
+      content: [{ type: 'text', text: `Cannot stat local file: ${resolved} (${err.message})` }],
+    };
+  }
+  if (!stat.isFile()) {
+    return {
+      isError: true,
+      content: [{ type: 'text', text: `Local path is not a regular file: ${resolved}` }],
+    };
+  }
+  const requestedMax = typeof args?.max_bytes === 'number' && args.max_bytes > 0
+    ? Math.min(Math.floor(args.max_bytes), MAX_READ_LOCAL_FILE_BYTES)
+    : MAX_READ_LOCAL_FILE_BYTES;
+  if (stat.size > requestedMax) {
+    return {
+      isError: true,
+      content: [{
+        type: 'text',
+        text: `Local file exceeds the ${requestedMax}-byte limit (size=${stat.size}): ${resolved}`,
+      }],
+    };
+  }
+  let bytes;
+  try {
+    bytes = readFileSync(resolved);
+  } catch (err) {
+    return {
+      isError: true,
+      content: [{ type: 'text', text: `Cannot read local file: ${resolved} (${err.message})` }],
+    };
+  }
+  const base64 = bytes.toString('base64');
+  return {
+    content: [{
+      type: 'text',
+      text: `Read local file ${resolved} (${bytes.byteLength} bytes)`,
+    }],
+    structuredContent: {
+      ok: true,
+      data: {
+        localPath: resolved,
+        fileName: basename(resolved),
+        sizeBytes: bytes.byteLength,
+        mimeType: null, // 由扩展侧按后缀推断
+        contentBase64: base64,
+        truncated: false,
+      },
+    },
+  };
 }
 
 function pickLocalFolder({ title, defaultPath }) {

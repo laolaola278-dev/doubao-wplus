@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = resolve(new URL('..', import.meta.url).pathname);
+// On Windows, `new URL('..', import.meta.url).pathname` produces a doubled
+// drive prefix (e.g. `D:\D:\...`). Use the canonical dirname/fileURLToPath
+// pair instead so the script works on every platform.
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const failures = [];
 const localePaths = {
   en: 'public/_locales/en/messages.json',

@@ -410,3 +410,66 @@ Example: a fundraising deck task → `officecli load_skill pitch-deck` → use t
 - **Excel exception**: for `add --type row` and `add --type col`, `--index N` is **1-based** (matches OOXML RowIndex / column letter index). `--index 5` inserts at row 5 / column 5.
 - After modifications, verify with `validate` and/or `view issues`
 - **When unsure**, run `officecli help <format> <element>` instead of guessing
+
+---
+
+## DeepSeek++ integration (B-03 + B-08)
+
+When this Skill is loaded inside DeepSeek++ (the browser extension), uploaded files reach the model as `ref_file_ids` (DeepSeek web UI uploads), **not** as local paths. The model cannot call `officecli` on a `ref_file_id` directly.
+
+**Required workflow for analysing a user-uploaded file:**
+
+1. The user uploads `report.docx` in the DeepSeek web UI. The extension sees `ref_file_ids: ['file_xxx']` on the request.
+2. **Call `download_attached_file` first** (Shell Local MCP server), passing the `ref_file_id`:
+   ```bash
+   <download_attached_file>{"file_id": "file_xxx"}</download_attached_file>
+   ```
+3. **B-08 implementation note**: `download_attached_file` is **not** a native host tool. It is executed by the extension itself (background service worker via `chrome.downloads.download`) because the native host runs outside the browser and cannot carry the user's `chat.deepseek.com` session cookie. The call will be short-circuited inside `core/mcp/discovery.ts` before the native host transport is even constructed.
+4. The downloader writes the file to the user's OS `Downloads` directory, under a `deepseek-pp/` subfolder, and returns:
+   ```json
+   {"ok": true, "localPath": "/Users/me/Downloads/deepseek-pp/report.docx", "fileName": "report.docx", "sizeBytes": 12345, "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
+   ```
+   - macOS / Linux: `~/Downloads/deepseek-pp/...`
+   - Windows: `C:\Users\<you>\Downloads\deepseek-pp\...`
+   - Filename is sanitized (Windows-forbidden characters and `..` traversal are replaced with `_`); the same name in `deepseek-pp/` is uniquified by `chrome.downloads` automatically.
+   - Safety cap: files larger than **64 MB** are refused (`dpp_file_too_large`). For larger files the user should download them manually and tell the model the local path.
+5. **Use the returned `localPath` with every subsequent `shell_exec` / `officecli` call**:
+   ```bash
+   <shell_exec>{"command": "officecli view '/Users/me/Downloads/deepseek-pp/report.docx' outline", "timeoutMs": 60000}</shell_exec>
+   ```
+
+**Do not** try to call `officecli` with the `ref_file_id` directly — it has no meaning to the local binary. **Do not** ask the user to re-pick the file; the extension already has their upload.
+
+If `download_attached_file` returns an error (`{"ok": false, "error": "..."}`), surface the message to the user; do not retry with a guessed local path.
+
+## Sending an output file back to the user (B-08 output回路)
+
+When you finish producing an output file (a summary `.docx`, a converted PDF, an extracted CSV, etc.) via `officecli` or `shell_exec`, the user needs the file to land in their chat on `chat.deepseek.com`. **Do not** ask the user to dig it out of the local Downloads directory. Use `upload_attached_file`:
+
+```bash
+<upload_attached_file>{"local_path": "/Users/me/Downloads/deepseek-pp/summary.docx"}</upload_attached_file>
+```
+
+The extension (B-08 implementation, same reasoning as `download_attached_file`) reads the local file, posts it as `multipart/form-data` to DeepSeek, and returns:
+
+```json
+{
+  "ok": true,
+  "refFileId": "file_xyz",
+  "fileName": "summary.docx",
+  "sizeBytes": 12345,
+  "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+}
+```
+
+Then **include the `refFileId` in your reply** (as a file reference, not just a path) so DeepSeek attaches it to the assistant message. The user sees the file in the chat and can download it from there.
+
+Optional `file_name` and `mime_type` arguments override the defaults; only set them if you really need to.
+
+**B-08 implementation note** (same as `download_attached_file`): `upload_attached_file` is **not** a native host tool. The native host runs outside the browser and cannot carry the user's `chat.deepseek.com` session cookie that the upload endpoint requires. The call short-circuits inside `core/mcp/discovery.ts` and is executed by the extension via `fetch(url, { credentials: 'include' })`.
+
+If `upload_attached_file` returns `dpp_upload_http_error` (especially 4xx), surface the error to the user — the endpoint may have moved or required additional auth. If it returns `dpp_file_too_large`, the file is over 64 MB; suggest the user compress it or upload manually.
+
+**Local prerequisites** (one-time, on the user's machine where the native shell host runs):
+- `officecli` installed and on `PATH` (see the officecli project page for installer).
+- The user must be logged into `chat.deepseek.com` in the same browser profile as the extension (the extension uses the browser session cookie to fetch the file).

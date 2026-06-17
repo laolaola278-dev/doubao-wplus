@@ -45,7 +45,11 @@ function createManifest(env: ConfigEnv): UserManifest {
   const isFirefox = env.browser === 'firefox';
   const isChromiumTarget = CHROMIUM_BROWSERS.has(env.browser);
   const permissions = ['storage', 'alarms', 'nativeMessaging', 'contextMenus'];
-  const chromiumPermissions = [...permissions, 'offscreen', 'debugger', 'tabs'];
+  // B-08: `downloads` 让扩展可以调用 `chrome.downloads.download` 把
+  // DeepSeek 网页附件（ref_file_id）写入本机下载目录的 `deepseek-pp/` 子目录。
+  // 仅 Chromium 暴露 chrome.downloads，Firefox 用 browser.downloads 走另一套 API，
+  // 暂不在 firefox 启用 download_attached_file。
+  const chromiumPermissions = [...permissions, 'offscreen', 'debugger', 'tabs', 'downloads'];
 
   return {
     default_locale: 'en',
