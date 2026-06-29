@@ -4,15 +4,24 @@ import {
   createXmlToolCallRegex,
 } from './tool/invocation';
 
+// ============================================================
+// 多宿主支持 — 统一由 core/hosts/registry.ts 管理
+// ============================================================
+// HostId 类型从 registry 重导出，保持向后兼容
+export type HostId = 'doubao' | 'deepseek';
+
+// 向后兼容常量：保留 DEEPSEEK_API_URL / DOUBAO_API_URL
+// 新代码请使用 getAdapter(id).getPaths().completion
 export const DEEPSEEK_API_URL = 'https://chat.deepseek.com/api/v0/chat/completion';
+export const DOUBAO_API_URL = 'https://www.doubao.com/chat/completion';
 
 export const MEMORY_TOKEN_BUDGET = 1500;
 
 export const PRESET_REINJECTION_INTERVAL = 10;
 
-export const MSG_PREFIX = 'DEEPSEEK_PP';
+export const MSG_PREFIX = 'DOUBAO_WPLUS';
 
-export const DPP_MANAGED_AGENT_PROMPT_MARKER = '<!-- deepseek-pp-managed-agent-runner:v1 -->';
+export const DPP_MANAGED_AGENT_PROMPT_MARKER = '<!-- doubao-wplus-managed-agent-runner:v1 -->';
 
 export const DSML = '｜DSML｜';
 

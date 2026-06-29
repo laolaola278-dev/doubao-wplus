@@ -23,6 +23,7 @@ export interface PromptAugmentationOptions {
   memoryEnabled?: boolean;
   systemPromptEnabled?: boolean;
   forceResponseLanguage?: SupportedLocale | null;
+  hasFileAttachments?: boolean;
 }
 
 export interface PromptAugmentationResult {
@@ -45,6 +46,7 @@ export function buildPromptAugmentation(
     memoryEnabled = true,
     systemPromptEnabled = true,
     forceResponseLanguage = null,
+    hasFileAttachments = false,
   } = options ?? {};
   const toolDescriptors = options?.toolDescriptors ?? createDefaultToolDescriptors(locale);
 
@@ -72,6 +74,7 @@ export function buildPromptAugmentation(
     standaloneMemories,
     renderProjectContext(projectContext),
     systemPromptEnabled ? renderWebSearchGuidance(toolDescriptors, locale) : '',
+    systemPromptEnabled && hasFileAttachments ? translate(locale, 'prompt.imageAttachmentHint') : '',
     renderForcedResponseLanguage(forceResponseLanguage, locale),
   ].filter(Boolean).join('\n\n');
   const presetPrefix = presetContent ? `${presetContent}\n\n---\n\n` : '';

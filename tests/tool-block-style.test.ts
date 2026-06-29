@@ -38,7 +38,8 @@ describe('content tool block styles', () => {
     const path = join(process.cwd(), 'entrypoints/content.ts');
     const source = readFileSync(path, 'utf8');
 
-    expect(source).toContain("const ASSISTANT_RESPONSE_CONTENT_SELECTOR = '._74c0879, .ds-assistant-message-main-content';");
+    // 适配器选择器（豆包 / DeepSeek 动态路由）
+    expect(source).toContain('function getAssistantResponseSelector(): string');
     expect(source).toContain('function mountInlineAgentContainer(message: Element, container: HTMLElement): void');
     expect(source).toContain('inlineAgentContainerObserver.observe(message, { childList: true, subtree: true });');
     expect(source).not.toContain('inlineAgentContainerObserver.observe(responseHost, { childList: true });');
@@ -50,7 +51,7 @@ describe('content tool block styles', () => {
 
     expect(source).toContain('function shouldReplaceRenderedTaskCompleteBlock(textNode: Text): boolean');
     expect(source).toContain("if (parent.closest('pre, code')) return false;");
-    expect(source).toContain("const message = parent.closest('.ds-message');");
+    expect(source).toContain('const message = parent.closest(getMessageRowSelector())');
     expect(source).toContain('return getAssistantContentHosts(message).some((host) => host.contains(parent));');
   });
 

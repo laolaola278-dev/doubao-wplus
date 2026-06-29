@@ -1,8 +1,8 @@
 {
-  "name": "deepseek-plus-plus",
-  "description": "Agentic memory, skills, agentic execution, automation, and MCP tools for DeepSeek",
+  "name": "doubao-wplus",
+  "description": "豆包 WPlus：把豆包网页版扩展成支持记忆、Skill、自动化、MCP、浏览器控制、对话导出的 AI Agent 工作台",
   "private": true,
-  "version": "0.7.5",
+  "version": "0.1.0",
   "type": "module",
   "workspaces": [
     "packages/*"
@@ -23,9 +23,9 @@
     "zip:firefox": "wxt zip --browser firefox --mv3",
     "zip:sources": "node scripts/package-sources.mjs",
     "zip:all": "npm run zip:chrome && npm run zip:edge && npm run zip:firefox && npm run zip:sources",
-    "submit:chrome:dry": "wxt submit --dry-run --chrome-zip dist/deepseek-plus-plus-$npm_package_version-chrome.zip",
-    "submit:chrome:upload": "wxt submit --chrome-zip dist/deepseek-plus-plus-$npm_package_version-chrome.zip --chrome-skip-submit-review",
-    "submit:chrome": "wxt submit --chrome-zip dist/deepseek-plus-plus-$npm_package_version-chrome.zip --chrome-publish-target default",
+    "submit:chrome:dry": "wxt submit --dry-run --chrome-zip dist/doubao-wplus-$npm_package_version-chrome.zip",
+    "submit:chrome:upload": "wxt submit --chrome-zip dist/doubao-wplus-$npm_package_version-chrome.zip --chrome-skip-submit-review",
+    "submit:chrome": "wxt submit --chrome-zip dist/doubao-wplus-$npm_package_version-chrome.zip --chrome-publish-target default",
     "test": "vitest run",
     "compile": "tsc --noEmit",
     "audit:prod": "npm audit --audit-level=high --omit=dev",

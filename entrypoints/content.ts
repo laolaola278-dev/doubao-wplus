@@ -78,6 +78,7 @@ import { startDeepSeekProjectSidebarOrganizer, type ProjectSidebarOrganizerContr
 import { startContentUxPolish, type ContentUxPolishController } from './content/adapters/ux-polish';
 
 import { createClientHeaders, rememberDeepSeekClientHeaders, saveClientHeadersToStorage } from '../core/deepseek/adapter';
+import { getActiveAdapter, detectHost, setActiveHostId } from '../core/hosts/registry';
 import type {
   ConversationExportArtifact,
   ConversationExportProgress,
@@ -86,7 +87,101 @@ import type {
 
 const TOOL_BLOCK_ID = 'dpp-tool-block';
 const TOOL_BLOCK_STYLE_ID = 'dpp-tool-block-css';
-const ASSISTANT_RESPONSE_CONTENT_SELECTOR = '._74c0879, .ds-assistant-message-main-content';
+/** 获取当前宿主的助手消息内容选择器（逗号分隔字符串） */
+function getAssistantResponseSelector(): string {
+  const adapter = getActiveAdapter();
+  return adapter.getSelectors().assistantMessage.join(', ');
+}
+
+/** 获取当前宿主的所有消息行选择器（逗号分隔字符串） */
+function getMessageRowSelector(): string {
+  const adapter = getActiveAdapter();
+  return adapter.getSelectors().messageRow.join(', ');
+}
+
+/** 获取当前宿主的所有消息列表选择器（逗号分隔字符串） */
+function getMessageListSelector(): string {
+  const adapter = getActiveAdapter();
+  return adapter.getSelectors().messageList.join(', ');
+}
+
+/** 获取当前宿主的用户消息选择�?*/
+function getUserMessageSelector(): string {
+  return getActiveAdapter().getSelectors().userMessage.join(', ');
+}
+
+/** 获取当前宿主的最新一条助手消息选择�?*/
+function getLatestAssistantMessageSelector(): string {
+  return getActiveAdapter().getSelectors().latestAssistantMessage.join(', ');
+}
+
+/** 获取当前宿主的输入框选择�?*/
+function getInputBoxSelector(): string {
+  return getActiveAdapter().getSelectors().inputBox.join(', ');
+}
+
+/** 获取当前宿主的发送按钮选择�?*/
+function getSendButtonSelector(): string {
+  return getActiveAdapter().getSelectors().sendButton.join(', ');
+}
+
+/** 获取当前宿主的加载指示器选择�?*/
+function getLoadingIndicatorSelector(): string {
+  return getActiveAdapter().getSelectors().loadingIndicator.join(', ');
+}
+
+/** 获取当前宿主的代码块选择�?*/
+function getCodeBlockSelector(): string {
+  return getActiveAdapter().getSelectors().codeBlock.join(', ');
+}
+
+/** 获取当前宿主的复制按钮选择�?*/
+function getCopyButtonSelector(): string {
+  return getActiveAdapter().getSelectors().copyButton.join(', ');
+}
+
+/** 获取当前宿主的重新生成按钮选择�?*/
+function getRegenerateButtonSelector(): string {
+  return getActiveAdapter().getSelectors().regenerateButton.join(', ');
+}
+
+/** 获取当前宿主的对话标题选择�?*/
+function getConversationTitleSelector(): string {
+  return getActiveAdapter().getSelectors().conversationTitle.join(', ');
+}
+
+/** 获取当前宿主的历史条目选择�?*/
+function getHistoryItemSelector(): string {
+  return getActiveAdapter().getSelectors().historyItem.join(', ');
+}
+
+/** 获取当前宿主的错误态选择�?*/
+function getErrorStateSelector(): string {
+  return getActiveAdapter().getSelectors().errorState.join(', ');
+}
+
+/** 获取当前宿主的空会话选择�?*/
+function getEmptyStateSelector(): string {
+  return getActiveAdapter().getSelectors().emptyState.join(', ');
+}
+
+/** 获取当前宿主的登录态选择�?*/
+function getLoginStateSelector(): string {
+  return getActiveAdapter().getSelectors().loginState.join(', ');
+}
+
+/** 获取当前宿主的限流态选择�?*/
+function getRateLimitSelector(): string {
+  return getActiveAdapter().getSelectors().rateLimitState.join(', ');
+}
+
+/** 获取当前宿主的操作按钮行选择�?*/
+function getActionRowSelector(): string {
+  return getActiveAdapter().getSelectors().actionRow.join(', ');
+}
+
+// === 静态选择器已弃用 ===
+// 选择器全部从 active host adapter 读取，请使用 getAssistantResponseSelector() / getHostActionControls() 等函数。
 const REASONING_HOST_META_RE = /\b(?:reason|reasoning|think|thinking|thought)\b/i;
 const REASONING_HOST_TEXT_RE = /^(?:已思考|思考中|正在思考|thinking|reasoning|thought)(?:[（(:：]|$)/i;
 const TOKEN_SPEED_BADGE_ID = 'dpp-token-speed-badge';
@@ -95,7 +190,6 @@ const EXPORT_ACTION_CLASS = 'dpp-export-action';
 const EXPORT_ACTION_STYLE_ID = 'dpp-export-action-css';
 const EXPORT_ACTION_TOAST_CLASS = 'dpp-export-toast';
 const EXPORT_ACTION_MENU_CLASS = 'dpp-export-menu';
-const DEEPSEEK_ACTION_CONTROL_SELECTOR = 'button, [role="button"].ds-button';
 const EXPORT_ACTION_MOUNT_DEBOUNCE_MS = 250;
 const EXPORT_ACTION_RETRY_MS = 250;
 const EXPORT_ACTION_RETRY_LIMIT = 20;
@@ -369,9 +463,19 @@ function formatContentAge(timestamp: number): string {
 }
 
 export default defineContentScript({
-  matches: ['*://chat.deepseek.com/*'],
+  matches: [
+    '*://chat.deepseek.com/*',
+    '*://www.doubao.com/*',
+    '*://*.doubao.com/*',
+  ],
   runAt: 'document_start',
   async main() {
+    // 根据当前 URL 自动检测宿主并切换（豆包 / DeepSeek 由 registry 决定）
+    const detectedHost = detectHost(window.location.href);
+    if (detectedHost) {
+      setActiveHostId(detectedHost.id);
+    }
+
     registerDefaultToolResultRenderers();
     await refreshContentLocale();
     watchLocalePreference(() => {
@@ -475,6 +579,8 @@ export default defineContentScript({
     historyOrganizerController = startDeepSeekHistoryOrganizer(getHistoryOrganizerLabels);
     projectSidebarOrganizerController = startDeepSeekProjectSidebarOrganizer(getProjectSidebarOrganizerLabels);
     contentUxPolishController = startContentUxPolish(getContentUxPolishLabels);
+    startFileUploadModelGuard();
+    injectPageVoiceInput();
 
     startRenderedToolCallCleaner();
     void restorePersistedToolBlocks();
@@ -884,13 +990,13 @@ function removeConversationExportActions() {
 }
 
 function getAssistantExportMessages(): Element[] {
-  return Array.from(document.querySelectorAll('.ds-message'))
+  return Array.from(document.querySelectorAll(getMessageRowSelector()))
     .filter((message) => getAssistantContentHosts(message).length > 0);
 }
 
 function findAssistantMessageActionRow(message: Element): HTMLElement | null {
   const responseHost = getAssistantResponseHost(message);
-  const controls = getDeepSeekActionControls(message)
+  const controls = getHostActionControls(message)
     .filter((control) => isOfficialActionControlCandidate(control, responseHost));
 
   for (const control of controls) {
@@ -901,8 +1007,9 @@ function findAssistantMessageActionRow(message: Element): HTMLElement | null {
   return null;
 }
 
-function getDeepSeekActionControls(root: ParentNode): HTMLElement[] {
-  return Array.from(root.querySelectorAll<HTMLElement>(DEEPSEEK_ACTION_CONTROL_SELECTOR));
+function getHostActionControls(root: ParentNode): HTMLElement[] {
+  // 重命名后�?getHostActionControls，但�?adapter 读取发送按钮选择器作为操作控件集
+  return Array.from(root.querySelectorAll<HTMLElement>(getSendButtonSelector()));
 }
 
 function isOfficialActionControlCandidate(control: HTMLElement, responseHost: Element): boolean {
@@ -924,7 +1031,7 @@ function findCompactActionRow(
   let el: HTMLElement | null = control.parentElement;
   let depth = 0;
   while (el && el !== message && depth < 6) {
-    const rowControls = getDeepSeekActionControls(el)
+    const rowControls = getHostActionControls(el)
       .filter((candidate) => isOfficialActionControlCandidate(candidate, responseHost));
     if (rowControls.length >= 4 && isCompactActionRow(el, responseHost)) return el;
     el = el.parentElement;
@@ -944,7 +1051,7 @@ function isCompactActionRow(row: HTMLElement, responseHost: Element): boolean {
 
 function findGlobalAssistantActionRows(): HTMLElement[] {
   const rows = new Set<HTMLElement>();
-  const controls = getDeepSeekActionControls(document)
+  const controls = getHostActionControls(document)
     .filter(isGlobalActionControlCandidate);
 
   for (const control of controls) {
@@ -959,7 +1066,7 @@ function isGlobalActionControlCandidate(control: HTMLElement): boolean {
   if (control.classList.contains(EXPORT_ACTION_CLASS)) return false;
   if (control.closest('.dpp-tool-block, .dpp-agent-container')) return false;
   if (control.closest('aside, nav, header, [role="navigation"], [role="banner"]')) return false;
-  if (findDeepSeekInputBox()?.contains(control)) return false;
+  if (findHostInputBox()?.contains(control)) return false;
   if (!isVisibleElement(control)) return false;
 
   const rect = control.getBoundingClientRect();
@@ -976,7 +1083,7 @@ function findGlobalCompactActionRow(control: HTMLElement): HTMLElement | null {
   let el: HTMLElement | null = control.parentElement;
   let depth = 0;
   while (el && el !== document.body && depth < 6) {
-    const rowControls = getDeepSeekActionControls(el)
+    const rowControls = getHostActionControls(el)
       .filter(isGlobalActionControlCandidate);
     if (rowControls.length >= 4 && isLikelyReplyActionRow(el, rowControls)) return el;
     el = el.parentElement;
@@ -1005,7 +1112,7 @@ function isLikelyReplyActionRow(row: HTMLElement, rowControls: HTMLElement[]): b
 
 function getConversationViewportLeft(): number {
   const textarea = getPromptTextarea();
-  const inputBox = findDeepSeekInputBox();
+  const inputBox = findHostInputBox();
   const rect = (inputBox ?? textarea)?.getBoundingClientRect();
   if (rect?.left && rect.left > 0) return Math.max(180, rect.left - 80);
   return 180;
@@ -1032,7 +1139,7 @@ function ensureConversationExportButton(row: HTMLElement, sessionId: string): HT
 }
 
 function placeConversationExportButton(row: HTMLElement, button: HTMLButtonElement): void {
-  const officialControls = getDeepSeekActionControls(row)
+  const officialControls = getHostActionControls(row)
     .filter((control) => !control.classList.contains(EXPORT_ACTION_CLASS) && isVisibleElement(control))
     .sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
   const lastOfficialControl = officialControls[officialControls.length - 1];
@@ -1297,9 +1404,8 @@ function getCurrentChatSessionId(): string | null {
 }
 
 function getCurrentConversationTitle(): string {
-  const title = document.title
-    .replace(/\s*[-|]\s*DeepSeek.*$/i, '')
-    .trim();
+  // 由 host adapter 负责剥离品牌后缀
+  const title = getActiveAdapter().getConversationTitle(document);
   return title || contentT('content.conversation.untitled');
 }
 
@@ -1734,7 +1840,7 @@ function scheduleDeepSeekThemeSync() {
 }
 
 function syncDeepSeekTheme() {
-  const theme = detectDeepSeekTheme();
+  const theme = detectHostTheme();
   applyDeepSeekThemeClass(theme);
   if (theme === currentDeepSeekTheme) return;
   currentDeepSeekTheme = theme;
@@ -1746,7 +1852,7 @@ function applyDeepSeekThemeClass(theme: DeepSeekTheme) {
   document.body.classList.toggle('dpp-theme-light', theme === 'light');
 }
 
-function detectDeepSeekTheme(): DeepSeekTheme {
+function detectHostTheme(): DeepSeekTheme {
   return detectExplicitTheme() ??
     detectBackgroundTheme() ??
     (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -2144,7 +2250,7 @@ function handleAgentLoopComplete(msg: InlineAgentLoopCompleteMsg): void {
   } catch (err) {
     console.error('[DeepSeek++] handleAgentLoopComplete error:', err);
   } finally {
-    // ALWAYS clean up state — even if rendering throws, the next agent loop
+    // ALWAYS clean up state �?even if rendering throws, the next agent loop
     // must start fresh. Otherwise subsequent searches silently fail.
     inlineAgentLoopId = null;
     inlineAgentContainer = null;
@@ -2153,7 +2259,7 @@ function handleAgentLoopComplete(msg: InlineAgentLoopCompleteMsg): void {
     inlineAgentContainerObserver?.disconnect();
     inlineAgentContainerObserver = null;
 
-    // Note: no silent refresh — it breaks the extension's tool execution state.
+    // Note: no silent refresh �?it breaks the extension's tool execution state.
     // After manual page refresh, DeepSeek's native renderer will show the
     // continuation message with proper Markdown.
   }
@@ -2497,7 +2603,7 @@ function getTokenSpeedRouteKey(): string {
 }
 
 function isTokenSpeedIndicatorMountedOnCurrentInput(): boolean {
-  const inputBox = findDeepSeekInputBox();
+  const inputBox = findHostInputBox();
   return Boolean(inputBox && tokenSpeedEl?.isConnected && tokenSpeedEl.parentElement === inputBox);
 }
 
@@ -2511,7 +2617,7 @@ function removeTokenSpeedIndicator() {
 function ensureTokenSpeedIndicator(): HTMLElement | null {
   injectTokenSpeedStyles();
 
-  const inputBox = findDeepSeekInputBox();
+  const inputBox = findHostInputBox();
   if (!inputBox) return null;
 
   if (tokenSpeedEl && tokenSpeedEl.isConnected && tokenSpeedEl.parentElement === inputBox) {
@@ -3369,7 +3475,7 @@ function createPermissionBanner(origin: string): HTMLElement | null {
     </div>
   `;
 
-  const inputArea = findDeepSeekInputBox();
+  const inputArea = findHostInputBox();
   const target = inputArea?.parentElement ?? document.body;
   target.appendChild(banner);
   return banner;
@@ -4073,7 +4179,7 @@ function getRestoreTruncatedPreview(value: unknown): string {
 }
 
 function getAssistantMessages(): Element[] {
-  const messages = Array.from(document.querySelectorAll('.ds-message'));
+  const messages = Array.from(document.querySelectorAll(getMessageRowSelector()));
   const assistantMessages = messages.filter((message) => getAssistantContentHosts(message).length > 0);
   return assistantMessages.length > 0 ? assistantMessages : messages;
 }
@@ -4088,8 +4194,10 @@ function getAssistantResponseHost(message: Element): Element {
 }
 
 function getAssistantContentHosts(message: Element): HTMLElement[] {
-  return Array.from(message.querySelectorAll<HTMLElement>(ASSISTANT_RESPONSE_CONTENT_SELECTOR))
-    .filter((host) => !host.parentElement?.closest(ASSISTANT_RESPONSE_CONTENT_SELECTOR));
+  // 根据当前宿主动态选择选择器（豆包 vs DeepSeek）
+  const selector = getAssistantResponseSelector();
+  return Array.from(message.querySelectorAll<HTMLElement>(selector))
+    .filter((host) => !host.parentElement?.closest(selector));
 }
 
 function looksLikeReasoningContentHost(host: HTMLElement): boolean {
@@ -4184,20 +4292,16 @@ function getToolRecordAssistantMessageIndex(record: ToolCallRestoreRecord): numb
 }
 
 function elementHasMessageId(element: Element, messageId: string): boolean {
-  const candidates = [
-    element,
-    ...Array.from(element.querySelectorAll('[data-message-id], [data-messageid], [data-id], [data-ds-message-id], [id]')),
-  ];
+  // 从 active host adapter 读取消息 ID 可能的属性名（每宿主提供不同优先顺序）
+  const attributeNames = getActiveAdapter().getSelectors().messageIdAttribute;
+  const selector = attributeNames.map((name) => `[${name}]`).join(',');
+  const candidates = [element, ...Array.from(element.querySelectorAll(selector))];
 
   return candidates.some((candidate) => {
-    const attributes = [
-      candidate.getAttribute('data-message-id'),
-      candidate.getAttribute('data-messageid'),
-      candidate.getAttribute('data-id'),
-      candidate.getAttribute('data-ds-message-id'),
-      candidate.getAttribute('id'),
-    ];
-    return attributes.some((value) => value === messageId || value?.endsWith(`-${messageId}`));
+    return attributeNames.some((name) => {
+      const value = candidate.getAttribute(name);
+      return value === messageId || value?.endsWith(`-${messageId}`);
+    });
   });
 }
 
@@ -4248,7 +4352,7 @@ function addedNodeMayContainCleanableText(node: Node): boolean {
     return false;
   }
 
-  if (node.matches('.ds-message') || node.querySelector('.ds-message')) {
+  if (node.matches(getMessageRowSelector()) || node.querySelector(getMessageRowSelector())) {
     return true;
   }
 
@@ -4298,15 +4402,15 @@ function cleanRenderedToolCalls() {
 
 function getToolCleanupRoots(): Element[] {
   const roots = new Set<Element>();
-  const activeMessage = toolBlockEl?.closest('.ds-message');
+  const activeMessage = toolBlockEl?.closest(getMessageRowSelector());
   if (activeMessage) roots.add(activeMessage);
 
   for (const block of document.querySelectorAll(`#${TOOL_BLOCK_ID}, .dpp-tool-block`)) {
-    const message = block.closest('.ds-message');
+    const message = block.closest(getMessageRowSelector());
     if (message) roots.add(message);
   }
 
-  const messages = document.querySelectorAll('.ds-message');
+  const messages = document.querySelectorAll(getMessageRowSelector());
   const minIndex = Math.max(0, messages.length - CLEANUP_MESSAGE_SCAN_LIMIT);
   for (let i = messages.length - 1; i >= 0; i--) {
     if (i < minIndex) break;
@@ -4402,14 +4506,14 @@ function shouldReplaceRenderedTaskCompleteBlock(textNode: Text): boolean {
   if (!parent) return false;
   if (parent.closest('pre, code')) return false;
 
-  const message = parent.closest('.ds-message');
+  const message = parent.closest(getMessageRowSelector());
   if (!message) return false;
   return getAssistantContentHosts(message).some((host) => host.contains(parent));
 }
 
 function pruneEmptyToolContainers(start: HTMLElement, boundary: Element) {
   let el: HTMLElement | null = start;
-  while (el && el !== boundary && !el.classList.contains('ds-message')) {
+  while (el && el !== boundary && !el.matches(getMessageRowSelector())) {
     const parent: HTMLElement | null = el.parentElement;
     const hasVisibleText = (el.textContent ?? '').trim().length > 0;
     const hasProtectedChild = Boolean(
@@ -4451,7 +4555,7 @@ function placeToolBlock(block: HTMLElement, canPlace: () => boolean = () => true
   };
 
   if (!tryPlace()) {
-    // DOM not ready yet — retry after a short delay
+    // DOM not ready yet �?retry after a short delay
     const timer = setInterval(() => {
       if (tryPlace()) clearInterval(timer);
     }, 200);
@@ -4498,7 +4602,7 @@ function getPromptTextarea(): HTMLTextAreaElement | null {
   return textarea?.tagName === 'TEXTAREA' ? textarea as HTMLTextAreaElement : null;
 }
 
-function findDeepSeekInputBox(): HTMLElement | null {
+function findHostInputBox(): HTMLElement | null {
   const textarea = getPromptTextarea();
   if (!textarea) return null;
 
@@ -4565,7 +4669,7 @@ function patchContainerBackgrounds() {
   const textarea = getPromptTextarea();
   if (!textarea) return;
 
-  const inputBox = findDeepSeekInputBox();
+  const inputBox = findHostInputBox();
   if (!inputBox) return;
 
   let el = inputBox.parentElement;
@@ -5304,4 +5408,314 @@ function applyBackground(config: BackgroundConfig | null) {
     }
   });
   backgroundPatchObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+// ---------------------------------------------------------------------------
+// File-upload model guard
+// DeepSeek's web UI blocks file/image uploads in "深度思考" (expert/R1) mode
+// with the error "该模式不支持上传文件或图�?. This guard detects file upload
+// attempts and auto-switches the model mode so the upload can proceed.
+// ---------------------------------------------------------------------------
+
+function startFileUploadModelGuard(): void {
+  const switchIfNeeded = () => {
+    if (switchModelFromExpertToDefault()) {
+      console.info('[DPP] Auto-switched model mode from expert to default for file upload.');
+    }
+  };
+
+  // Paste with image files
+  document.addEventListener('paste', (e) => {
+    const items = (e as ClipboardEvent).clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].kind === 'file') {
+        switchIfNeeded();
+        break;
+      }
+    }
+  }, true);
+
+  // Drag-and-drop with files
+  document.addEventListener('drop', (e) => {
+    if ((e as DragEvent).dataTransfer?.files?.length) {
+      switchIfNeeded();
+    }
+  }, true);
+
+  // Monitor file inputs for selection
+  const attachFileInputListener = (input: HTMLInputElement) => {
+    input.addEventListener('change', () => {
+      if (input.files && input.files.length > 0) {
+        switchIfNeeded();
+      }
+    }, { once: true, capture: true });
+  };
+
+  document.querySelectorAll('input[type="file"]').forEach((el) => {
+    attachFileInputListener(el as HTMLInputElement);
+  });
+
+  const observer = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      for (let i = 0; i < m.addedNodes.length; i++) {
+        const node = m.addedNodes[i];
+        if (node instanceof HTMLInputElement && node.type === 'file') {
+          attachFileInputListener(node);
+        }
+        if (node instanceof HTMLElement) {
+          node.querySelectorAll('input[type="file"]').forEach((el) => {
+            attachFileInputListener(el as HTMLInputElement);
+          });
+        }
+      }
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+function switchModelFromExpertToDefault(): boolean {
+  // Strategy 1: Find a button/toggle containing "深度思考" text and click it
+  const allButtons = document.querySelectorAll(
+    'button, [role="button"], [role="switch"], [role="checkbox"]',
+  );
+  for (let i = 0; i < allButtons.length; i++) {
+    const btn = allButtons[i];
+    const text = btn.textContent?.trim() ?? '';
+    if (text.includes('深度思考') || text === 'R1') {
+      (btn as HTMLElement).click();
+      return true;
+    }
+  }
+
+  // Strategy 2: Look for the model toggle near the textarea
+  const textarea = document.querySelector('textarea');
+  if (textarea) {
+    const container = textarea.closest('[class]')?.parentElement;
+    if (container) {
+      const toggles = container.querySelectorAll(
+        '[role="switch"], [role="checkbox"], input[type="checkbox"]',
+      );
+      for (let i = 0; i < toggles.length; i++) {
+        const toggle = toggles[i] as HTMLElement;
+        const isOn = toggle.getAttribute('aria-checked') === 'true'
+          || toggle.classList.toString().includes('checked')
+          || toggle.classList.toString().includes('active')
+          || toggle.classList.toString().includes('on');
+        if (isOn) {
+          toggle.click();
+          return true;
+        }
+      }
+    }
+  }
+
+  // Strategy 3: Search for SVG-based toggle icons near the input area
+  // DeepSeek often uses custom SVG toggles for model mode
+  const svgToggles = document.querySelectorAll('textarea ~ *, textarea + *, [class*="model"], [class*="think"]');
+  for (let i = 0; i < svgToggles.length; i++) {
+    const el = svgToggles[i] as HTMLElement;
+    if (el.tagName === 'BUTTON' || el.getAttribute('role') === 'button' || el.onclick) {
+      const text = el.textContent?.trim() ?? '';
+      if (text.includes('深度思考') || text.includes('R1') || text.includes('think')) {
+        el.click();
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// ---------------------------------------------------------------------------
+// Page voice input
+// Inject a microphone button into the DeepSeek chat input area and use the
+// browser's built-in Web Speech API (SpeechRecognition) for speech-to-text.
+// The recognition engine runs in the MAIN world (injected <script>) because
+// SpeechRecognition is not available in the ISOLATED extension world.
+// Communication uses CustomEvent to bridge the two worlds.
+// ---------------------------------------------------------------------------
+
+function injectPageVoiceInput(): void {
+  // Step 1: Inject the SpeechRecognition engine into the page's MAIN world
+  // Using chrome.runtime.getURL + <script src="chrome-extension://...">
+  // bypasses page CSP restrictions that block inline <script> tags.
+  // Chrome extension CSP always allows scripts from chrome-extension:// origin.
+  const engineUrl = chrome.runtime.getURL('speech-engine.js');
+  const engineScript = document.createElement('script');
+  engineScript.src = engineUrl;
+  engineScript.onload = () => {
+    console.info('[DPP] Speech recognition engine injected into MAIN world.');
+    engineScript.remove();
+  };
+  engineScript.onerror = () => {
+    console.warn('[DPP] Failed to load speech engine script.');
+    engineScript.remove();
+  };
+  (document.head || document.documentElement).appendChild(engineScript);
+
+  // Step 2: Create the microphone button
+  let listening = false;
+
+  const micBtn = document.createElement('button');
+  micBtn.type = 'button';
+  micBtn.title = '语音输入 / Voice input';
+  micBtn.setAttribute('aria-label', 'Voice input');
+  Object.assign(micBtn.style, {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '32px',
+    height: '32px',
+    border: 'none',
+    borderRadius: '50%',
+    cursor: 'pointer',
+    background: 'transparent',
+    color: '#86909c',
+    transition: 'all 0.2s ease',
+    flexShrink: '0',
+  });
+
+  const micIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>';
+  const stopIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+  micBtn.innerHTML = micIcon;
+
+  function setListeningState(isListening: boolean): void {
+    listening = isListening;
+    micBtn.innerHTML = isListening ? stopIcon : micIcon;
+    micBtn.style.color = isListening ? '#f53f3f' : '#86909c';
+    micBtn.style.background = isListening ? 'rgba(245, 62, 62, 0.1)' : 'transparent';
+    micBtn.title = isListening
+      ? '停止收听 / Stop listening'
+      : '语音输入 / Voice input';
+
+    if (isListening) {
+      micBtn.style.animation = 'dpp-mic-pulse 1.5s ease-in-out infinite';
+    } else {
+      micBtn.style.animation = 'none';
+    }
+  }
+
+  // Pulse animation
+  if (!document.getElementById('dpp-mic-pulse-style')) {
+    const style = document.createElement('style');
+    style.id = 'dpp-mic-pulse-style';
+    style.textContent = '@keyframes dpp-mic-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,62,62,0.4); } 50% { box-shadow: 0 0 0 8px rgba(245,62,62,0); } }';
+    document.head.appendChild(style);
+  }
+
+  // Step 3: Button click handler
+  micBtn.addEventListener('click', () => {
+    if (listening) {
+      window.dispatchEvent(new CustomEvent('dpp-speech-stop'));
+      setListeningState(false);
+    } else {
+      window.dispatchEvent(new CustomEvent('dpp-speech-start'));
+      setListeningState(true);
+    }
+  });
+
+  // Step 4: Listen for recognition results from MAIN world
+  window.addEventListener('dpp-speech-interim', ((_e: Event) => {
+    // Interim text shown via the pulse animation on the mic button
+    // to indicate recognition is active. Full text is committed on final.
+  }) as EventListener);
+
+  window.addEventListener('dpp-speech-final', ((e: Event) => {
+    const detail = (e as CustomEvent<{ text: string }>).detail;
+    insertVoiceTextIntoTextarea(detail.text);
+    setListeningState(false);
+  }) as EventListener);
+
+  window.addEventListener('dpp-speech-error', ((e: Event) => {
+    const detail = (e as CustomEvent<{ error: string }>).detail;
+    console.warn('[DPP] Speech recognition error:', detail.error);
+    setListeningState(false);
+  }) as EventListener);
+
+  window.addEventListener('dpp-speech-ended', () => {
+    setListeningState(false);
+  });
+
+  // Step 5: Mount the button near the textarea
+  function mountMicButton(): boolean {
+    const textarea = getPromptTextarea();
+    if (!textarea) return false;
+    if (micBtn.parentElement) return true; // already mounted
+
+    const inputBox = findHostInputBox();
+    const container = inputBox ?? textarea.parentElement;
+    if (!container) return false;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'dpp-voice-input-wrapper';
+    Object.assign(wrapper.style, {
+      display: 'inline-flex',
+      alignItems: 'center',
+      marginRight: '4px',
+    });
+    wrapper.appendChild(micBtn);
+
+    // 使用 adapter 提供的发送按钮选择器（豆包 / DeepSeek 动态路由）
+    const allBtns = container.querySelectorAll<HTMLElement>(getSendButtonSelector());
+    let anchorBtn: Element | null = null;
+
+    // Strategy 1: 查找发送按钮（从后向前扫描，最近一个交互元素通常是发送按钮）
+    for (let i = allBtns.length - 1; i >= 0; i--) {
+      const btn = allBtns[i];
+      // 优先使用 circular 形状特征（如果存在）
+      if (btn.classList.toString().includes('circle')) {
+        anchorBtn = btn;
+        break;
+      }
+    }
+
+    // Strategy 2: Find the last interactive element (likely send or attachment)
+    if (!anchorBtn && allBtns.length > 0) {
+      anchorBtn = allBtns[allBtns.length - 1];
+    }
+
+    if (anchorBtn?.parentElement) {
+      anchorBtn.parentElement.insertBefore(wrapper, anchorBtn);
+    } else {
+      container.appendChild(wrapper);
+    }
+    return true;
+  }
+
+  // Attempt to mount immediately and on DOM changes
+  if (mountMicButton()) {
+    console.info('[DPP] Voice input mic button mounted.');
+  } else {
+    console.info('[DPP] Voice input mic button: waiting for input area...');
+    const mountObserver = new MutationObserver(() => {
+      if (mountMicButton()) {
+        console.info('[DPP] Voice input mic button mounted (deferred).');
+        mountObserver.disconnect();
+      }
+    });
+    mountObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // Helper: insert transcribed text into the textarea
+  function insertVoiceTextIntoTextarea(text: string): void {
+    const textarea = getPromptTextarea();
+    if (!textarea) return;
+
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLTextAreaElement.prototype, 'value',
+    )?.set;
+    const current = textarea.value;
+    const sep = current.length > 0 && !current.endsWith(' ') && !current.endsWith('\n') ? ' ' : '';
+    const newValue = current + sep + text;
+
+    if (nativeSetter) {
+      nativeSetter.call(textarea, newValue);
+    } else {
+      textarea.value = newValue;
+    }
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    textarea.dispatchEvent(new Event('change', { bubbles: true }));
+    textarea.focus();
+  }
 }

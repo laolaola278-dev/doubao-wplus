@@ -13,6 +13,7 @@ import type {
 } from '../core/types';
 import type { SkillPopupCopy, SkillPopupItem } from '../core/ui/skill-popup';
 import { validateBridgeMessage } from '../core/messaging/schema';
+import { detectHost, setActiveHostId } from '../core/hosts/registry';
 
 const MAIN_WORLD_SOURCE = 'deepseek-pp-main';
 const CONTENT_SOURCE = 'deepseek-pp-content';
@@ -44,10 +45,20 @@ let bridgeRequestTimer: ReturnType<typeof setInterval> | null = null;
 const pendingAugmentRequests = new Map<string, PendingRequest<RequestBodyModification | null>>();
 
 export default defineContentScript({
-  matches: ['*://chat.deepseek.com/*'],
+  matches: [
+    '*://chat.deepseek.com/*',
+    '*://www.doubao.com/*',
+    '*://*.doubao.com/*',
+  ],
   world: 'MAIN',
   runAt: 'document_start',
   main() {
+    // 根据当前 URL 自动检测宿主
+    const detectedHost = detectHost(window.location.href);
+    if (detectedHost) {
+      setActiveHostId(detectedHost.id);
+    }
+
     installContentBridge();
     installFetchHook();
 

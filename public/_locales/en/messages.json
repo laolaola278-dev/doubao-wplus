@@ -1,14 +1,14 @@
 {
   "extension_name": {
-    "message": "DeepSeek++",
+    "message": "Doubao WPlus",
     "description": "Extension name shown in browser UI"
   },
   "extension_description": {
-    "message": "Agentic memory, skills, execution, automation, and MCP tools for DeepSeek",
+    "message": "Agentic memory, skills, execution, automation, and MCP tools for the Doubao web app",
     "description": "Extension description shown in browser UI"
   },
   "extension_action_title": {
-    "message": "DeepSeek++",
+    "message": "Doubao WPlus",
     "description": "Toolbar action title"
   }
 }

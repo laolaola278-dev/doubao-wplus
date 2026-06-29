@@ -205,8 +205,8 @@ describe('augmentRequestBody', () => {
     expect(body.prompt).not.toContain('Do not include me.');
   });
 
-  // B-01 regression: do not force expert mode when the user uploaded files.
-  it('does not override model_type when ref_file_ids is non-empty (file upload scenario)', () => {
+  // B-01 regression: force vision mode when the user uploaded files (image recognition).
+  it('forces model_type to vision when ref_file_ids is non-empty (file upload scenario)', () => {
     const result = augmentRequestBody(JSON.stringify({
       prompt: 'analyze the uploaded report',
       parent_message_id: null,
@@ -223,7 +223,7 @@ describe('augmentRequestBody', () => {
     });
 
     const body = JSON.parse(result?.body ?? '{}') as { model_type?: string };
-    expect(body.model_type).toBeUndefined();
+    expect(body.model_type).toBe('vision');
   });
 
   // B-01 regression: do not override model_type when the user already picked a model in the page UI.

@@ -1,4 +1,3 @@
-import { DEEPSEEK_API_URL } from '../constants';
 import type { ToolCall, ToolCallRestoreRecord, ToolCallSource, ToolDescriptor } from '../types';
 import { sanitizeInternalPromptText } from '../prompt';
 import {
@@ -16,10 +15,33 @@ import { createStreamingToolTextAccumulator } from './streaming-tool-text';
 import { createStreamingToolCallParser } from './streaming-tool-call-parser';
 import { extractToolCalls } from './tool-parser';
 
-const COMPLETION_PATH = new URL(DEEPSEEK_API_URL).pathname;
-const REGENERATE_PATH = '/api/v0/chat/regenerate';
-const CHAT_STREAM_PATHS = [COMPLETION_PATH, REGENERATE_PATH];
-const HISTORY_PATH = '/api/v0/chat/history_messages';
+// ============================================================
+// 多宿主路径匹配 — 使用 HostRegistry
+// ============================================================
+import { getActiveAdapter, setActiveHostId, getActiveHostId, type HostId } from '../hosts/registry';
+
+export function setActiveHost(host: HostId) {
+  setActiveHostId(host);
+}
+
+export function getActiveHost(): HostId {
+  return getActiveHostId();
+}
+
+function getHostPaths() {
+  return getActiveAdapter().getPaths();
+}
+
+// 运行时根据 host 重新计算
+function matchesCompletionPath(pathname: string): boolean {
+  const p = getHostPaths();
+  return pathname === p.completion || pathname === p.regenerate;
+}
+
+function matchesHistoryPath(pathname: string): boolean {
+  const p = getHostPaths();
+  return pathname === p.history;
+}
 const BYPASS_HOOK_HEADER = 'X-DPP-Bypass-Hook';
 const TOKEN_SPEED_EMIT_INTERVAL_MS = 250;
 // B-07 fix: the original 1.5s was too short for slow first paints on the
@@ -121,7 +143,7 @@ function hookFetch() {
   window.fetch = async function (input: RequestInfo | URL, init?: RequestInit) {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
 
-    if (url.includes(HISTORY_PATH)) {
+    if (matchesHistoryURL(url)) {
       return interceptHistoryResponse(originalFetch.call(this, input, init));
     }
 
@@ -190,7 +212,7 @@ function hookXHR() {
       void waitForInitialHookState().then(sendChatRequest);
       return;
     }
-    if (url && url.includes(HISTORY_PATH)) {
+    if (url && matchesHistoryURL(url)) {
       setupXHRHistoryInterceptor(this);
     }
     return origSend.call(this, body);
@@ -315,7 +337,13 @@ function createRequestContext(bodyStr: string, overrides: RequestContextOverride
 }
 
 function isChatStreamURL(url: string): boolean {
-  return CHAT_STREAM_PATHS.some((path) => url.includes(path));
+  const p = getHostPaths();
+  return url.includes(p.completion) || url.includes(p.regenerate) || CHAT_STREAM_PATHS.some((path) => url.includes(path));
+}
+
+function matchesHistoryURL(url: string): boolean {
+  const p = getHostPaths();
+  return url.includes(p.history) || url.includes(DEFAULT_HISTORY_PATH);
 }
 
 function hasBypassHookHeader(headers: HeadersInit | undefined): boolean {

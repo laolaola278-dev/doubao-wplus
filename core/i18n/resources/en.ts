@@ -1178,6 +1178,7 @@ Do not put executable tool XML in a thinking/reasoning section; put it in the fi
     shellHintStatus: 'Use <{statusName}>{}</{statusName}> first when you need host status, shell, PATH, or working-directory context.',
     shellHintWindows: 'Match command syntax to shell_status.shell. On Windows the Shell Local host uses PowerShell by default, so list files with commands such as Get-ChildItem -LiteralPath "D:\\\\Documents\\\\Downloads\\\\CN" -File | Select-Object -ExpandProperty FullName, and quote paths once inside the command string. Use cmd.exe /c explicitly only when you need CMD syntax such as dir /b.',
     shellHintNames: 'Recognized shell tool names: {names}',
+    imageAttachmentHint: 'The user has uploaded image attachments (ref_file_ids) with this message. Please use your built-in vision capability to analyze the images directly. Do not call any external tool for image analysis.',
   },
   pet: {
     lines: {

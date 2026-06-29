@@ -1178,6 +1178,7 @@ You MUST strictly follow the above defined tool name and parameter schemas to in
     shellHintStatus: '需要了解宿主状态、shell、PATH 或工作目录上下文时，先调用 <{statusName}>{}</{statusName}>。',
     shellHintWindows: '命令语法必须匹配 shell_status.shell。Windows 下 Shell Local 默认使用 PowerShell，因此列文件可使用 Get-ChildItem -LiteralPath "D:\\\\Documents\\\\Downloads\\\\CN" -File | Select-Object -ExpandProperty FullName，并在 command 字符串内正确引用路径。仅在确实需要 CMD 语法（如 dir /b）时显式使用 cmd.exe /c。',
     shellHintNames: '可识别的 shell 工具名：{names}',
+    imageAttachmentHint: '用户已在本次消息中上传了图片附件（ref_file_ids）。请直接使用你的视觉能力分析图片内容，不需要调用任何外部工具。',
   },
   pet: {
     lines: {

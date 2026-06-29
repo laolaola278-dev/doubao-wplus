@@ -70,9 +70,13 @@ export function augmentRequestBody(
   // user uploads a file in the page UI we must not force the page into "深度思考"
   // mode. Likewise, if the user already picked a model in the web UI, the
   // extension should not override it.
+  // When images/files are attached, force the vision model so DeepSeek uses
+  // its native visual analysis capability instead of R1 (which cannot see images).
   const hasUserFileAttachments = Array.isArray(body.ref_file_ids) && (body.ref_file_ids as unknown[]).length > 0;
   const userSelectedModel = typeof body.model_type === 'string' && body.model_type.length > 0;
-  if (state.modelType && !hasUserFileAttachments && !userSelectedModel) {
+  if (hasUserFileAttachments) {
+    body.model_type = 'vision';
+  } else if (state.modelType && !userSelectedModel) {
     body.model_type = state.modelType;
   }
 
@@ -92,6 +96,7 @@ export function augmentRequestBody(
         memoryEnabled: promptSettings.memoryEnabled,
         systemPromptEnabled: promptSettings.systemPromptEnabled,
         forceResponseLanguage,
+        hasFileAttachments: hasUserFileAttachments,
       });
 
       body.prompt = augmented;
@@ -114,6 +119,7 @@ export function augmentRequestBody(
     memoryEnabled: promptSettings.memoryEnabled,
     systemPromptEnabled: promptSettings.systemPromptEnabled,
     forceResponseLanguage,
+    hasFileAttachments: hasUserFileAttachments,
   });
   body.prompt = augmented;
 

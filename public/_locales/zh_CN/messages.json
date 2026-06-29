@@ -1,14 +1,14 @@
 {
   "extension_name": {
-    "message": "DeepSeek++",
+    "message": "豆包 WPlus",
     "description": "浏览器界面中显示的扩展名称"
   },
   "extension_description": {
-    "message": "DeepSeek 的 Agentic 记忆、Skill、执行、自动化和 MCP 工具",
+    "message": "豆包 WPlus：为豆包网页版提供 Agentic 记忆、Skill、执行、自动化和 MCP 工具",
     "description": "浏览器界面中显示的扩展描述"
   },
   "extension_action_title": {
-    "message": "DeepSeek++",
+    "message": "豆包 WPlus",
     "description": "工具栏按钮标题"
   }
 }

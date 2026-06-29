@@ -58,7 +58,19 @@ function createManifest(env: ConfigEnv): UserManifest {
     version: extensionVersion,
     permissions: isChromiumTarget ? [...chromiumPermissions, 'sidePanel'] : permissions,
     optional_host_permissions: ['http://*/*', 'https://*/*'],
-    host_permissions: ['*://chat.deepseek.com/*', 'https://api.deepseek.com/*', '*://cn.bing.com/*', '*://www.bing.com/*'],
+    host_permissions: [
+      // 豆包网页主域（含 chat / bot / image / 桌面客户端 webview 等子域）
+      '*://www.doubao.com/*',
+      '*://*.doubao.com/*',
+      // 豆包官方内置搜索 / 联网搜索后端（如需）
+      'https://*.volces.com/*',
+      // 保留 DeepSeek 通道作为可选宿主（用户可在设置里切换）
+      '*://chat.deepseek.com/*',
+      'https://api.deepseek.com/*',
+      // 兼容老用户：Bing 搜索
+      '*://cn.bing.com/*',
+      '*://www.bing.com/*',
+    ],
     content_security_policy: {
       extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'",
       sandbox: SANDBOX_CSP,
@@ -67,8 +79,8 @@ function createManifest(env: ConfigEnv): UserManifest {
       pages: ['sandbox-runner.html'],
     },
     web_accessible_resources: [{
-      resources: ['pet/*.png', 'deepseek/*.wasm'],
-      matches: ['*://chat.deepseek.com/*'],
+      resources: ['pet/*.png', 'deepseek/*.wasm', 'doubao/*.wasm', 'speech-engine.js'],
+      matches: ['*://www.doubao.com/*', '*://*.doubao.com/*', '*://chat.deepseek.com/*'],
     }],
     ...(isChromiumTarget ? {
       action: {
@@ -81,7 +93,7 @@ function createManifest(env: ConfigEnv): UserManifest {
     ...(isFirefox ? {
       browser_specific_settings: {
         gecko: {
-          id: 'deepseek-pp@zhu1090093659.github',
+          id: 'doubao-wplus@local.dev',
           data_collection_permissions: {
             required: ['websiteContent', 'personalCommunications'],
           },
@@ -93,7 +105,7 @@ function createManifest(env: ConfigEnv): UserManifest {
 
 function asciiJavaScriptOutputPlugin(): Plugin {
   return {
-    name: 'deepseek-pp-ascii-js-output',
+    name: 'doubao-wplus-ascii-js-output',
     enforce: 'post',
     generateBundle(_, bundle) {
       for (const item of Object.values(bundle)) {
@@ -114,7 +126,7 @@ function asciiJavaScriptOutputPlugin(): Plugin {
 
 function pyodideAssetsPlugin(): Plugin {
   return {
-    name: 'deepseek-pp-pyodide-assets',
+    name: 'doubao-wplus-pyodide-assets',
     apply: 'build',
     generateBundle() {
       const pyodideDir = resolve(rootDir, 'node_modules/pyodide');
