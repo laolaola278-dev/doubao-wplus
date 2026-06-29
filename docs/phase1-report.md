@@ -466,13 +466,17 @@ async function migrateFromDeepSeekPP(): Promise<void> {
 ## 十三、下一步执行清单
 
 1. ✅ 完成豆包 DOM 调研文档，记录稳定 selector、易变 selector、页面状态
-2. 🔲 新建 `core/hosts/` 目录，拆分 `doubaoAdapter` 和 `deepseekAdapter`
-3. 🔲 把 URL session 解析从业务逻辑中抽出，并补充测试用例
-4. 🔲 建立 selector fallback 工具函数，避免硬编码单一选择器
+2. ✅ 新建 `core/hosts/` 目录，拆分 `doubaoAdapter` 和 `deepseekAdapter`
+3. ✅ 把 URL session 解析从业务逻辑中抽出，并补充测试用例
+4. ✅ 建立 selector fallback 工具函数，避免硬编码单一选择器
 5. 🔲 设计 storage migration version，确保旧用户无感升级
 6. 🔲 检查 host permissions 是否可以缩小范围
 7. 🔲 做 DeepSeek 旧功能回归，确认双宿主改造没有破坏原功能
 8. 🔲 将接口层能力设为增强能力，而不是唯一依赖路径
+
+### 13.1 架构守卫
+
+已上线 `tests/architecture/no-host-hardcoding.test.ts`（4 个测试），代码硬阻断 + 注释软警告，防止宿主专属选择器重新引入共享内容层。
 
 ---
 
@@ -482,12 +486,23 @@ async function migrateFromDeepSeekPP(): Promise<void> {
 |------|------|
 | `package.json` | name → `doubao-wplus`，version → `0.1.0` |
 | `wxt.config.ts` | host_permissions 新增 doubao 域，gecko id 更新 |
-| `core/constants.ts` | 新增 HOST_CONFIG 多宿主映射 |
-| `core/interceptor/fetch-hook.ts` | 多宿主动态路由 |
-| `entrypoints/content.ts` | matches 扩展 doubao.com |
-| `entrypoints/main-world.content.ts` | matches 扩展 doubao.com |
+| `core/constants.ts` | 新增 HOST_CONFIG 多宿主映射，后续迁移至 `core/hosts/registry` |
+| `core/interceptor/fetch-hook.ts` | 多宿主动态路由，使用 `getActiveAdapter().getPaths()` |
+| `core/hosts/types.ts` | **新增** `HostAdapter` 接口与 `HostSelectors`/`HostPaths`/`PageState` 公共类型 |
+| `core/hosts/registry.ts` | **新增** `getActiveAdapter()` / `detectHost()` / `setActiveHostId()` 注册表 |
+| `core/hosts/doubao/adapter.ts` | **新增** 豆包专属 adapter，含 DOM 选择器 fallback 数组 |
+| `core/hosts/deepseek/adapter.ts` | **新增** DeepSeek 专属 adapter，从现有代码提取 |
+| `core/hosts/shared/selector-utils.ts` | **新增** `queryFirst()` / `queryAll()` fallback 工具 |
+| `core/hosts/shared/url-utils.ts` | **新增** `parseSessionId()` 可测试 URL 解析 |
+| `entrypoints/content.ts` | matches 扩展 doubao.com；动态选择器函数 `getAssistantResponseSelector()` 等；检测宿主 + 切换 active host |
+| `entrypoints/main-world.content.ts` | matches 扩展 doubao.com；启动时自动检测宿主 |
 | `public/_locales/zh_CN/messages.json` | 品牌文案 |
 | `public/_locales/en/messages.json` | 品牌文案 |
+| `tests/host-url-parser.test.ts` | **新增** URL parser 单元测试 |
+| `tests/host-selector-utils.test.ts` | **新增** selector fallback 工具测试 |
+| `tests/host-adapter.test.ts` | **新增** adapter 集成测试 |
+| `tests/architecture/no-host-hardcoding.test.ts` | **新增** 架构守卫（4 个测试） |
 | `docs/doubao-pp-proposal.md` | v0.2 企划案 |
 
-**构建验证：** ✅ Chrome MV3 构建通过（11.7s，72 MB）
+**构建验证：** ✅ Chrome MV3 构建通过（5s）
+**测试验证：** ✅ `vitest run` 55 个测试文件，300 个测试通过
