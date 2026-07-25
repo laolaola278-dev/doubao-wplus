@@ -2,6 +2,14 @@
 
 Thanks for contributing to doubao-wplus.
 
+## 行为准则 / Code of Conduct
+
+本项目采用 [贡献者公约](CODE_OF_CONDUCT.md)。所有参与者都应遵守其中规定，包括不可滥用声明和商用条款。
+
+## 贡献者列表 / Contributors
+
+欢迎通过 Pull Request 提交贡献。如果你的 PR 被合并，你可以选择将你的名字（或 GitHub 用户名）加入 README 的贡献者列表。
+
 All pull requests must follow these rules before they can be reviewed or merged.
 
 ## Pull Request Requirements
