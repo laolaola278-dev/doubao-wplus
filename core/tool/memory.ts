@@ -196,6 +196,8 @@ async function saveMemory(
     description: parsed.memory.name,
     tags: parsed.memory.tags,
     pinned: false,
+    // Memory Studio 来源标记：AI 通过工具保存
+    source: 'ai-tool',
   });
 
   if (!saved?.id) {

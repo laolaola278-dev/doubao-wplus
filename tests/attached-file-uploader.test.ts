@@ -83,7 +83,7 @@ function startMockServer(handler: (rec: RecordedUpload) => { status: number; bod
       req.on('end', () => {
         const body = Buffer.concat(chunks);
         const contentType = firstHeader(req.headers['content-type']);
-        const bypass = firstHeader(req.headers['x-dpp-bypass-hook']);
+        const bypass = firstHeader(req.headers['x-dwplus-bypass-hook']);
         const boundaryMatch = /boundary=([^;]+)/.exec(contentType ?? '');
         const boundary = boundaryMatch ? boundaryMatch[1]?.trim().replace(/^"|"$/g, '') ?? '' : '';
         const rec: RecordedUpload = parseMultipart(body, boundary);
@@ -143,7 +143,7 @@ describe('upload_attached_file (extension side)', () => {
       const result = await uploadAttachedFile({ localPath: '' });
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.code).toBe('dpp_invalid_local_path');
+      expect(result.code).toBe('dwplus_invalid_local_path');
     });
 
     it('rejects files exceeding the 64 MB safety cap', async () => {
@@ -158,7 +158,7 @@ describe('upload_attached_file (extension side)', () => {
       });
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.code).toBe('dpp_file_too_large');
+      expect(result.code).toBe('dwplus_file_too_large');
     });
 
     it('rejects empty files', async () => {
@@ -168,7 +168,7 @@ describe('upload_attached_file (extension side)', () => {
       });
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.code).toBe('dpp_file_empty');
+      expect(result.code).toBe('dwplus_file_empty');
     });
 
     it('surfaces read errors', async () => {
@@ -178,7 +178,7 @@ describe('upload_attached_file (extension side)', () => {
       });
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.code).toBe('dpp_file_read_failed');
+      expect(result.code).toBe('dwplus_file_read_failed');
       expect(result.message).toContain('ENOENT');
     });
   });
@@ -268,7 +268,7 @@ describe('upload_attached_file (extension side)', () => {
       });
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.code).toBe('dpp_upload_http_error');
+      expect(result.code).toBe('dwplus_upload_http_error');
       expect(result.retryable).toBe(true);
       mock.server.close();
     });
@@ -287,7 +287,7 @@ describe('upload_attached_file (extension side)', () => {
       });
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.code).toBe('dpp_upload_http_error');
+      expect(result.code).toBe('dwplus_upload_http_error');
       expect(result.retryable).toBe(false);
       mock.server.close();
     });
@@ -306,7 +306,7 @@ describe('upload_attached_file (extension side)', () => {
       });
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.code).toBe('dpp_upload_no_ref_file_id');
+      expect(result.code).toBe('dwplus_upload_no_ref_file_id');
       mock.server.close();
     });
   });
@@ -315,6 +315,6 @@ describe('upload_attached_file (extension side)', () => {
     expect(UPLOAD_ATTACHED_FILE_DEFAULT_PATH).toBe('/api/v0/file/upload');
     expect(UPLOAD_ATTACHED_FILE_DEFAULT_FIELD).toBe('file');
     expect(UPLOAD_ATTACHED_FILE_MAX_BYTES).toBe(64 * 1024 * 1024);
-    expect(UPLOAD_ATTACHED_FILE_BYPASS_HEADER).toBe('X-DPP-Bypass-Hook');
+    expect(UPLOAD_ATTACHED_FILE_BYPASS_HEADER).toBe('X-DWPLUS-Bypass-Hook');
   });
 });

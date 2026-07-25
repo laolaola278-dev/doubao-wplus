@@ -1,0 +1,17 @@
+{
+  "marker": "P6S4b标记1603",
+  "textLength": 2824,
+  "requests": [
+    {
+      "url": "https://www.doubao.com/chat/completion?aid=497858&device_id=7663059206715885106&device_platform=web&",
+      "status": 200,
+      "bodyLength": 4543,
+      "promptPath": "messages[0].content_block[0].content.text_block.text",
+      "textLen": 2824,
+      "contentBlockCount": 1,
+      "blockTypes": [
+        10000
+      ]
+    }
+  ]
+}

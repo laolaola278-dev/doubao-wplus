@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/readme-header.png" width="860" alt="DeepSeek++ DeepSeek browser extension and AI agent workspace">
+  <img src="assets/readme-header.png" width="860" alt="doubao-wplus DeepSeek browser extension and AI agent workspace">
 </p>
 
-<h1 align="center">DeepSeek++</h1>
+<h1 align="center">doubao-wplus</h1>
 
 <p align="center">
   <strong>DeepSeek browser extension for a bilingual AI agent workspace with memory, projects, Skills, MCP tools, browser control, saved snippets, artifact downloads, conversation export, and automation.</strong>
@@ -17,7 +17,7 @@
 
 <p align="center">
   <a href="https://github.com/zhu1090093659/deepseek-pp/releases"><img alt="Release" src="https://img.shields.io/github/v/release/zhu1090093659/deepseek-pp?style=flat-square&label=release"></a>
-  <a href="https://chromewebstore.google.com/detail/deepseek++/kdmpkkahkhdmdhfkdihkopikgcocbpbf?hl=zh-CN"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome%20Web%20Store-available-16a34a?style=flat-square"></a>
+  <a href="https://chromewebstore.google.com/detail/doubao-wplus/kdmpkkahkhdmdhfkdihkopikgcocbpbf?hl=zh-CN"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome%20Web%20Store-available-16a34a?style=flat-square"></a>
   <a href="#license"><img alt="License" src="https://img.shields.io/badge/license-MIT-2563eb?style=flat-square"></a>
   <a href="https://chat.deepseek.com"><img alt="DeepSeek" src="https://img.shields.io/badge/DeepSeek-web-4f46e5?style=flat-square"></a>
   <a href="https://linux.do"><img alt="LINUX DO" src="https://img.shields.io/badge/LINUX-DO-f59e0b?style=flat-square"></a>
@@ -34,11 +34,11 @@
 
 ## Product Positioning
 
-DeepSeek++ is an open-source browser extension for [DeepSeek Web](https://chat.deepseek.com), with support for Chrome, Edge, and Firefox. It turns DeepSeek Web into an AI agent workspace where users can run English or Simplified Chinese UI, MCP tools, long-term memory, Skills, system prompt presets, web search, web fetch, conversation export, and scheduled automation in the same browser workflow.
+doubao-wplus is an open-source browser extension for [DeepSeek Web](https://chat.deepseek.com), with support for Chrome, Edge, and Firefox. It turns DeepSeek Web into an AI agent workspace where users can run English or Simplified Chinese UI, MCP tools, long-term memory, Skills, system prompt presets, web search, web fetch, conversation export, and scheduled automation in the same browser workflow.
 
 In plain terms, it is a DeepSeek Chrome extension, DeepSeek MCP tools extension, DeepSeek memory plugin, DeepSeek conversation export tool, and AI agent browser extension for DeepSeek Web.
 
-Language can follow the browser or be set to English or Simplified Chinese. DeepSeek++ keeps the side panel, context menus, tool results, built-in Skill behavior, and continuation prompts in the selected language while preserving user-authored memories, presets, custom Skills, automation tasks, and sync data as written.
+Language can follow the browser or be set to English or Simplified Chinese. doubao-wplus keeps the side panel, context menus, tool results, built-in Skill behavior, and continuation prompts in the selected language while preserving user-authored memories, presets, custom Skills, automation tasks, and sync data as written.
 
 ## Table of Contents
 
@@ -52,13 +52,13 @@ Language can follow the browser or be set to English or Simplified Chinese. Deep
 
 ## Feature Overview
 
-| Need | What DeepSeek++ provides |
+| Need | What doubao-wplus provides |
 |------|--------------------------|
 | AI agent browser extension | Turns DeepSeek Web into a browser-based workspace that can continue tasks, call tools, reuse memory, and schedule automation. |
 | DeepSeek browser extension / DeepSeek Chrome extension | Adds side-panel chat, right-click text sending, tool-result rendering, and Chrome / Edge / Firefox support for DeepSeek Web. |
 | Multilingual DeepSeek extension | Switches between English and Simplified Chinese, keeping UI, built-in tool descriptions, and model continuation behavior in the same language. |
 | DeepSeek MCP tools | Lets you manage MCP services, tool permissions, and execution status in the side panel, then sends tool results back into the same conversation. |
-| DeepSeek browser control | Lets DeepSeek++ operate a user-selected browser tab after the user enables the feature and chooses the target. |
+| DeepSeek browser control | Lets doubao-wplus operate a user-selected browser tab after the user enables the feature and chooses the target. |
 | DeepSeek memory | Automatically saves, filters, and injects long-term memory so different conversations can reuse user preferences, project context, and common facts. |
 | DeepSeek Skills / `/skill` workflows | Switches quickly between built-in, custom, and GitHub-imported Skills for expert modes and task templates. |
 | DeepSeek project context | Groups project instructions, project memories, and related DeepSeek conversations so matching chats get the right context automatically. |
@@ -72,7 +72,7 @@ Language can follow the browser or be set to English or Simplified Chinese. Deep
 ## Use Cases
 
 - Turn DeepSeek Web into an AI agent workspace with tool execution, MCP, memory, and automation.
-- Use DeepSeek++ in an English or Simplified Chinese workflow with matching UI, tool guidance, and model continuation prompts.
+- Use doubao-wplus in an English or Simplified Chinese workflow with matching UI, tool guidance, and model continuation prompts.
 - Use DeepSeek side-panel chat, selected-text actions, and reusable prompt scenarios directly in Chrome, Edge, or Firefox.
 - Let AI work in a user-selected Chrome or Edge tab while keeping explicit enable, target switching, and detach controls.
 - Save project context, personal preferences, common workflows, and document-processing routines as long-term memory and reusable Skills.
@@ -102,9 +102,9 @@ Language can follow the browser or be set to English or Simplified Chinese. Deep
 - **Project context** - Maintain project names, descriptions, and instructions in the side panel, then add related DeepSeek conversations to each project.
 - **Project-aware chats** - Conversations assigned to a project automatically receive that project's instructions and project memories.
 - **Project memory management** - Add, edit, pin, or delete memories that belong only to the selected project.
-- **Single-file artifacts** - Ask DeepSeek++ to create downloadable scripts, Markdown, JSON, HTML, or other text files.
+- **Single-file artifacts** - Ask doubao-wplus to create downloadable scripts, Markdown, JSON, HTML, or other text files.
 - **Project bundles** - Download multi-file results as a bundle for prototypes, small tools, or documentation sets.
-- **Local-first flow** - Project context, project memories, and generated artifacts are maintained and downloaded by the user without a DeepSeek++ backend.
+- **Local-first flow** - Project context, project memories, and generated artifacts are maintained and downloaded by the user without a doubao-wplus backend.
 
 ### Native-Feeling Tool Calls
 
@@ -127,7 +127,7 @@ Language can follow the browser or be set to English or Simplified Chinese. Deep
 - **Attachment manifest** - Includes file references, names, sizes, statuses, and message links. File body export stays disabled until the download path is verified.
 - **Image manifest** - Export a separate image attachment manifest for conversations that include screenshots, charts, or image files.
 - **Single-message export** - Save an individual page message as Markdown when you only need one answer excerpt.
-- **Local saves** - Export files are saved through the browser's local download flow. DeepSeek++ does not operate a backend for collecting export data.
+- **Local saves** - Export files are saved through the browser's local download flow. doubao-wplus does not operate a backend for collecting export data.
 
 ### Saved Items and Conversation Organization
 
@@ -186,7 +186,7 @@ Language can follow the browser or be set to English or Simplified Chinese. Deep
 - **Local persistence** - The on/off state, position, and appearance are stored locally in the browser and survive refreshes.
 
 <p align="center">
-  <img src="public/pet/deepseek-whale-pet-states.png" width="420" alt="DeepSeek whale pet states">
+  <img src="public/pet/doubao-pet-states.png" width="420" alt="Doubao whale pet states">
 </p>
 
 ### MCP Tool System
@@ -244,7 +244,7 @@ npm run shell:install -- --browser chrome --extension-id <extension-id>
 - **Built-in Skills** - Includes ready-to-use general collaboration Skills and manually enabled third-party OfficeCLI document Skills.
 - **Custom Skills** - Create your own Skills in the side panel with system instructions and parameters.
 - **GitHub import** - Preview and import third-party Skills from a GitHub repository, directory, or direct `SKILL.md` link.
-- **Local import** - Preview, import, and sync local Skill folders so personal workflows can be reused in DeepSeek++.
+- **Local import** - Preview, import, and sync local Skill folders so personal workflows can be reused in doubao-wplus.
 - **Source and update metadata** - GitHub-imported Skills show source repository, version, license, sync time, and upstream update checks.
 - **Enable control** - Custom, locally imported, and GitHub-imported Skills can be enabled, disabled, or deleted independently without affecting other Skills.
 - **Slash trigger** - Type `/` in the chat box to open autocomplete and inject the selected Skill's system prompt.
@@ -282,7 +282,7 @@ npm run shell:install -- --browser chrome --extension-id <extension-id>
 
 | Area | Main changes |
 |------|--------------|
-| Local Skill management | Adds local Skill preview, import, and sync support in the Skills page so personal or team Skill folders can join the DeepSeek++ workflow. |
+| Local Skill management | Adds local Skill preview, import, and sync support in the Skills page so personal or team Skill folders can join the doubao-wplus workflow. |
 | Skill preview experience | Shows Skill names, descriptions, source details, and availability before import, helping users review content before enabling it. |
 | Restored history cleanup | Restored `task_complete` tool blocks are shown as cleaner summaries, reducing technical markers in older conversations. |
 | Automation stability | Creates PoW headers on demand, reducing interruptions caused by request-preparation timing during automation runs. |
@@ -331,7 +331,7 @@ npm run shell:install -- --browser chrome --extension-id <extension-id>
 
 ### 0.7.2 Release Highlights
 
-0.7.2 adds Browser Control and tightens the side-panel experience, so DeepSeek++ can operate a user-selected tab while keeping permission boundaries, third-party Skill management, and user feedback clearer.
+0.7.2 adds Browser Control and tightens the side-panel experience, so doubao-wplus can operate a user-selected tab while keeping permission boundaries, third-party Skill management, and user feedback clearer.
 
 | Area | Main changes |
 |------|--------------|
@@ -367,7 +367,7 @@ npm run shell:install -- --browser chrome --extension-id <extension-id>
 
 ### 0.7.0 Release Highlights
 
-0.7.0 moves DeepSeek++ from a DeepSeek web-page enhancement toward a sustained browser-based AI agent workspace: context can be reused, outputs can become downloadable files, and tool execution can be reviewed, steered, and resumed.
+0.7.0 moves doubao-wplus from a DeepSeek web-page enhancement toward a sustained browser-based AI agent workspace: context can be reused, outputs can become downloadable files, and tool execution can be reviewed, steered, and resumed.
 
 | Area | Main changes |
 |------|--------------|
@@ -386,7 +386,7 @@ npm run shell:install -- --browser chrome --extension-id <extension-id>
 
 ### 0.6.5 Release Highlights
 
-0.6.5 focuses on bilingual runtime polish and output feedback accuracy. DeepSeek++ now keeps Chinese or English workflows more consistent across the extension while making the live output-speed indicator better match actual generation.
+0.6.5 focuses on bilingual runtime polish and output feedback accuracy. doubao-wplus now keeps Chinese or English workflows more consistent across the extension while making the live output-speed indicator better match actual generation.
 
 | Area | Main changes |
 |------|--------------|
@@ -405,7 +405,7 @@ Thanks to this release's contributor: [@mekos2772](https://github.com/mekos2772)
 
 ### 0.6.4 Release Highlights
 
-0.6.4 strengthens side-panel chat and local tool workflows. It makes DeepSeek++ chat usable on normal web pages with an official API Key and adds Python interpreter support through Shell MCP.
+0.6.4 strengthens side-panel chat and local tool workflows. It makes doubao-wplus chat usable on normal web pages with an official API Key and adds Python interpreter support through Shell MCP.
 
 | Area | Main changes |
 |------|--------------|
@@ -476,7 +476,7 @@ Thanks to this release's contributor: [@IjalG](https://github.com/IjalG) for the
 
 ### 0.6.0 Release Highlights
 
-0.6.0 focuses on side-panel chat and Skill workflow improvements. DeepSeek++ now moves beyond enhancing the page conversation: it can start tasks directly from the side panel, manage custom Skills, and import Skills from GitHub.
+0.6.0 focuses on side-panel chat and Skill workflow improvements. doubao-wplus now moves beyond enhancing the page conversation: it can start tasks directly from the side panel, manage custom Skills, and import Skills from GitHub.
 
 | Area | Main changes |
 |------|--------------|
@@ -633,7 +633,7 @@ Thanks to this release's contributors: [@todayzhou](https://github.com/todayzhou
 
 ### 0.2.0 Release Highlights
 
-0.2.0 collects the major additions since 0.1.0 and upgrades DeepSeek++ from "memory + Skills" into a browser-side tool platform.
+0.2.0 collects the major additions since 0.1.0 and upgrades doubao-wplus from "memory + Skills" into a browser-side tool platform.
 
 | Area | Main changes |
 |------|--------------|
@@ -656,7 +656,7 @@ Thanks to this release's contributors: [@todayzhou](https://github.com/todayzhou
 
 ### Install from Chrome Web Store
 
-Chrome users can install DeepSeek++ directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/deepseek++/kdmpkkahkhdmdhfkdihkopikgcocbpbf?hl=zh-CN). After installation, open [DeepSeek Web](https://chat.deepseek.com) and enable memory, Skills, MCP tools, web tools, conversation export, and automation from the side panel as needed.
+Chrome users can install doubao-wplus directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/doubao-wplus/kdmpkkahkhdmdhfkdihkopikgcocbpbf?hl=zh-CN). After installation, open [DeepSeek Web](https://chat.deepseek.com) and enable memory, Skills, MCP tools, web tools, conversation export, and automation from the side panel as needed.
 
 If you need Shell MCP or local file tools, follow the Shell Native Host instructions shown on the side-panel `MCP` page.
 
@@ -686,7 +686,7 @@ npm run smoke:shell
 
 ### Android WebView Developer Baseline
 
-The repository includes an Android WebView baseline for validating DeepSeek++ mobile capability boundaries. The available local staging command is:
+The repository includes an Android WebView baseline for validating doubao-wplus mobile capability boundaries. The available local staging command is:
 
 ```bash
 npm run build:android

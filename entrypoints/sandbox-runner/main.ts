@@ -14,7 +14,7 @@ window.addEventListener('message', (event) => {
   const value = event.data && typeof event.data === 'object'
     ? event.data as { type?: unknown; requestId?: unknown; payload?: unknown }
     : {};
-  if (value.type !== 'DPP_SANDBOX_RUN' || typeof value.requestId !== 'string') return;
+  if (value.type !== 'DWPLUS_SANDBOX_RUN' || typeof value.requestId !== 'string') return;
 
   void runApprovedCode(value.requestId, value.payload);
 });
@@ -31,10 +31,10 @@ async function runApprovedCode(requestId: string, payload: unknown): Promise<voi
         timeoutMs: request.timeoutMs,
         pyodideBaseUrl: request.pyodideBaseUrl,
       });
-    parent.postMessage({ type: 'DPP_SANDBOX_RESULT', requestId, result }, '*');
+    parent.postMessage({ type: 'DWPLUS_SANDBOX_RESULT', requestId, result }, '*');
   } catch (error) {
     parent.postMessage({
-      type: 'DPP_SANDBOX_RESULT',
+      type: 'DWPLUS_SANDBOX_RESULT',
       requestId,
       result: {
         ok: false,
@@ -115,17 +115,17 @@ function runHtmlSandbox(request: SandboxRunnerRequest): Promise<SandboxExecution
         ? event.data as { type?: unknown; requestId?: unknown; level?: unknown; values?: unknown; html?: unknown; text?: unknown; title?: unknown; message?: unknown }
         : {};
       if (value.requestId !== htmlRequestId) return;
-      if (value.type === 'DPP_HTML_LOG') {
+      if (value.type === 'DWPLUS_HTML_LOG') {
         const level = typeof value.level === 'string' ? value.level : 'log';
         const values = Array.isArray(value.values) ? value.values : [];
         logs.push(`[${level}] ${values.map(formatHtmlValue).join(' ')}`);
         return;
       }
-      if (value.type === 'DPP_HTML_ERROR') {
+      if (value.type === 'DWPLUS_HTML_ERROR') {
         errors.push(typeof value.message === 'string' ? value.message : 'HTML runtime error.');
         return;
       }
-      if (value.type === 'DPP_HTML_DONE') {
+      if (value.type === 'DWPLUS_HTML_DONE') {
         const stdout = limitText(logs.join('\n'), HTML_OUTPUT_LIMIT);
         const stderr = limitText(errors.join('\n'), HTML_OUTPUT_LIMIT);
         const html = typeof value.html === 'string' ? value.html : '';
@@ -160,19 +160,19 @@ function createHtmlDocument(source: string, requestId: string): string {
   ['log', 'info', 'warn', 'error'].forEach((level) => {
     const original = console[level];
     console[level] = (...values) => {
-      send({ type: 'DPP_HTML_LOG', level, values: values.map(format) });
+      send({ type: 'DWPLUS_HTML_LOG', level, values: values.map(format) });
       if (typeof original === 'function') original.apply(console, values);
     };
   });
   addEventListener('error', (event) => {
-    send({ type: 'DPP_HTML_ERROR', message: event.message || String(event.error || 'Error') });
+    send({ type: 'DWPLUS_HTML_ERROR', message: event.message || String(event.error || 'Error') });
   });
   addEventListener('unhandledrejection', (event) => {
-    send({ type: 'DPP_HTML_ERROR', message: event.reason && event.reason.stack ? String(event.reason.stack) : String(event.reason) });
+    send({ type: 'DWPLUS_HTML_ERROR', message: event.reason && event.reason.stack ? String(event.reason.stack) : String(event.reason) });
   });
   const done = () => setTimeout(() => {
     send({
-      type: 'DPP_HTML_DONE',
+      type: 'DWPLUS_HTML_DONE',
       title: document.title || '',
       text: document.body ? document.body.innerText : '',
       html: document.documentElement ? document.documentElement.outerHTML : (document.body ? document.body.outerHTML : ''),

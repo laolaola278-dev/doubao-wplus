@@ -2,7 +2,7 @@
 
 ## Confirmed Task Definition
 
-Productize OfficeCLI in DeepSeek++ with a built-in `/officecli` skill and a controlled local execution path. The execution path must use the existing MCP/native/bridge tool platform rather than adding raw shell execution to the skill system or browser extension. Read/inspect tools can be auto-enabled by default; mutation tools must require explicit opt-in through allowlist or configuration.
+Productize OfficeCLI in doubao-wplus with a built-in `/officecli` skill and a controlled local execution path. The execution path must use the existing MCP/native/bridge tool platform rather than adding raw shell execution to the skill system or browser extension. Read/inspect tools can be auto-enabled by default; mutation tools must require explicit opt-in through allowlist or configuration.
 
 ## Overview
 
@@ -63,7 +63,7 @@ Productize OfficeCLI in DeepSeek++ with a built-in `/officecli` skill and a cont
 | B | T2.3 | M | Medium | `scripts/officecli-mcp-server.mjs` |
 | C | T2.4 | M | Low | `scripts/officecli-smoke.mjs`, `package.json` |
 
-## Phase 3: DeepSeek++ OfficeCLI Onboarding
+## Phase 3: doubao-wplus OfficeCLI Onboarding
 
 **Goal**: Make OfficeCLI discoverable and usable through the existing MCP configuration model without adding a parallel execution system.
 

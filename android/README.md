@@ -1,6 +1,6 @@
-# DeepSeek++ Android
+# doubao-wplus Android
 
-This is the Android WebView baseline for DeepSeek++. It loads `chat.deepseek.com`, exposes a native `AndroidBridge`, and injects the staged DeepSeek++ web bundle.
+This is the Android WebView baseline for doubao-wplus. It loads `chat.deepseek.com`, exposes a native `AndroidBridge`, and injects the staged doubao-wplus web bundle.
 
 ## Build
 
@@ -15,7 +15,7 @@ npm run android:assemble:debug
 
 ## Developer Scope
 
-The Android target is a WebView baseline for capability validation, not a replacement for the browser extension store packages. It keeps user-visible DeepSeek++ features that can run in a WebView and explicitly disables browser-extension-only surfaces.
+The Android target is a WebView baseline for capability validation, not a replacement for the browser extension store packages. It keeps user-visible doubao-wplus features that can run in a WebView and explicitly disables browser-extension-only surfaces.
 
 Unsupported on Android:
 

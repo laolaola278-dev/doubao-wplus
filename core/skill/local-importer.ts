@@ -440,7 +440,7 @@ function buildLocalImportedInstructions(input: {
   const header = [
     `# Local Skill: ${parsed.name}`,
     '',
-    '## DeepSeek++ Import Metadata',
+    '## WPlus Import Metadata',
     '',
     `- Source: ${source.displayName}`,
     `- Root path: ${source.rootPath}`,

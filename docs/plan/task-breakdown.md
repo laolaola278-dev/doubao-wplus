@@ -2,7 +2,7 @@
 
 ## Confirmed Task Definition
 
-Implement Gemini-Nexus parity browser control in DeepSeek++ as a first-class local capability, not a minimal MVP. The target includes controlled tabs and tab groups, `chrome.debugger`/CDP session management, Accessibility Tree UID snapshots, browser action tools, shared tool-loop integration, sidepanel controls, permission and platform governance, and validation.
+Implement Gemini-Nexus parity browser control in doubao-wplus as a first-class local capability, not a minimal MVP. The target includes controlled tabs and tab groups, `chrome.debugger`/CDP session management, Accessibility Tree UID snapshots, browser action tools, shared tool-loop integration, sidepanel controls, permission and platform governance, and validation.
 
 ## Scope Decisions
 
@@ -11,7 +11,7 @@ Implement Gemini-Nexus parity browser control in DeepSeek++ as a first-class loc
 - **In scope**: explicit enable/disable/status controls and user-visible detach state.
 - **In scope**: integration with manual DeepSeek chat, sidepanel chat, inline agent, and automation through the existing local tool runtime.
 - **Out of scope for active control**: Firefox and Android WebView execution. They must show explicit unsupported state and must not expose browser-control descriptors.
-- **Tool naming**: use DeepSeek++ XML-safe `browser_*` tool names while matching Gemini-Nexus behavior.
+- **Tool naming**: use doubao-wplus XML-safe `browser_*` tool names while matching Gemini-Nexus behavior.
 - **Fallback policy**: physical CDP input may use explicit JS fallback only when the result reports that fallback path; no silent success.
 
 ## Overview
@@ -44,8 +44,8 @@ Implement Gemini-Nexus parity browser control in DeepSeek++ as a first-class loc
 
 | # | Task | Priority | Effort | Depends On | Lane | S.U.P.E.R | Test Expectation | Memory Impact | Acceptance Criteria |
 |:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
-| T1.1 | Add browser-control contracts and settings | P0 | M | â€” | A | S, P, R | Unit tests for settings normalization and action payload helpers | Update memory only if stable gotcha emerges | Types cover controlled tabs, groups, snapshots, action results, settings; defaults are explicit; no Chrome API imports in pure contracts |
-| T1.2 | Add platform capability gates for browser control | P0 | S | â€” | B | E, P | Update platform capability tests | None | Capabilities include debugger/tabs/tabGroups/browserControl/accessibilityTree; Firefox/Android are unsupported |
+| T1.1 | Add browser-control contracts and settings | P0 | M | â€?| A | S, P, R | Unit tests for settings normalization and action payload helpers | Update memory only if stable gotcha emerges | Types cover controlled tabs, groups, snapshots, action results, settings; defaults are explicit; no Chrome API imports in pure contracts |
+| T1.2 | Add platform capability gates for browser control | P0 | S | â€?| B | E, P | Update platform capability tests | None | Capabilities include debugger/tabs/tabGroups/browserControl/accessibilityTree; Firefox/Android are unsupported |
 | T1.3 | Update manifest permissions and policy docs | P0 | M | T1.2 | C | E, P | `npm run build:all` then `npm run verify:manifest-policy` | None | Chromium manifests include required permissions; Firefox omits active control; privacy/submission docs justify permissions |
 
 ### Parallel Lanes

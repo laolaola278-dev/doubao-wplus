@@ -142,7 +142,7 @@
 - **Internal Dependencies**: DeepSeek official API normalization, artifact builders.
 - **External Dependencies**: DeepSeek web session and file metadata endpoints.
 - **Complexity Rating**: Medium.
-- **Transformation Notes**: Better DeepSeek supports image export and specific-message export; current DeepSeek++ has stronger official-session export but lacks image output and saved-item/message-level workflows.
+- **Transformation Notes**: Better DeepSeek supports image export and specific-message export; current doubao-wplus has stronger official-session export but lacks image output and saved-item/message-level workflows.
 - **S.U.P.E.R Assessment**:
   - **S**: Healthy. Normalization/artifact responsibilities are separated.
   - **U**: Healthy. Transport is injected.
@@ -174,7 +174,7 @@
 - **Internal Dependencies**: resources.
 - **External Dependencies**: browser language and storage.
 - **Complexity Rating**: Medium.
-- **Transformation Notes**: Better DeepSeek has more languages; DeepSeek++ currently has stronger bilingual model-facing coverage but fewer locales.
+- **Transformation Notes**: Better DeepSeek has more languages; doubao-wplus currently has stronger bilingual model-facing coverage but fewer locales.
 - **S.U.P.E.R Assessment**:
   - **S**: Healthy.
   - **U**: Healthy.

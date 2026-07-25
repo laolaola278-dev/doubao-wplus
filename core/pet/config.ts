@@ -65,5 +65,9 @@ export function normalizePetConfig(config: Partial<PetConfig> | null | undefined
     normalized.customPosition = customPosition;
   }
 
+  if (typeof config.iconData === 'string' && config.iconData.length > 0) {
+    normalized.iconData = config.iconData;
+  }
+
   return normalized;
 }

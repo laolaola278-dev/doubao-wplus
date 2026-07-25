@@ -6,7 +6,7 @@ import {
 } from './types';
 
 const DEFAULT_FORMATS: ConversationExportFormat[] = ['html'];
-const SUPPORTED_FORMATS = new Set<ConversationExportFormat>(['markdown', 'html', 'pdf', 'image_manifest']);
+const SUPPORTED_FORMATS = new Set<ConversationExportFormat>(['markdown', 'html', 'pdf', 'image_manifest', 'json', 'txt']);
 const DEFAULT_PAGE_SIZE = 50;
 const MIN_PAGE_SIZE = 1;
 const MAX_PAGE_SIZE = 100;

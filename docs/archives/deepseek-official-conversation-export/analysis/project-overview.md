@@ -2,13 +2,13 @@
 
 ## Preliminary Direction
 
-Add a user-facing export feature for DeepSeek++ so users can export their own conversation records from the official DeepSeek web app, including file and attachment references where available.
+Add a user-facing export feature for doubao-wplus so users can export their own conversation records from the official DeepSeek web app, including file and attachment references where available.
 
 This is a new spec-driven feature. No prior `docs/progress/MASTER.md` existed when this analysis started.
 
 ## Current Architecture
 
-DeepSeek++ is a WXT browser extension that enhances `chat.deepseek.com` through a main-world fetch/XHR/IndexedDB hook, an isolated-world coordinator, a background runtime message router, and a React side panel.
+doubao-wplus is a WXT browser extension that enhances `chat.deepseek.com` through a main-world fetch/XHR/IndexedDB hook, an isolated-world coordinator, a background runtime message router, and a React side panel.
 
 ```mermaid
 flowchart LR

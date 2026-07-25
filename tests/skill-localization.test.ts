@@ -64,7 +64,7 @@ describe('builtin skill localization', () => {
     const memory = findSkill(skills, 'memory');
 
     expect(shell.description).toContain('本地命令行助手');
-    expect(shell.instructions).toContain('你正在通过 DeepSeek++ Shell MCP 执行本地命令');
+    expect(shell.instructions).toContain('你正在通过 WPlus Shell MCP 执行本地命令');
     expect(memory.instructions).toContain('"description":"更新已有记忆"');
   });
 
@@ -98,6 +98,15 @@ describe('builtin skill localization', () => {
     const activeOfficeCli = findSkill(await getAllSkills(), 'officecli');
     expect(activeOfficeCli.source).toBe('third-party');
     expect(activeOfficeCli.enabled).toBe(true);
+  });
+
+  it('keeps /office as an active first-party alias for the bundled DOCX workflow', async () => {
+    const office = findSkill(await getAllSkills(), 'office');
+
+    expect(office.source).toBe('builtin');
+    expect(office.enabled).toBe(true);
+    expect(office.metadata?.aliasFor).toBe('officecli-docx');
+    expect(office.instructions).toContain('shell_exec');
   });
 
   it('does not treat first-party builtin skills as locally toggleable', async () => {

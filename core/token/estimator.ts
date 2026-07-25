@@ -1,5 +1,5 @@
-// Per DeepSeek's official guidance (https://api-docs.deepseek.com/quick_start/token_usage):
-// 1 CJK character ~= 0.6 token, 1 ASCII character ~= 0.3 token.
+// 通用 token 估算（CJK ≈ 0.6 tok/字，ASCII ≈ 0.3 tok/字符）
+// 适用于豆包/大模型场景的粗略用量统计，非精确计费依据
 export function estimateTokenUnits(text: string): number {
   let tokens = 0;
   for (const char of text) {

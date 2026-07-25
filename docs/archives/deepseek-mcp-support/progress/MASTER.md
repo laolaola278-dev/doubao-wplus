@@ -1,6 +1,6 @@
-## DeepSeek++ MCP Support â€” Progress Tracker
+## doubao-wplus MCP Support â€?Progress Tracker
 
-> **Task**: Add MCP support to DeepSeek++ across browser HTTP/SSE/Streamable HTTP, local bridge/native messaging adapters for stdio-backed servers, automatic tool execution, and automation compatibility.
+> **Task**: Add MCP support to doubao-wplus across browser HTTP/SSE/Streamable HTTP, local bridge/native messaging adapters for stdio-backed servers, automatic tool execution, and automation compatibility.
 > **Started**: 2026-05-21
 > **Last Updated**: 2026-05-22
 > **Mode**: GITHUB_STANDARD

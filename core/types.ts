@@ -106,9 +106,9 @@ export type {
 
 export type {
   OfficialApiChatConfig,
-  OfficialDeepSeekModel,
-  OfficialDeepSeekReasoningEffort,
-  OfficialDeepSeekThinkingMode,
+  OfficialDoubaoModel,
+  OfficialDoubaoReasoningEffort,
+  OfficialDoubaoThinkingMode,
 } from './chat/official-api-config';
 
 export type {
@@ -164,6 +164,8 @@ export interface PetConfig {
   size: number;
   opacity: number;
   motion: boolean;
+  /** Optional custom pet icon as a data URL (base64). When set, it overrides the built-in sprite sheet. */
+  iconData?: string;
 }
 
 export interface Memory {
@@ -181,7 +183,16 @@ export interface Memory {
   updatedAt: number;
   accessCount: number;
   lastAccessedAt: number;
+  /**
+   * 来源（Memory Studio 展示用；可选，旧数据缺省视为 'user'）：
+   * - user: 用户在面板手动创建
+   * - ai-tool: AI 通过 memory_save 工具保存
+   * - import: 批量导入（文件 / memory_import_preview 草稿 / 同步恢复）
+   */
+  source?: MemorySource;
 }
+
+export type MemorySource = 'user' | 'ai-tool' | 'import';
 
 export type NewMemory = Omit<
   Memory,
@@ -458,6 +469,15 @@ export type MessageAction =
   | { type: 'SAVE_MEMORY'; payload: NewMemory }
   | { type: 'IMPORT_MEMORY_DRAFTS'; payload: { memories: NewMemory[] } }
   | { type: 'DELETE_MEMORY'; payload: { id: number } }
+  | { type: 'DELETE_MEMORIES'; payload: { ids: number[] } }
+  | { type: 'GET_RULE_ENGINE_CONFIG' }
+  | { type: 'SAVE_RULE_ENGINE_CONFIG'; payload: unknown }
+  | { type: 'UPSERT_RULE'; payload: unknown }
+  | { type: 'DELETE_RULE'; payload: { ruleId: string } }
+  | { type: 'SET_RULE_ENABLED'; payload: { ruleId: string; enabled: boolean } }
+  | { type: 'GET_RULE_EXECUTION_LOG' }
+  | { type: 'APPEND_RULE_EXECUTION_LOG'; payload: unknown }
+  | { type: 'CLEAR_RULE_EXECUTION_LOG' }
   | { type: 'UPDATE_MEMORY'; payload: Memory }
   | { type: 'SAVE_SKILL'; payload: SaveSkillPayload }
   | { type: 'DELETE_SKILL'; payload: { name: string } }
@@ -497,11 +517,13 @@ export type MessageAction =
   | { type: 'REMOVE_CONVERSATION_FROM_PROJECT'; payload: { conversationId: string } }
   | { type: 'SET_PENDING_PROJECT_CONTEXT'; payload: { projectId: string | null } }
   | { type: 'GET_CURRENT_DEEPSEEK_CONVERSATION' }
+  | { type: 'GET_CURRENT_CONVERSATION' }
   | { type: 'GET_PROJECT_CONTEXT_FOR_CONVERSATION'; payload: { conversation: ProjectConversationInput; bindPendingProject?: boolean } }
   | { type: 'GET_ARTIFACT'; payload: { id: string } }
   | { type: 'GET_CONFIG' }
   | { type: 'GET_DEEPSEEK_THEME' }
   | { type: 'SET_DEEPSEEK_THEME'; payload: { theme: DeepSeekTheme } }
+  | { type: 'SET_CLIENT_THEME'; payload: { theme: DeepSeekTheme } }
   | { type: 'GET_MODEL_TYPE' }
   | { type: 'SET_MODEL_TYPE'; payload: ModelType }
   | { type: 'GET_OFFICIAL_API_CHAT_CONFIG' }

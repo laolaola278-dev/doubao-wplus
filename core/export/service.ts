@@ -1,7 +1,9 @@
 import { buildAttachmentManifest, collectAttachmentIds, normalizeDeepSeekFileMetadata } from './attachments';
 import { createConversationExportHtmlArtifact } from './artifact-html';
+import { createConversationExportJsonArtifact } from './artifact-json';
 import { createConversationExportMarkdownArtifact } from './artifact-markdown';
 import { createConversationExportPdfArtifact } from './artifact-pdf';
+import { createConversationExportTxtArtifact } from './artifact-txt';
 import { createConversationImageManifestArtifact } from './secondary-artifacts';
 import {
   normalizeConversationExportRequest,
@@ -117,7 +119,7 @@ export async function runConversationExport(input: RunConversationExportInput): 
       fileBodies: 'unsupported-unverified',
     },
     generatedBy: {
-      name: 'DeepSeek++',
+      name: 'WPlus',
       version: input.extensionVersion,
     },
     request,
@@ -197,6 +199,8 @@ function createConversationExportArtifact(
   if (format === 'markdown') return createConversationExportMarkdownArtifact(exportData);
   if (format === 'pdf') return createConversationExportPdfArtifact(exportData);
   if (format === 'image_manifest') return createConversationImageManifestArtifact(exportData);
+  if (format === 'json') return createConversationExportJsonArtifact(exportData);
+  if (format === 'txt') return createConversationExportTxtArtifact(exportData);
   return createConversationExportHtmlArtifact(exportData);
 }
 

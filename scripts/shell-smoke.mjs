@@ -72,7 +72,7 @@ function spawnHost() {
 
 function makeEnvelope(method, params, id) {
   return {
-    protocol: 'deepseek-pp-mcp-native',
+    protocol: 'dwplus-mcp-native',
     version: 1,
     server: { id: 'test-shell' },
     message: {
@@ -116,7 +116,7 @@ await testMethod('initialize', 'initialize', {
   assert(res.jsonrpc === '2.0', 'expected jsonrpc 2.0');
   assert(res.result, 'expected result');
   assert(res.result.protocolVersion === '2025-06-18', 'expected protocol version');
-  assert(res.result.serverInfo.name === 'deepseek-pp-shell', 'expected server name');
+  assert(res.result.serverInfo.name === 'dwplus-shell', 'expected server name');
 });
 
 await testMethod('tools/list', 'tools/list', undefined, (res) => {

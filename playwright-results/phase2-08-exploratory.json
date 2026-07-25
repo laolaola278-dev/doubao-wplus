@@ -1,0 +1,261 @@
+{
+  "generatedAt": "2026-07-16T19:09:27.861Z",
+  "findings": [
+    {
+      "id": "E1",
+      "observation": "selfCheck passed=true errors=0 warns=0; export=function",
+      "data": {
+        "selfCheck": {
+          "hostId": "doubao",
+          "pageUrl": "https://www.doubao.com/chat/",
+          "timestamp": 1784228922479,
+          "passed": true,
+          "errorCount": 0,
+          "warnCount": 0,
+          "checks": [
+            {
+              "id": "host-detection",
+              "passed": true,
+              "severity": "info",
+              "detail": "host=doubao"
+            },
+            {
+              "id": "chat-path-match",
+              "passed": true,
+              "severity": "info",
+              "detail": "completion=/chat/completion"
+            },
+            {
+              "id": "prompt-path-roundtrip",
+              "passed": true,
+              "severity": "info",
+              "detail": "path=messages.0.content_block.0.content.text_block.text"
+            },
+            {
+              "id": "augmentation-executes",
+              "passed": true,
+              "severity": "info",
+              "detail": "augmentedLength=2024"
+            },
+            {
+              "id": "mapping-compat",
+              "passed": true,
+              "severity": "info",
+              "detail": "声明缺失（no-op）字段: refFileIds, modelType, searchEnabled"
+            }
+          ]
+        },
+        "selectorHealth": {
+          "status": "fallback",
+          "healthy": false,
+          "missingCritical": [
+            "sendButton"
+          ],
+          "missingEssential": [
+            "userMessage",
+            "assistantMessage",
+            "stopButton",
+            "mainContainer",
+            "conversationList",
+            "currentConversation"
+          ],
+          "timestamp": 1784228924557
+        },
+        "adapterVersion": "1.0.0"
+      }
+    },
+    {
+      "id": "E2",
+      "observation": "special chars sent",
+      "data": [
+        {
+          "status": 200,
+          "finished": true,
+          "failed": null,
+          "textLength": 8714,
+          "containsMarker": true,
+          "augmented": true,
+          "userTextEcho": "。\n不要使用 <invoke name=\"...\">、<tool_call>、Markdown 代码块、{\"tool\":\"...\",\"arguments\":{...}} 或任何包装格式。\n不要把可执行工具 XML 放在思考/reasoning 区域；必须放在最终 assistant answer content 中。\n"
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "observation": "multiline sent",
+      "data": [
+        {
+          "status": 200,
+          "finished": true,
+          "failed": null,
+          "textLength": 8686,
+          "containsMarker": true,
+          "augmented": true,
+          "userTextEcho": "。\n不要使用 <invoke name=\"...\">、<tool_call>、Markdown 代码块、{\"tool\":\"...\",\"arguments\":{...}} 或任何包装格式。\n不要把可执行工具 XML 放在思考/reasoning 区域；必须放在最终 assistant answer content 中。\n"
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "observation": "popup visible=false afterEsc=false",
+      "data": [
+        {
+          "status": 200,
+          "finished": true,
+          "failed": null,
+          "textLength": 8683,
+          "containsMarker": true,
+          "augmented": true,
+          "userTextEcho": "。\n不要使用 <invoke name=\"...\">、<tool_call>、Markdown 代码块、{\"tool\":\"...\",\"arguments\":{...}} 或任何包装格式。\n不要把可执行工具 XML 放在思考/reasoning 区域；必须放在最终 assistant answer content 中。\n"
+        }
+      ]
+    },
+    {
+      "id": "E5",
+      "observation": "rapid double-send",
+      "data": [
+        {
+          "status": 200,
+          "finished": false,
+          "failed": "net::ERR_ABORTED",
+          "textLength": 8679,
+          "containsMarker": null,
+          "augmented": true,
+          "userTextEcho": "。\n不要使用 <invoke name=\"...\">、<tool_call>、Markdown 代码块、{\"tool\":\"...\",\"arguments\":{...}} 或任何包装格式。\n不要把可执行工具 XML 放在思考/reasoning 区域；必须放在最终 assistant answer content 中。\n"
+        },
+        {
+          "status": 200,
+          "finished": true,
+          "failed": null,
+          "textLength": 8676,
+          "containsMarker": null,
+          "augmented": true,
+          "userTextEcho": "。\n不要使用 <invoke name=\"...\">、<tool_call>、Markdown 代码块、{\"tool\":\"...\",\"arguments\":{...}} 或任何包装格式。\n不要把可执行工具 XML 放在思考/reasoning 区域；必须放在最终 assistant answer content 中。\n"
+        }
+      ]
+    },
+    {
+      "id": "E6",
+      "observation": "empty enter produced 0 completion requests (expect 0)",
+      "data": null
+    },
+    {
+      "id": "E7",
+      "observation": "unregistered /command: sent-as-is=false",
+      "data": [
+        {
+          "status": 200,
+          "finished": true,
+          "failed": null,
+          "textLength": 8684,
+          "containsMarker": true,
+          "augmented": true,
+          "userTextEcho": "。\n不要使用 <invoke name=\"...\">、<tool_call>、Markdown 代码块、{\"tool\":\"...\",\"arguments\":{...}} 或任何包装格式。\n不要把可执行工具 XML 放在思考/reasoning 区域；必须放在最终 assistant answer content 中。\n"
+        }
+      ]
+    },
+    {
+      "id": "E8",
+      "observation": "final lastAugmentation modified=true err=null; dwplus errors=0, page errors=2",
+      "data": {
+        "lastAugmentation": {
+          "urlPath": "/chat/completion",
+          "transport": "fetch",
+          "modified": true,
+          "originalBodyLength": 1579,
+          "augmentedBodyLength": 11057,
+          "error": null,
+          "timestamp": 1784228962105
+        },
+        "selfCheck": {
+          "hostId": "doubao",
+          "pageUrl": "https://www.doubao.com/chat/",
+          "timestamp": 1784228922479,
+          "passed": true,
+          "errorCount": 0,
+          "warnCount": 0,
+          "checks": [
+            {
+              "id": "host-detection",
+              "passed": true,
+              "severity": "info",
+              "detail": "host=doubao"
+            },
+            {
+              "id": "chat-path-match",
+              "passed": true,
+              "severity": "info",
+              "detail": "completion=/chat/completion"
+            },
+            {
+              "id": "prompt-path-roundtrip",
+              "passed": true,
+              "severity": "info",
+              "detail": "path=messages.0.content_block.0.content.text_block.text"
+            },
+            {
+              "id": "augmentation-executes",
+              "passed": true,
+              "severity": "info",
+              "detail": "augmentedLength=2024"
+            },
+            {
+              "id": "mapping-compat",
+              "passed": true,
+              "severity": "info",
+              "detail": "声明缺失（no-op）字段: refFileIds, modelType, searchEnabled"
+            }
+          ]
+        },
+        "dwplusErrors": []
+      }
+    }
+  ],
+  "dwplusLogs": [
+    "info: [DWPLUS-BRIDGE] main-world: installContentBridge() called, starting BRIDGE_REQUEST interval",
+    "info: [DWPLUS-BRIDGE] installBridge() called, listening for main-world BRIDGE_REQUEST",
+    "info: [DWPLUS-SELFCHECK] host=doubao 全部 5 项自检通过 ✓ host-detection, chat-path-match, prompt-path-roundtrip, augmentation-executes, mapping-compat",
+    "debug: [DWPLUS-BRIDGE] Queuing message (port=false, ready=false): SELF_CHECK_REPORT",
+    "info: [DWPLUS-BRIDGE] Received BRIDGE_REQUEST from main world, connecting port...",
+    "info: [DWPLUS-BRIDGE] Sending BRIDGE_INIT to main world with MessageChannel port",
+    "info: [DWPLUS] loadAndSyncRuntimeState: memories=0, skills=9, toolDescriptors=9. Sending SYNC_HOOK_STATE to main world.",
+    "debug: [DWPLUS-BRIDGE] Queuing message (port=true, ready=false): SYNC_HOOK_STATE",
+    "info: [DWPLUS-BRIDGE] main-world: Received BRIDGE_INIT from content, sending BRIDGE_READY",
+    "info: [DWPLUS-BRIDGE] Received BRIDGE_REQUEST from main world, connecting port...",
+    "info: [DWPLUS-BRIDGE] Bridge READY! Flushing 2 pending messages",
+    "info: [DWPLUS-BRIDGE] Flushing queued message: SELF_CHECK_REPORT",
+    "info: [DWPLUS-BRIDGE] Flushing queued message: SYNC_HOOK_STATE",
+    "info: [DWPLUS-SKILLPOPUP] initSkillPopup: 9 skills registered, watching for textarea",
+    "info: [DWPLUS-SKILLPOPUP] Attached to textarea, /command interception active",
+    "warning: [DWPLUS] 豆包选择器健康检查 status=fallback，缺失关键元素: sendButton。插件将降级为基础模式（仅记忆/Skill 注入，不接管 DOM）。页面: https://www.doubao.com/chat/",
+    "info: [DWPLUS] selector health: status=fallback missingCritical=[sendButton] missingEssential=[userMessage,assistantMessage,stopButton,mainContainer,conversationList,currentConversation]",
+    "info: [DWPLUS] 豆包选择器健康检查 status=partial，缺失辅助元素: userMessage, assistantMessage, stopButton, mainContainer, conversationList, currentConversation。核心路径可用，部分增强降级。页面: https://www.doubao.com/chat/",
+    "info: [DWPLUS] selector health: status=partial missingCritical=[] missingEssential=[userMessage,assistantMessage,stopButton,mainContainer,conversationList,currentConversation]",
+    "info: [DWPLUS-SKILLPOPUP] Attached to textarea, /command interception active",
+    "warning: [DWPLUS] 豆包选择器健康检查 status=fallback，缺失关键元素: sendButton。插件将降级为基础模式（仅记忆/Skill 注入，不接管 DOM）。页面: https://www.doubao.com/chat/38435137636536066",
+    "info: [DWPLUS] selector health: status=fallback missingCritical=[sendButton] missingEssential=[userMessage,assistantMessage,stopButton,mainContainer,conversationList]",
+    "warning: [DWPLUS] 豆包选择器健康检查 status=fallback，缺失关键元素: sendButton。插件将降级为基础模式（仅记忆/Skill 注入，不接管 DOM）。页面: https://www.doubao.com/chat/38435137636536066",
+    "info: [DWPLUS] selector health: status=fallback missingCritical=[sendButton] missingEssential=[userMessage,assistantMessage,stopButton,mainContainer,conversationList]",
+    "debug: [DWPLUS-SKILLPOPUP] / → 9 matches",
+    "debug: [DWPLUS-SKILLPOPUP] /s → 2 matches",
+    "debug: [DWPLUS-SKILLPOPUP] /sh → 1 matches",
+    "debug: [DWPLUS-SKILLPOPUP] /she → 1 matches",
+    "info: [DWPLUS] 豆包选择器健康检查 status=partial，缺失辅助元素: userMessage, assistantMessage, stopButton, mainContainer, conversationList。核心路径可用，部分增强降级。页面: https://www.doubao.com/chat/38435137636536066",
+    "info: [DWPLUS] selector health: status=partial missingCritical=[] missingEssential=[userMessage,assistantMessage,stopButton,mainContainer,conversationList]",
+    "warning: [DWPLUS] 豆包选择器健康检查 status=fallback，缺失关键元素: sendButton。插件将降级为基础模式（仅记忆/Skill 注入，不接管 DOM）。页面: https://www.doubao.com/chat/38435137636536066",
+    "info: [DWPLUS] selector health: status=fallback missingCritical=[sendButton] missingEssential=[userMessage,assistantMessage,stopButton,mainContainer,conversationList]",
+    "debug: [DWPLUS-SKILLPOPUP] / → 9 matches",
+    "debug: [DWPLUS-SKILLPOPUP] /n → 0 matches",
+    "debug: [DWPLUS-SKILLPOPUP] /no → 0 matches",
+    "debug: [DWPLUS-SKILLPOPUP] /not → 0 matches",
+    "debug: [DWPLUS-SKILLPOPUP] /nota → 0 matches",
+    "debug: [DWPLUS-SKILLPOPUP] /notas → 0 matches",
+    "debug: [DWPLUS-SKILLPOPUP] /notask → 0 matches",
+    "debug: [DWPLUS-SKILLPOPUP] /notaski → 0 matches",
+    "debug: [DWPLUS-SKILLPOPUP] /notaskil → 0 matches",
+    "debug: [DWPLUS-SKILLPOPUP] /notaskill → 0 matches"
+  ],
+  "consoleErrors": [
+    "The Content Security Policy directive 'upgrade-insecure-requests' is ignored when delivered in a report-only policy.",
+    "[Report Only] Refused to execute inline script because it violates the following Content Security Policy directive: \"script-src 'nonce-92205995f08b8f14e92e58ef7306e805-argus' blob: data: 'self' 'unsafe-eval' 'report-sample' 'strict-dynamic'  'unsafe-inline' https:\". Note that 'unsafe-inline' is igno"
+  ]
+}

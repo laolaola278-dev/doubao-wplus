@@ -43,7 +43,11 @@
     "smoke:mcp": "node scripts/mcp-smoke.mjs",
     "verify:automation": "node scripts/automation-contract-smoke.mjs",
     "verify:mcp:mock": "node scripts/mcp-live-mock.mjs",
-    "postinstall": "wxt prepare"
+    "postinstall": "wxt prepare",
+    "test:e2e": "node scripts/build-e2e.mjs && playwright test",
+    "test:e2e:headed": "node scripts/build-e2e.mjs && playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "dexie": "^4.4.2",
@@ -54,6 +58,7 @@
     "sucrase": "^3.35.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.0",
     "@tailwindcss/vite": "^4.2.4",
     "@types/chrome": "^0.1.42",
     "@types/react": "^19.2.14",

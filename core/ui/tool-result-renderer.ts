@@ -42,12 +42,12 @@ function renderSkillDraftResult(input: {
   const draft = getSkillDraftOutput(input.result.output);
   if (!draft) return false;
 
-  const wrapper = createResultPanel('dpp-skill-draft-result');
+  const wrapper = createResultPanel('dwplus-skill-draft-result');
   const meta = document.createElement('div');
-  meta.className = 'dpp-result-meta';
+  meta.className = 'dwplus-result-meta';
   meta.textContent = `/${draft.draft.name} · ${draft.draft.memoryEnabled ? 'memory on' : 'memory off'}`;
   const description = document.createElement('div');
-  description.className = 'dpp-result-text';
+  description.className = 'dwplus-result-text';
   description.textContent = draft.draft.description;
   const button = createSmallButton('Save Skill');
   button.addEventListener('click', () => {
@@ -92,12 +92,12 @@ function renderMemoryImportPreviewResult(input: {
   const preview = getMemoryImportPreviewOutput(input.result.output);
   if (!preview) return false;
 
-  const wrapper = createResultPanel('dpp-memory-import-result');
+  const wrapper = createResultPanel('dwplus-memory-import-result');
   const meta = document.createElement('div');
-  meta.className = 'dpp-result-meta';
+  meta.className = 'dwplus-result-meta';
   meta.textContent = `${preview.memories.length} memories · ${preview.duplicates} duplicates`;
   const list = document.createElement('div');
-  list.className = 'dpp-result-text';
+  list.className = 'dwplus-result-text';
   list.textContent = preview.memories.slice(0, 5).map((memory) => `- ${memory.name}`).join('\n');
   const button = createSmallButton('Import memories');
   button.disabled = preview.memories.length === 0;
@@ -144,15 +144,15 @@ function renderArtifactResult(input: {
   if (!artifact) return false;
 
   const wrapper = document.createElement('div');
-  wrapper.className = 'dpp-artifact-result';
+  wrapper.className = 'dwplus-artifact-result';
   const meta = document.createElement('div');
-  meta.className = 'dpp-artifact-meta';
+  meta.className = 'dwplus-artifact-meta';
   meta.textContent = `${artifact.filename} · ${formatBytes(artifact.sizeBytes)}${artifact.fileCount ? ` · ${artifact.fileCount} files` : ''}`;
   const actions = document.createElement('div');
-  actions.className = 'dpp-artifact-actions';
+  actions.className = 'dwplus-artifact-actions';
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = 'dpp-artifact-download';
+  button.className = 'dwplus-artifact-download';
   button.textContent = 'Download';
   button.addEventListener('click', () => {
     void downloadArtifact(artifact, input.sendMessage, button);
@@ -160,13 +160,13 @@ function renderArtifactResult(input: {
   actions.appendChild(button);
 
   const output = document.createElement('pre');
-  output.className = 'dpp-artifact-run-output';
+  output.className = 'dwplus-artifact-run-output';
   output.hidden = true;
 
   if (isRunnableCodeArtifact(artifact)) {
     const runButton = document.createElement('button');
     runButton.type = 'button';
-    runButton.className = 'dpp-artifact-run';
+    runButton.className = 'dwplus-artifact-run';
     runButton.textContent = 'Run';
     runButton.addEventListener('click', () => {
       void runArtifactCode(artifact, input.sendMessage, runButton, output);
@@ -177,7 +177,7 @@ function renderArtifactResult(input: {
   if (isHtmlPreviewArtifact(artifact)) {
     const previewButton = document.createElement('button');
     previewButton.type = 'button';
-    previewButton.className = 'dpp-artifact-preview';
+    previewButton.className = 'dwplus-artifact-preview';
     previewButton.textContent = 'Preview';
     previewButton.addEventListener('click', () => {
       void openArtifactPreviewPanel(artifact, input.sendMessage);
@@ -216,31 +216,31 @@ async function openArtifactPreviewPanel(
   closeArtifactPreviewPanel();
 
   const panel = document.createElement('section');
-  panel.className = 'dpp-artifact-preview-panel';
+  panel.className = 'dwplus-artifact-preview-panel';
   panel.setAttribute('aria-label', 'Artifact preview');
   const header = document.createElement('div');
-  header.className = 'dpp-artifact-preview-panel-header';
+  header.className = 'dwplus-artifact-preview-panel-header';
   const title = document.createElement('div');
-  title.className = 'dpp-artifact-preview-panel-title';
+  title.className = 'dwplus-artifact-preview-panel-title';
   title.textContent = artifact.filename;
   const closeButton = document.createElement('button');
   closeButton.type = 'button';
-  closeButton.className = 'dpp-artifact-preview-panel-close';
+  closeButton.className = 'dwplus-artifact-preview-panel-close';
   closeButton.setAttribute('aria-label', 'Close preview');
   closeButton.textContent = 'x';
   closeButton.addEventListener('click', closeArtifactPreviewPanel);
   header.append(title, closeButton);
 
   const stage = document.createElement('div');
-  stage.className = 'dpp-artifact-preview-panel-stage';
+  stage.className = 'dwplus-artifact-preview-panel-stage';
   const frame = document.createElement('iframe');
-  frame.className = 'dpp-artifact-preview-panel-frame';
+  frame.className = 'dwplus-artifact-preview-panel-frame';
   frame.setAttribute('sandbox', 'allow-scripts');
   frame.setAttribute('title', artifact.filename);
   stage.appendChild(frame);
   panel.append(header, stage);
   document.body.appendChild(panel);
-  document.body.classList.add('dpp-artifact-preview-panel-open');
+  document.body.classList.add('dwplus-artifact-preview-panel-open');
   startArtifactPreviewRouteWatcher(location.href);
 
   try {
@@ -251,15 +251,15 @@ async function openArtifactPreviewPanel(
     if (!panel.isConnected) return;
     frame.remove();
     const message = document.createElement('div');
-    message.className = 'dpp-artifact-preview-error';
+    message.className = 'dwplus-artifact-preview-error';
     message.textContent = error instanceof Error ? error.message : 'Preview failed';
     stage.appendChild(message);
   }
 }
 
 function closeArtifactPreviewPanel(): void {
-  document.querySelector('.dpp-artifact-preview-panel')?.remove();
-  document.body.classList.remove('dpp-artifact-preview-panel-open');
+  document.querySelector('.dwplus-artifact-preview-panel')?.remove();
+  document.body.classList.remove('dwplus-artifact-preview-panel-open');
   stopArtifactPreviewRouteWatcher();
 }
 
@@ -440,17 +440,17 @@ function renderDownloadAttachedFileResult(input: {
   const output = input.result.output;
   if (!isDownloadAttachedFileOutput(output)) return false;
 
-  const wrapper = createResultPanel('dpp-download-attached-file-result');
+  const wrapper = createResultPanel('dwplus-download-attached-file-result');
   const meta = document.createElement('div');
-  meta.className = 'dpp-result-meta';
+  meta.className = 'dwplus-result-meta';
   meta.textContent = `📁 ${output.fileName} · ${formatBytes(output.sizeBytes)}`;
 
   const pathLine = document.createElement('div');
-  pathLine.className = 'dpp-result-text dpp-download-attached-file-path';
+  pathLine.className = 'dwplus-result-text dwplus-download-attached-file-path';
   pathLine.textContent = output.localPath;
 
   const actions = document.createElement('div');
-  actions.className = 'dpp-artifact-actions';
+  actions.className = 'dwplus-artifact-actions';
 
   const copyButton = createSmallButton('📋 复制路径');
   copyButton.addEventListener('click', () => {
@@ -552,14 +552,14 @@ async function revealDownload(
 
 function createResultPanel(className: string): HTMLDivElement {
   const wrapper = document.createElement('div');
-  wrapper.className = `dpp-rich-result ${className}`;
+  wrapper.className = `dwplus-rich-result ${className}`;
   return wrapper;
 }
 
 function createSmallButton(text: string): HTMLButtonElement {
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = 'dpp-result-action';
+  button.className = 'dwplus-result-action';
   button.textContent = text;
   return button;
 }
@@ -585,61 +585,61 @@ function ensureArtifactStyles(): void {
 
 function ensureResultStyles(): void {
   injectInjectedThemeStyles();
-  if (document.getElementById('dpp-artifact-result-css')) return;
+  if (document.getElementById('dwplus-artifact-result-css')) return;
   const style = document.createElement('style');
-  style.id = 'dpp-artifact-result-css';
+  style.id = 'dwplus-artifact-result-css';
   style.textContent = `
-.dpp-artifact-result,
-.dpp-rich-result {
+.dwplus-artifact-result,
+.dwplus-rich-result {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   padding: 8px 10px;
-  border: 1px solid var(--dpp-ui-border);
+  border: 1px solid var(--dwplus-ui-border);
   border-radius: 8px;
-  background: var(--dpp-ui-accent-panel);
+  background: var(--dwplus-ui-accent-panel);
 }
-.dpp-artifact-meta {
+.dwplus-artifact-meta {
   min-width: 0;
   font-size: 12px;
-  color: var(--dpp-ui-text);
+  color: var(--dwplus-ui-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.dpp-artifact-actions {
+.dwplus-artifact-actions {
   display: inline-flex;
   flex: 0 0 auto;
   gap: 6px;
   align-items: center;
 }
-.dpp-rich-result {
+.dwplus-rich-result {
   display: block;
 }
-.dpp-result-meta {
+.dwplus-result-meta {
   min-width: 0;
   font-size: 12px;
   font-weight: 600;
-  color: var(--dpp-ui-text);
+  color: var(--dwplus-ui-text);
 }
-.dpp-result-text {
+.dwplus-result-text {
   margin-top: 6px;
   white-space: pre-wrap;
   font-size: 12px;
-  color: var(--dpp-ui-text-muted);
+  color: var(--dwplus-ui-text-muted);
 }
-.dpp-download-attached-file-path {
+.dwplus-download-attached-file-path {
   font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
   font-size: 11px;
   word-break: break-all;
   user-select: all;
   margin-top: 4px;
 }
-.dpp-download-attached-file-result {
+.dwplus-download-attached-file-result {
   display: block;
 }
-.dpp-artifact-preview-panel {
+.dwplus-artifact-preview-panel {
   position: fixed;
   top: 0;
   right: 0;
@@ -650,33 +650,33 @@ function ensureResultStyles(): void {
   height: 100vh;
   height: 100dvh;
   flex-direction: column;
-  border-left: 1px solid var(--dpp-ui-border);
-  background: var(--dpp-ui-surface);
-  box-shadow: var(--dpp-ui-panel-shadow);
-  color: var(--dpp-ui-text);
+  border-left: 1px solid var(--dwplus-ui-border);
+  background: var(--dwplus-ui-surface);
+  box-shadow: var(--dwplus-ui-panel-shadow);
+  color: var(--dwplus-ui-text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
-.dpp-artifact-preview-panel-header {
+.dwplus-artifact-preview-panel-header {
   display: flex;
   min-height: 54px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 0 16px;
-  border-bottom: 1px solid var(--dpp-ui-border-muted);
-  background: var(--dpp-ui-surface-muted);
-  color: var(--dpp-ui-text);
+  border-bottom: 1px solid var(--dwplus-ui-border-muted);
+  background: var(--dwplus-ui-surface-muted);
+  color: var(--dwplus-ui-text);
   font-size: 14px;
   line-height: 20px;
 }
-.dpp-artifact-preview-panel-title {
+.dwplus-artifact-preview-panel-title {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 600;
 }
-.dpp-artifact-preview-panel-close {
+.dwplus-artifact-preview-panel-close {
   display: inline-flex;
   width: 28px;
   height: 28px;
@@ -686,78 +686,78 @@ function ensureResultStyles(): void {
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: var(--dpp-ui-text-muted);
+  color: var(--dwplus-ui-text-muted);
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
 }
-.dpp-artifact-preview-panel-close:hover {
-  background: var(--dpp-ui-surface-hover);
+.dwplus-artifact-preview-panel-close:hover {
+  background: var(--dwplus-ui-surface-hover);
 }
-.dpp-artifact-preview-panel-stage {
+.dwplus-artifact-preview-panel-stage {
   flex: 1 1 auto;
   min-height: 0;
   background: #FFFFFF;
 }
-.dpp-artifact-preview-panel-frame {
+.dwplus-artifact-preview-panel-frame {
   display: block;
   width: 100%;
   height: 100%;
   border: 0;
   background: #FFFFFF;
 }
-.dpp-artifact-preview-error {
+.dwplus-artifact-preview-error {
   padding: 16px;
   color: #B42318;
   font-size: 12px;
 }
-.dpp-result-code,
-.dpp-result-output,
-.dpp-artifact-run-output {
+.dwplus-result-code,
+.dwplus-result-output,
+.dwplus-artifact-run-output {
   margin: 8px 0 0;
   max-height: 160px;
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-word;
   border-radius: 7px;
-  background: var(--dpp-ui-code-bg);
-  color: var(--dpp-ui-text);
+  background: var(--dwplus-ui-code-bg);
+  color: var(--dwplus-ui-text);
   font-size: 11px;
   line-height: 1.45;
   padding: 8px;
 }
-.dpp-result-action,
-.dpp-artifact-download,
-.dpp-artifact-preview,
-.dpp-artifact-run {
+.dwplus-result-action,
+.dwplus-artifact-download,
+.dwplus-artifact-preview,
+.dwplus-artifact-run {
   border: 0;
   border-radius: 7px;
-  background: var(--dpp-ui-accent);
+  background: var(--dwplus-ui-accent);
   color: white;
   font-size: 11px;
   font-weight: 600;
   padding: 5px 9px;
   cursor: pointer;
 }
-.dpp-result-action {
+.dwplus-result-action {
   margin-top: 8px;
 }
-.dpp-artifact-download {
-  background: var(--dpp-ui-accent-soft);
-  color: var(--dpp-ui-accent-strong);
+.dwplus-artifact-download {
+  background: var(--dwplus-ui-accent-soft);
+  color: var(--dwplus-ui-accent-strong);
 }
-.dpp-result-action:disabled,
-.dpp-artifact-download:disabled,
-.dpp-artifact-preview:disabled,
-.dpp-artifact-run:disabled {
+.dwplus-result-action:disabled,
+.dwplus-artifact-download:disabled,
+.dwplus-artifact-preview:disabled,
+.dwplus-artifact-run:disabled {
   opacity: 0.65;
   cursor: default;
 }
-body.dpp-theme-dark .dpp-artifact-preview-panel-stage {
+body.dwplus-theme-dark .dwplus-artifact-preview-panel-stage {
   background: #FFFFFF;
 }
 @media (max-width: 900px) {
-  .dpp-artifact-preview-panel {
+  .dwplus-artifact-preview-panel {
     width: 100vw;
     min-width: 0;
   }

@@ -1,6 +1,6 @@
 # deepseek-pp-shell-host
 
-Native Messaging Shell MCP host installer for DeepSeek++.
+Native Messaging Shell MCP host installer for doubao-wplus.
 
 ```bash
 npx deepseek-pp-shell-host install --browser chrome --extension-id <extension-id>

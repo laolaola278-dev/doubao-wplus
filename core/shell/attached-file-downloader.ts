@@ -20,7 +20,7 @@ import { DEEPSEEK_API_URL } from '../constants';
 
 export const DOWNLOAD_ATTACHED_FILE_TOOL_NAME = 'download_attached_file';
 export const DOWNLOAD_ATTACHED_FILE_TARGET_DIR = 'deepseek-pp';
-export const DOWNLOAD_ATTACHED_FILE_BYPASS_HEADER = 'X-DPP-Bypass-Hook';
+export const DOWNLOAD_ATTACHED_FILE_BYPASS_HEADER = 'X-DWPLUS-Bypass-Hook';
 
 export interface AttachedFileMetadata {
   id: string;
@@ -214,7 +214,7 @@ export async function downloadAttachedFile(
   if (!fileId || typeof fileId !== 'string') {
     return {
       ok: false,
-      code: 'dpp_invalid_file_id',
+      code: 'dwplus_invalid_file_id',
       message: 'file_id is required and must be a non-empty string.',
       retryable: false,
       fileId: String(fileId ?? ''),
@@ -239,7 +239,7 @@ export async function downloadAttachedFile(
     if (!metadataResponse.ok) {
       return {
         ok: false,
-        code: 'dpp_metadata_http_error',
+        code: 'dwplus_metadata_http_error',
         message: `DeepSeek file metadata returned HTTP ${metadataResponse.status}.`,
         retryable: metadataResponse.status >= 500,
         fileId,
@@ -250,7 +250,7 @@ export async function downloadAttachedFile(
   } catch (err) {
     return {
       ok: false,
-      code: 'dpp_metadata_fetch_failed',
+      code: 'dwplus_metadata_fetch_failed',
       message: err instanceof Error ? err.message : String(err),
       retryable: true,
       fileId,
@@ -260,7 +260,7 @@ export async function downloadAttachedFile(
   if (!metadata) {
     return {
       ok: false,
-      code: 'dpp_metadata_not_found',
+      code: 'dwplus_metadata_not_found',
       message: `DeepSeek file metadata did not include file_id ${fileId}. The file may have been removed, or you may not have permission to access it.`,
       retryable: false,
       fileId,
@@ -283,7 +283,7 @@ export async function downloadAttachedFile(
     if (!fileResponse.ok) {
       return {
         ok: false,
-        code: 'dpp_file_http_error',
+        code: 'dwplus_file_http_error',
         message: `DeepSeek file download returned HTTP ${fileResponse.status}.`,
         retryable: fileResponse.status >= 500,
         fileId,
@@ -293,7 +293,7 @@ export async function downloadAttachedFile(
     if (contentLength !== null && contentLength > MAX_FILE_BYTES) {
       return {
         ok: false,
-        code: 'dpp_file_too_large',
+        code: 'dwplus_file_too_large',
         message: `File is ${contentLength} bytes which exceeds the ${MAX_FILE_BYTES} byte safety cap.`,
         retryable: false,
         fileId,
@@ -303,7 +303,7 @@ export async function downloadAttachedFile(
   } catch (err) {
     return {
       ok: false,
-      code: 'dpp_file_fetch_failed',
+      code: 'dwplus_file_fetch_failed',
       message: err instanceof Error ? err.message : String(err),
       retryable: true,
       fileId,
@@ -313,7 +313,7 @@ export async function downloadAttachedFile(
   if (blob.size > MAX_FILE_BYTES) {
     return {
       ok: false,
-      code: 'dpp_file_too_large',
+      code: 'dwplus_file_too_large',
       message: `Downloaded ${blob.size} bytes which exceeds the ${MAX_FILE_BYTES} byte safety cap.`,
       retryable: false,
       fileId,
@@ -342,7 +342,7 @@ export async function downloadAttachedFile(
     if (!createObjectUrl) {
       return {
         ok: false,
-        code: 'dpp_no_downloader',
+        code: 'dwplus_no_downloader',
         message: 'No URL.createObjectURL is available; cannot bridge the blob to chrome.downloads.',
         retryable: false,
         fileId,
@@ -365,7 +365,7 @@ export async function downloadAttachedFile(
     if (items.length === 0 || !items[0].filename) {
       return {
         ok: false,
-        code: 'dpp_download_path_unknown',
+        code: 'dwplus_download_path_unknown',
         message: 'chrome.downloads did not return a local path for the downloaded attachment.',
         retryable: false,
         fileId,
@@ -375,7 +375,7 @@ export async function downloadAttachedFile(
   } else {
     return {
       ok: false,
-      code: 'dpp_no_downloader',
+      code: 'dwplus_no_downloader',
       message: 'No chrome.downloads API is available in this environment.',
       retryable: false,
       fileId,

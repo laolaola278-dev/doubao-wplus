@@ -2,10 +2,8 @@
 
 ## Preliminary Direction
 
-把 EdgeTypE/better-deepseek 中 DeepSeek++ 当前缺失且高价值的能力纳入本项目，优先覆盖 Android WebView 平台、项目/文件上下文、生成物交付、沙箱代码执行、语音和会话组织；实现时保留 DeepSeek++ 现有 WXT + React + TypeScript + ToolDescriptor/MCP 架构，不照搬 Better DeepSeek 的独立 BDS 标签体系。
-
-参照仓库快照：`EdgeTypE/better-deepseek` `450168e`，2026-06-09，`visualizer-kit css rework`。
-
+�?EdgeTypE/better-deepseek �?doubao-wplus 当前缺失且高价值的能力纳入本项目，优先覆盖 Android WebView 平台、项�?文件上下文、生成物交付、沙箱代码执行、语音和会话组织；实现时保留 doubao-wplus 现有 WXT + React + TypeScript + ToolDescriptor/MCP 架构，不照搬 Better DeepSeek 的独�?BDS 标签体系�?
+参照仓库快照：`EdgeTypE/better-deepseek` `450168e`�?026-06-09，`visualizer-kit css rework`�?
 ## Current Architecture
 
 ```mermaid
@@ -28,8 +26,7 @@ graph TD
     ShellHost["packages/shell-host"] --> MCP["core/mcp/transports/native.ts"]
 ```
 
-DeepSeek++ 目前是浏览器扩展优先的架构：MAIN world 负责拦截 DeepSeek 请求和响应，content world 负责状态、DOM 渲染和工具执行，sidepanel 负责管理 UI，core 目录承载可测试的业务模块。现有能力已经覆盖 Chrome/Edge/Firefox、MCP、Shell Native Host、OfficeCLI skill、记忆、Skill、GitHub Skill import、WebDAV 同步、联网搜索/网页获取、对话导出、自动化任务、内联 agent 续跑、悬浮宠物和中英文运行时。
-
+doubao-wplus 目前是浏览器扩展优先的架构：MAIN world 负责拦截 DeepSeek 请求和响应，content world 负责状态、DOM 渲染和工具执行，sidepanel 负责管理 UI，core 目录承载可测试的业务模块。现有能力已经覆�?Chrome/Edge/Firefox、MCP、Shell Native Host、OfficeCLI skill、记忆、Skill、GitHub Skill import、WebDAV 同步、联网搜�?网页获取、对话导出、自动化任务、内�?agent 续跑、悬浮宠物和中英文运行时�?
 ## Technology Stack
 
 | Layer | Current | Target for this work |
@@ -69,7 +66,7 @@ Better DeepSeek comparison points:
 
 ## Testing Baseline
 
-DeepSeek++ has a strong TypeScript/Vitest baseline for request augmentation, memory, MCP transport, i18n, export, sync, shell policy, inline markdown/prompt, and token speed. Current gaps for this transformation:
+doubao-wplus has a strong TypeScript/Vitest baseline for request augmentation, memory, MCP transport, i18n, export, sync, shell policy, inline markdown/prompt, and token speed. Current gaps for this transformation:
 
 - No Android build, bridge, or emulator test harness.
 - No e2e browser suite exercising DeepSeek DOM injection end to end.

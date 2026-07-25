@@ -1,3 +1,6 @@
+import { getActiveAdapter } from '../hosts/registry';
+import type { HostSelectors } from '../hosts/types';
+
 export interface SkillPopupItem {
   name: string;
   description: string;
@@ -30,25 +33,65 @@ export function initSkillPopup(initialSkills: SkillPopupItem[], nextCopy: Partia
   watchTextarea();
   document.addEventListener('keydown', onKeydown, true);
   document.addEventListener('mousedown', onClickOutside);
+  if (typeof console !== 'undefined' && console.info) {
+    console.info(`[DWPLUS-SKILLPOPUP] initSkillPopup: ${skills.length} skills registered, watching for textarea`);
+  }
 }
 
 function watchTextarea() {
   tryAttach();
-  new MutationObserver(() => {
-    if (!textarea || !document.contains(textarea)) {
-      textarea = null;
+  // main-world 脚本在 document_start 运行，SYNC_HOOK_STATE 可能在 <body>
+  // 存在之前到达 —— 此时 observe(document.body) 会抛 TypeError 并中断
+  // initSkillPopup（keydown/input 监听器不再注册，弹窗永久失效）。
+  // 因此 body 未就绪时延迟到 DOMContentLoaded 再启动 observer。
+  const startObserver = () => {
+    new MutationObserver(() => {
+      if (!textarea || !document.contains(textarea)) {
+        textarea = null;
+        tryAttach();
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+  };
+  if (document.body) {
+    startObserver();
+  } else {
+    document.addEventListener('DOMContentLoaded', () => {
       tryAttach();
-    }
-  }).observe(document.body, { childList: true, subtree: true });
+      startObserver();
+    }, { once: true });
+  }
 }
 
 function tryAttach() {
   if (textarea) return;
-  const el = document.querySelector<HTMLTextAreaElement>('textarea#chat-input')
-    || document.querySelector<HTMLTextAreaElement>('textarea');
+
+  // 优先使用 host adapter 的 inputBox selector（fallback 数组按优先级）
+  let el: HTMLTextAreaElement | null = null;
+  try {
+    const selectors: HostSelectors = getActiveAdapter().getSelectors();
+    for (const candidate of selectors.inputBox) {
+      try {
+        el = document.querySelector<HTMLTextAreaElement>(candidate);
+        if (el) break;
+      } catch {
+        continue;
+      }
+    }
+  } catch {
+    // adapter 不可用时兜底
+  }
+
+  // 最终兜底：任何 textarea
+  if (!el) {
+    el = document.querySelector<HTMLTextAreaElement>('textarea');
+  }
+
   if (!el) return;
   textarea = el;
   el.addEventListener('input', onInput);
+  if (typeof console !== 'undefined' && console.info) {
+    console.info('[DWPLUS-SKILLPOPUP] Attached to textarea, /command interception active');
+  }
 }
 
 function onInput() {
@@ -60,6 +103,9 @@ function onInput() {
     filtered = query === ''
       ? [...skills]
       : skills.filter(s => s.name.toLowerCase().startsWith(query));
+    if (typeof console !== 'undefined' && console.debug) {
+      console.debug(`[DWPLUS-SKILLPOPUP] /${query} → ${filtered.length} matches`);
+    }
     if (filtered.length > 0) {
       activeIdx = 0;
       showPopup();
@@ -70,32 +116,53 @@ function onInput() {
 }
 
 function onKeydown(e: KeyboardEvent) {
-  if (!isVisible()) return;
+  // 当 popup 可见时，拦截导航和选择键
+  if (isVisible()) {
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        activeIdx = (activeIdx + 1) % filtered.length;
+        highlightActive();
+        return;
+      case 'ArrowUp':
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        activeIdx = (activeIdx - 1 + filtered.length) % filtered.length;
+        highlightActive();
+        return;
+      case 'Tab':
+      case 'Enter':
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        selectSkill(filtered[activeIdx]);
+        return;
+      case 'Escape':
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        hidePopup();
+        return;
+    }
+  }
 
-  switch (e.key) {
-    case 'ArrowDown':
+  // 即使 popup 不可见，如果当前输入是 /命令（/ 开头无空格），
+  // 也要拦截 Enter，防止命令被作为普通提示词发送给豆包
+  if (e.key === 'Enter' && !e.shiftKey && textarea && textarea.value.startsWith('/')) {
+    const val = textarea.value;
+    if (!val.slice(1).includes(' ')) {
+      // 纯 /命令（无空格），拦截 Enter
       e.preventDefault();
       e.stopImmediatePropagation();
-      activeIdx = (activeIdx + 1) % filtered.length;
-      highlightActive();
-      break;
-    case 'ArrowUp':
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      activeIdx = (activeIdx - 1 + filtered.length) % filtered.length;
-      highlightActive();
-      break;
-    case 'Tab':
-    case 'Enter':
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      selectSkill(filtered[activeIdx]);
-      break;
-    case 'Escape':
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      hidePopup();
-      break;
+      if (typeof console !== 'undefined' && console.info) {
+        console.info(`[DWPLUS-SKILLPOPUP] Intercepted Enter on /command: ${val}`);
+      }
+      // 如果有匹配的 skill 就选中，否则提示无匹配
+      if (filtered.length > 0) {
+        selectSkill(filtered[activeIdx]);
+      } else {
+        hidePopup();
+      }
+    }
   }
 }
 
@@ -135,7 +202,7 @@ function showPopup() {
 
   if (!popupEl) {
     popupEl = document.createElement('div');
-    popupEl.className = 'dpp-skill-popup';
+    popupEl.className = 'dwplus-skill-popup';
     document.body.appendChild(popupEl);
   }
 
@@ -154,16 +221,16 @@ function buildItems() {
   if (!popupEl) return;
 
   popupEl.innerHTML = filtered.map((s, i) => `
-    <div class="dpp-skill-item${i === activeIdx ? ' dpp-active' : ''}" data-i="${i}">
-      <div class="dpp-skill-head">
-        <code class="dpp-skill-trigger">/${escapeHtml(s.name)}</code>
+    <div class="dwplus-skill-item${i === activeIdx ? ' dwplus-active' : ''}" data-i="${i}">
+      <div class="dwplus-skill-head">
+        <code class="dwplus-skill-trigger">/${escapeHtml(s.name)}</code>
       </div>
-      <div class="dpp-skill-desc">${escapeHtml(s.description)}</div>
+      <div class="dwplus-skill-desc">${escapeHtml(s.description)}</div>
     </div>
   `).join('')
-    + `<div class="dpp-skill-hint">${escapeHtml(copy.hint)}</div>`;
+    + `<div class="dwplus-skill-hint">${escapeHtml(copy.hint)}</div>`;
 
-  popupEl.querySelectorAll('.dpp-skill-item').forEach(el => {
+  popupEl.querySelectorAll('.dwplus-skill-item').forEach(el => {
     const i = parseInt((el as HTMLElement).dataset.i || '0');
     el.addEventListener('mouseenter', () => {
       activeIdx = i;
@@ -178,8 +245,8 @@ function buildItems() {
 
 function highlightActive() {
   if (!popupEl) return;
-  popupEl.querySelectorAll('.dpp-skill-item').forEach((el, i) => {
-    el.classList.toggle('dpp-active', i === activeIdx);
+  popupEl.querySelectorAll('.dwplus-skill-item').forEach((el, i) => {
+    el.classList.toggle('dwplus-active', i === activeIdx);
     if (i === activeIdx) el.scrollIntoView({ block: 'nearest' });
   });
 }
@@ -197,99 +264,99 @@ function escapeHtml(s: string) {
 }
 
 function injectStyles() {
-  if (document.getElementById('dpp-skill-popup-css')) return;
+  if (document.getElementById('dwplus-skill-popup-css')) return;
   const style = document.createElement('style');
-  style.id = 'dpp-skill-popup-css';
+  style.id = 'dwplus-skill-popup-css';
   style.textContent = `
 :root {
-  --dpp-skill-popup-bg: #FFFFFF;
-  --dpp-skill-popup-surface: #F7F8FA;
-  --dpp-skill-popup-border: #E5E7EB;
-  --dpp-skill-popup-divider: #F3F4F6;
-  --dpp-skill-popup-trigger-bg: #EEF1FF;
-  --dpp-skill-popup-trigger: #4D6BFE;
-  --dpp-skill-popup-desc: #9CA3AF;
-  --dpp-skill-popup-hint: #D1D5DB;
-  --dpp-skill-popup-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+  --dwplus-skill-popup-bg: #FFFFFF;
+  --dwplus-skill-popup-surface: #F7F8FA;
+  --dwplus-skill-popup-border: #E5E7EB;
+  --dwplus-skill-popup-divider: #F3F4F6;
+  --dwplus-skill-popup-trigger-bg: #EEF1FF;
+  --dwplus-skill-popup-trigger: #4D6BFE;
+  --dwplus-skill-popup-desc: #9CA3AF;
+  --dwplus-skill-popup-hint: #D1D5DB;
+  --dwplus-skill-popup-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
 }
-body.dpp-theme-dark {
-  --dpp-skill-popup-bg: #151922;
-  --dpp-skill-popup-surface: #1B202A;
-  --dpp-skill-popup-border: #2B3240;
-  --dpp-skill-popup-divider: #2B3240;
-  --dpp-skill-popup-trigger-bg: rgba(125, 145, 255, 0.16);
-  --dpp-skill-popup-trigger: #7D91FF;
-  --dpp-skill-popup-desc: #B5BDCB;
-  --dpp-skill-popup-hint: #838C9D;
-  --dpp-skill-popup-shadow: none;
+body.dwplus-theme-dark {
+  --dwplus-skill-popup-bg: #151922;
+  --dwplus-skill-popup-surface: #1B202A;
+  --dwplus-skill-popup-border: #2B3240;
+  --dwplus-skill-popup-divider: #2B3240;
+  --dwplus-skill-popup-trigger-bg: rgba(125, 145, 255, 0.16);
+  --dwplus-skill-popup-trigger: #7D91FF;
+  --dwplus-skill-popup-desc: #B5BDCB;
+  --dwplus-skill-popup-hint: #838C9D;
+  --dwplus-skill-popup-shadow: none;
 }
 @media (prefers-color-scheme: dark) {
-  body:not(.dpp-theme-light) {
-    --dpp-skill-popup-bg: #151922;
-    --dpp-skill-popup-surface: #1B202A;
-    --dpp-skill-popup-border: #2B3240;
-    --dpp-skill-popup-divider: #2B3240;
-    --dpp-skill-popup-trigger-bg: rgba(125, 145, 255, 0.16);
-    --dpp-skill-popup-trigger: #7D91FF;
-    --dpp-skill-popup-desc: #B5BDCB;
-    --dpp-skill-popup-hint: #838C9D;
-    --dpp-skill-popup-shadow: none;
+  body:not(.dwplus-theme-light) {
+    --dwplus-skill-popup-bg: #151922;
+    --dwplus-skill-popup-surface: #1B202A;
+    --dwplus-skill-popup-border: #2B3240;
+    --dwplus-skill-popup-divider: #2B3240;
+    --dwplus-skill-popup-trigger-bg: rgba(125, 145, 255, 0.16);
+    --dwplus-skill-popup-trigger: #7D91FF;
+    --dwplus-skill-popup-desc: #B5BDCB;
+    --dwplus-skill-popup-hint: #838C9D;
+    --dwplus-skill-popup-shadow: none;
   }
 }
-.dpp-skill-popup {
+.dwplus-skill-popup {
   position: fixed;
   z-index: 99999;
-  background: var(--dpp-skill-popup-bg);
-  border: 1px solid var(--dpp-skill-popup-border);
+  background: var(--dwplus-skill-popup-bg);
+  border: 1px solid var(--dwplus-skill-popup-border);
   border-radius: 12px;
   padding: 4px;
-  box-shadow: var(--dpp-skill-popup-shadow);
+  box-shadow: var(--dwplus-skill-popup-shadow);
   display: none;
-  animation: dpp-slide-up .15s ease;
+  animation: dwplus-slide-up .15s ease;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif;
   backdrop-filter: blur(8px);
   max-height: 220px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-@keyframes dpp-slide-up {
+@keyframes dwplus-slide-up {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.dpp-skill-item {
+.dwplus-skill-item {
   padding: 8px 12px;
   border-radius: 8px;
   cursor: pointer;
   transition: background .1s;
 }
-.dpp-skill-item.dpp-active {
-  background: var(--dpp-skill-popup-surface);
+.dwplus-skill-item.dwplus-active {
+  background: var(--dwplus-skill-popup-surface);
 }
-.dpp-skill-head {
+.dwplus-skill-head {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.dpp-skill-trigger {
-  color: var(--dpp-skill-popup-trigger);
+.dwplus-skill-trigger {
+  color: var(--dwplus-skill-popup-trigger);
   font-size: 13px;
   font-family: 'SF Mono', Monaco, Consolas, monospace;
   font-weight: 600;
-  background: var(--dpp-skill-popup-trigger-bg);
+  background: var(--dwplus-skill-popup-trigger-bg);
   padding: 1px 6px;
   border-radius: 4px;
 }
-.dpp-skill-desc {
-  color: var(--dpp-skill-popup-desc);
+.dwplus-skill-desc {
+  color: var(--dwplus-skill-popup-desc);
   font-size: 11px;
   margin-top: 2px;
 }
-.dpp-skill-hint {
+.dwplus-skill-hint {
   text-align: center;
-  color: var(--dpp-skill-popup-hint);
+  color: var(--dwplus-skill-popup-hint);
   font-size: 10px;
   padding: 4px 0 2px;
-  border-top: 1px solid var(--dpp-skill-popup-divider);
+  border-top: 1px solid var(--dwplus-skill-popup-divider);
   margin-top: 4px;
 }
 `;

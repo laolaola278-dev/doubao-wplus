@@ -66,17 +66,17 @@ describe('i18n translation', () => {
     expect(translate('zh-CN', 'content.export.buttonIdle')).toBe('导出当前对话');
     expect(translate('en', 'content.permission.webFetch', {
       origin: 'https://example.com',
-    })).toBe('DeepSeek++ needs permission to access https://example.com so it can fetch that page');
+    })).toBe('WPlus needs permission to access https://example.com so it can fetch that page');
     expect(getPetLines('success', 'en')).toContain('Done');
     expect(getPetLines('success', 'zh-CN')).toContain('搞定！');
   });
 
   it('interpolates message parameters without swallowing missing placeholders', () => {
     expect(formatMessage('Hello {name}, count {count}, flag {flag}', {
-      name: 'DeepSeek++',
+      name: 'WPlus',
       count: 3,
       flag: false,
-    })).toBe('Hello DeepSeek++, count 3, flag false');
+    })).toBe('Hello WPlus, count 3, flag false');
 
     expect(formatMessage('Hello {missing}')).toBe('Hello {missing}');
   });

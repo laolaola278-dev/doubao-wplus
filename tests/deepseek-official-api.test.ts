@@ -1,34 +1,34 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
-  createOfficialDeepSeekRequestBody,
-  DEEPSEEK_OFFICIAL_API_URL,
-  submitOfficialDeepSeekStreaming,
+  createOfficialDoubaoRequestBody,
+  DOUBAO_OFFICIAL_API_URL,
+  submitOfficialDoubaoStreaming,
 } from '../core/deepseek/official-api';
 
-describe('DeepSeek official API adapter', () => {
+describe('Doubao official API adapter', () => {
   it('builds current official model and thinking request bodies', () => {
-    expect(createOfficialDeepSeekRequestBody({
+    expect(createOfficialDoubaoRequestBody({
       config: {
-        model: 'deepseek-v4-flash',
+        model: 'doubao-lite-32k',
         thinking: 'disabled',
         reasoningEffort: 'high',
       },
       messages: [{ role: 'user', content: 'hello' }],
     })).toMatchObject({
-      model: 'deepseek-v4-flash',
+      model: 'doubao-lite-32k',
       thinking: { type: 'disabled' },
       stream: true,
     });
 
-    expect(createOfficialDeepSeekRequestBody({
+    expect(createOfficialDoubaoRequestBody({
       config: {
-        model: 'deepseek-v4-pro',
+        model: 'doubao-pro-32k',
         thinking: 'enabled',
         reasoningEffort: 'max',
       },
       messages: [{ role: 'user', content: 'hello' }],
     })).toMatchObject({
-      model: 'deepseek-v4-pro',
+      model: 'doubao-pro-32k',
       thinking: { type: 'enabled' },
       reasoning_effort: 'max',
       stream: true,
@@ -46,10 +46,10 @@ describe('DeepSeek official API adapter', () => {
     const chunks: string[] = [];
     const reasoningChunks: string[] = [];
 
-    const turn = await submitOfficialDeepSeekStreaming({
+    const turn = await submitOfficialDoubaoStreaming({
       apiKey: 'sk-test',
       config: {
-        model: 'deepseek-v4-flash',
+        model: 'doubao-lite-32k',
         thinking: 'enabled',
         reasoningEffort: 'high',
       },
@@ -67,7 +67,7 @@ describe('DeepSeek official API adapter', () => {
     expect(turn).toEqual({ assistantText: 'Hello', reasoningText: 'Think', finished: true });
     expect(chunks).toEqual(['Hel', 'lo']);
     expect(reasoningChunks).toEqual(['Think']);
-    expect(fetchImpl).toHaveBeenCalledWith(DEEPSEEK_OFFICIAL_API_URL, expect.objectContaining({
+    expect(fetchImpl).toHaveBeenCalledWith(DOUBAO_OFFICIAL_API_URL, expect.objectContaining({
       method: 'POST',
       headers: expect.objectContaining({
         authorization: 'Bearer sk-test',
@@ -76,7 +76,7 @@ describe('DeepSeek official API adapter', () => {
 
     const init = fetchImpl.mock.calls[0][1] as RequestInit;
     expect(JSON.parse(init.body as string)).toMatchObject({
-      model: 'deepseek-v4-flash',
+      model: 'doubao-lite-32k',
       messages: [{ role: 'user', content: 'hello' }],
       stream: true,
     });
@@ -88,7 +88,7 @@ describe('DeepSeek official API adapter', () => {
       { status: 401 },
     ));
 
-    await expect(submitOfficialDeepSeekStreaming({
+    await expect(submitOfficialDoubaoStreaming({
       apiKey: 'bad-key',
       messages: [{ role: 'user', content: 'hello' }],
       fetchImpl,
@@ -96,9 +96,9 @@ describe('DeepSeek official API adapter', () => {
   });
 
   it('passes reasoning content back for thinking tool loops', () => {
-    expect(createOfficialDeepSeekRequestBody({
+    expect(createOfficialDoubaoRequestBody({
       config: {
-        model: 'deepseek-v4-pro',
+        model: 'doubao-pro-32k',
         thinking: 'enabled',
         reasoningEffort: 'high',
       },
@@ -114,9 +114,9 @@ describe('DeepSeek official API adapter', () => {
   });
 
   it('omits reasoning content when thinking is disabled', () => {
-    expect(createOfficialDeepSeekRequestBody({
+    expect(createOfficialDoubaoRequestBody({
       config: {
-        model: 'deepseek-v4-flash',
+        model: 'doubao-lite-32k',
         thinking: 'disabled',
         reasoningEffort: 'high',
       },

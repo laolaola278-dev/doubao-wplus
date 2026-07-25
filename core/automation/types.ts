@@ -174,12 +174,12 @@ export interface AutomationRunListOptions {
 }
 
 export interface AutomationBridgeRunMessage {
-  type: 'DPP_AUTOMATION_CONTENT_RUN';
+  type: 'DWPLUS_AUTOMATION_CONTENT_RUN';
   payload: AutomationRunnerRequest;
 }
 
 export interface AutomationBridgeResultMessage {
-  type: 'DPP_AUTOMATION_WINDOW_RUN_RESULT';
+  type: 'DWPLUS_AUTOMATION_WINDOW_RUN_RESULT';
   payload: {
     runId: AutomationRunId;
     automationId: AutomationId;

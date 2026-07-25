@@ -2,7 +2,7 @@
 
 Status: no-go for arbitrary custom CSS in the browser extension and Android WebView.
 
-DeepSeek++ should not inject user-authored or remote CSS into DeepSeek pages. The feature has a poor store-review posture, broad breakage risk on DeepSeek DOM changes, and a high support cost because styling bugs can look like product regressions.
+doubao-wplus should not inject user-authored or remote CSS into DeepSeek pages. The feature has a poor store-review posture, broad breakage risk on DeepSeek DOM changes, and a high support cost because styling bugs can look like product regressions.
 
 Allowed theme work is limited to bounded first-party controls:
 

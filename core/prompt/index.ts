@@ -15,4 +15,5 @@ export {
 export type {
   PromptAugmentationOptions,
   PromptAugmentationResult,
+  PromptStagePieces,
 } from './augmentation';

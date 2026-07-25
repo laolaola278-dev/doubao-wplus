@@ -1,6 +1,6 @@
 # Chrome Web Store Release Pack
 
-This folder contains the Chrome Web Store submission materials for DeepSeek++.
+This folder contains the Chrome Web Store submission materials for doubao-wplus.
 
 - `listing.md`: store listing copy, English/zh-CN localization draft, and asset list.
 - `privacy-policy.md`: public privacy policy draft for the Chrome Web Store privacy field.

@@ -20,7 +20,7 @@ graph TD
     T2_3 --> T2_4
   end
 
-  subgraph P3["Phase 3: DeepSeek++ OfficeCLI Onboarding"]
+  subgraph P3["Phase 3: doubao-wplus OfficeCLI Onboarding"]
     T3_1["T3.1 OfficeCLI MCP quick-start preset"]
     T3_2["T3.2 Keep execution on MCP path"]
     T3_3["T3.3 Provider health and setup feedback"]

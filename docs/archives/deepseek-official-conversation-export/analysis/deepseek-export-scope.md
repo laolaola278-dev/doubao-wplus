@@ -6,7 +6,7 @@
 - Default artifacts: JSON and Markdown.
 - Optional artifact: print-ready HTML for browser PDF output.
 - Modes:
-  - `sanitized`: readable export that strips DeepSeek++ internal prompt markers, tool-call markup, raw endpoint payloads, and signed file URLs.
+  - `sanitized`: readable export that strips doubao-wplus internal prompt markers, tool-call markup, raw endpoint payloads, and signed file URLs.
   - `raw`: canonical schema plus official raw payloads for user-owned archival/debug use.
 - Attachments:
   - Export message file references and official file metadata when available.

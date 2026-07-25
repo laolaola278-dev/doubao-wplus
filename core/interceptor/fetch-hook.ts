@@ -18,7 +18,17 @@ import { extractToolCalls } from './tool-parser';
 // ============================================================
 // 多宿主路径匹配 — 使用 HostRegistry
 // ============================================================
-import { getActiveAdapter, setActiveHostId, getActiveHostId, type HostId } from '../hosts/registry';
+import { getActiveAdapter, setActiveHostId, getActiveHostId } from '../hosts/registry';
+import type { HostId } from '../hosts/types';
+import { isFlagEnabled, readBodyField } from '../hosts/shared/body-fields';
+import { captureBorrowableHeaders, getBorrowedHeaders } from './header-borrowing';
+import {
+  isDevDiagnosticsEnabled,
+  setLastCapturedRequest,
+  setLastAugmentationOutcome,
+  extractMaskedHeaderMeta,
+  type LastCapturedRequest,
+} from '../diagnostics/dev-diagnostics';
 
 export function setActiveHost(host: HostId) {
   setActiveHostId(host);
@@ -42,10 +52,10 @@ function matchesHistoryPath(pathname: string): boolean {
   const p = getHostPaths();
   return pathname === p.history;
 }
-const BYPASS_HOOK_HEADER = 'X-DPP-Bypass-Hook';
+const BYPASS_HOOK_HEADER = 'X-DWPLUS-Bypass-Hook';
 const TOKEN_SPEED_EMIT_INTERVAL_MS = 250;
 // B-07 fix: the original 1.5s was too short for slow first paints on the
-// DeepSeek web app — by the time the content script's hook state pushed
+// The web app — by the time the content script's hook state pushed
 // across, the user's first request had already been let through without any
 // augmentation. Bump to 5s and also requeue once instead of dropping the
 // request entirely.
@@ -142,12 +152,38 @@ function hookFetch() {
 
   window.fetch = async function (input: RequestInfo | URL, init?: RequestInit) {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    const adapter = getActiveAdapter(url);
+    const hostId = adapter.id;
+
+    // 捕获所有命中宿主的请求头（不只是 chat stream），用于 Header 借用
+    if (init?.headers) {
+      const headers = headersInitToRecord(init.headers);
+      if (headers) captureBorrowableHeaders(hostId, url, headers);
+    }
+
+    // dev-only diagnostics: 记录最近一次命中宿主的请求（脱敏，无 header 值）
+    captureRequestForDevDiagnostics(url, init?.method ?? 'GET', init?.headers, init?.body);
 
     if (matchesHistoryURL(url)) {
       return interceptHistoryResponse(originalFetch.call(this, input, init));
     }
 
     if (!isChatStreamURL(url) || typeof init?.body !== 'string') {
+      // 诊断：在豆包页面上输出被跳过的 POST 请求路径，帮助定位真实聊天 URL
+      if (hostId === 'doubao' && (init?.method ?? 'GET') === 'POST' && typeof init?.body === 'string') {
+        let path = '';
+        try { path = new URL(url).pathname; } catch { path = url; }
+        // 检查 body 是否包含 prompt/text/query/content 等可能的聊天字段
+        const bodyStr = init.body.slice(0, 500);
+        const looksLikeChat = /"(prompt|text|query|content|message|input)"\s*:/.test(bodyStr);
+        if (typeof console !== 'undefined' && console.warn) {
+          console.warn(
+            `[DWPLUS-FETCH] Skipped non-chat-stream POST to ${path}` +
+            `${looksLikeChat ? ' (body looks like chat!)' : ''}` +
+            ` — isChatStreamUrl=${isChatStreamURL(url)}`,
+          );
+        }
+      }
       return originalFetch.call(this, input, init);
     }
 
@@ -158,27 +194,62 @@ function hookFetch() {
     await waitForInitialHookState();
     hookState.onHeadersCaptured(captureDeepSeekClientHeaders(init.headers));
     const originalContext = createRequestContext(init.body);
-    const modified = await hookState.onRequestBody(init.body);
+    const modified = await runAugmentationWithDiagnostics(url, 'fetch', init.body);
     const requestBody = modified?.body ?? init.body;
     const requestContext = createRequestContext(requestBody, {
       requestId: originalContext.requestId,
       originalPrompt: originalContext.originalPrompt,
       agentTaskPrompt: modified?.agentTaskPrompt ?? originalContext.agentTaskPrompt,
     });
-    const requestInit = modified ? { ...init, body: modified.body } : init;
+
+    let requestInit = modified ? { ...init, body: modified.body } : init;
+
+    // 对修改过的请求合并借用头（豆包 a_bogus 等签名复用）
+    if (modified) {
+      const borrowed = getBorrowedHeaders(hostId);
+      if (borrowed) {
+        const mergedHeaders = mergeHeaders(init.headers, borrowed);
+        requestInit = { ...requestInit, headers: mergedHeaders };
+      }
+    }
+
     return interceptFetchResponse(originalFetch.call(this, input, requestInit), requestContext);
   };
 }
 
+function headersInitToRecord(headersInit: HeadersInit | undefined): Record<string, string> | null {
+  try {
+    if (headersInit instanceof Headers) {
+      const result: Record<string, string> = {};
+      headersInit.forEach((value, key) => { result[key] = value; });
+      return result;
+    }
+    if (Array.isArray(headersInit)) {
+      return Object.fromEntries(headersInit);
+    }
+    return headersInit as Record<string, string>;
+  } catch {
+    return null;
+  }
+}
+
+function mergeHeaders(original: HeadersInit | undefined, borrowed: Record<string, string>): Record<string, string> {
+  const base = headersInitToRecord(original) ?? {};
+  return { ...base, ...borrowed };
+}
+
 function hookXHR() {
   const xhrUrls = new WeakMap<XMLHttpRequest, string>();
+  const xhrMethods = new WeakMap<XMLHttpRequest, string>();
   const xhrHeaders = new WeakMap<XMLHttpRequest, Record<string, string>>();
   const origOpen = XMLHttpRequest.prototype.open;
   const origSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
   const origSend = XMLHttpRequest.prototype.send;
 
   XMLHttpRequest.prototype.open = function (method: string, url: string | URL, ...rest: any[]) {
-    xhrUrls.set(this, typeof url === 'string' ? url : url.href);
+    const urlStr = typeof url === 'string' ? url : url.href;
+    xhrUrls.set(this, urlStr);
+    xhrMethods.set(this, method);
     xhrHeaders.set(this, {});
     return origOpen.apply(this, [method, url, ...rest] as any);
   };
@@ -192,11 +263,15 @@ function hookXHR() {
   XMLHttpRequest.prototype.send = function (body?: Document | XMLHttpRequestBodyInit | null) {
     const url = xhrUrls.get(this);
     if (url && isChatStreamURL(url) && typeof body === 'string') {
+      // dev-only diagnostics: 记录 XHR 捕获（脱敏）
+      const method = xhrMethods.get(this) ?? 'POST';
+      const headerRecord = xhrHeaders.get(this);
+      captureRequestForDevDiagnostics(url, method, headerRecord, body);
       const xhr = this;
       const sendChatRequest = async () => {
         hookState.onHeadersCaptured(captureDeepSeekClientHeaders(xhrHeaders.get(xhr)));
         const originalContext = createRequestContext(body);
-        const modified = await hookState.onRequestBody(body);
+        const modified = await runAugmentationWithDiagnostics(url, 'xhr', body);
         const requestBody = modified?.body ?? body;
         setupXHRResponseInterceptor(xhr, createRequestContext(requestBody, {
           requestId: originalContext.requestId,
@@ -249,6 +324,98 @@ function getDeepSeekLocale(): string {
   return document.documentElement.lang || navigator.language || 'en-US';
 }
 
+/**
+ * dev-only：将命中宿主的请求摘要写入 __DWPLUS_DIAG__.lastCapturedRequest。
+ * 不暴露任何 header 值、cookie、token、signature —— 仅记录键名列表与布尔标记。
+ *
+ * @param url 请求 URL
+ * @param method HTTP 方法
+ * @param headersInit 原始 headers init（不会被读取值，只读键名）
+ * @param body 请求体（仅用于判断 hasBody + 长度，不读内容）
+ */
+/**
+ * 执行增强并（dev-only）记录最近一次增强执行摘要到 __DWPLUS_DIAG__.lastAugmentation。
+ * 摘要脱敏：只记录路径 / 通道 / 是否修改 / body 长度 / 错误消息，不含 prompt 内容。
+ * 增强抛出的异常记录后原样上抛，保持原有错误传播行为不变。
+ */
+async function runAugmentationWithDiagnostics(
+  url: string,
+  transport: 'fetch' | 'xhr',
+  body: string,
+): Promise<RequestBodyModification | null> {
+  if (!isDevDiagnosticsEnabled()) {
+    return hookState.onRequestBody(body);
+  }
+  let urlPath = url;
+  try { urlPath = new URL(url).pathname; } catch { /* 保留原串 */ }
+  try {
+    const modified = await hookState.onRequestBody(body);
+    setLastAugmentationOutcome({
+      urlPath,
+      transport,
+      modified: modified != null,
+      originalBodyLength: body.length,
+      augmentedBodyLength: modified?.body.length ?? body.length,
+      error: null,
+      timestamp: Date.now(),
+    });
+    return modified;
+  } catch (err) {
+    setLastAugmentationOutcome({
+      urlPath,
+      transport,
+      modified: false,
+      originalBodyLength: body.length,
+      augmentedBodyLength: body.length,
+      error: err instanceof Error ? err.message : String(err),
+      timestamp: Date.now(),
+    });
+    throw err;
+  }
+}
+
+function captureRequestForDevDiagnostics(
+  url: string,
+  method: string,
+  headersInit: HeadersInit | Record<string, string> | undefined,
+  body: unknown,
+): void {
+  if (!isDevDiagnosticsEnabled()) return;
+  try {
+    const adapter = getActiveAdapter(url);
+    if (!adapter.matchUrl(url)) return;
+
+    let matchedHostPath: LastCapturedRequest['matchedHostPath'] = 'other';
+    const paths = adapter.getPaths();
+    if (url.includes(paths.regenerate)) {
+      matchedHostPath = 'regenerate';
+    } else if (url.includes(paths.completion)) {
+      matchedHostPath = 'completion';
+    } else if (url.includes(paths.history)) {
+      matchedHostPath = 'history';
+    }
+
+    const headerMeta = extractMaskedHeaderMeta(headersInit as HeadersInit | undefined);
+    const bodyLength = typeof body === 'string' ? body.length : 0;
+    const hasBody = body != null && body !== '';
+
+    setLastCapturedRequest({
+      url,
+      method,
+      hasBody,
+      bodyLength,
+      matchedHostPath,
+      headerKeys: headerMeta.headerKeys,
+      hasAuthorization: headerMeta.hasAuthorization,
+      hasCookie: headerMeta.hasCookie,
+      hasSignatureLikeHeader: headerMeta.hasSignatureLikeHeader,
+      timestamp: Date.now(),
+    });
+  } catch {
+    // dev diagnostics 永不影响主流程
+  }
+}
+
 function markInitialHookStateReady() {
   initialHookStateWaitComplete = true;
   if (!initialHookStateReadyResolved) {
@@ -272,7 +439,7 @@ async function waitForInitialHookState(): Promise<void> {
   // a request, then try one more time before giving up.
   if (typeof console !== 'undefined' && console.warn) {
     console.warn(
-      `[DPP] initial hook state not ready within ${INITIAL_HOOK_STATE_WAIT_MS}ms; retrying once.`,
+      `[DWPLUS] initial hook state not ready within ${INITIAL_HOOK_STATE_WAIT_MS}ms; retrying once.`,
     );
   }
   await waitOnce(INITIAL_HOOK_STATE_WAIT_MS);
@@ -280,7 +447,7 @@ async function waitForInitialHookState(): Promise<void> {
   initialHookStateWaitComplete = true;
   if (!initialHookStateReadyResolved && typeof console !== 'undefined' && console.warn) {
     console.warn(
-      '[DPP] initial hook state still not ready after retry; this request will fall through without augmentation.',
+      '[DWPLUS] initial hook state still not ready after retry; this request will fall through without augmentation.',
     );
   }
 }
@@ -300,23 +467,26 @@ function createRequestContext(bodyStr: string, overrides: RequestContextOverride
   const requestId = overrides.requestId ?? crypto.randomUUID();
   try {
     const body = JSON.parse(bodyStr) as Record<string, unknown>;
-    const bodyPrompt = typeof body.prompt === 'string' ? body.prompt : '';
+    const fields = getActiveAdapter().getRequestBodyFields();
+    const promptValue = readBodyField(body, fields.prompt);
+    const bodyPrompt = typeof promptValue === 'string' ? promptValue : '';
     const originalPrompt = typeof overrides.originalPrompt === 'string'
       ? overrides.originalPrompt
-      : typeof body.prompt === 'string'
-        ? body.prompt
-        : '';
+      : bodyPrompt;
+    const chatSessionValue = readBodyField(body, fields.chatSessionId);
+    const refFileIdsValue = readBodyField(body, fields.refFileIds);
+    const modelTypeValue = readBodyField(body, fields.modelType);
     return {
       requestId,
       originalPrompt,
       agentTaskPrompt: overrides.agentTaskPrompt ?? bodyPrompt,
-      chatSessionId: typeof body.chat_session_id === 'string' ? body.chat_session_id : null,
-      parentMessageId: normalizeMessageId(body.parent_message_id),
+      chatSessionId: typeof chatSessionValue === 'string' ? chatSessionValue : null,
+      parentMessageId: normalizeMessageId(readBodyField(body, fields.parentMessageId)),
       promptOptions: {
-        modelType: typeof body.model_type === 'string' ? body.model_type : null,
-        searchEnabled: body.search_enabled === true,
-        thinkingEnabled: body.thinking_enabled === true,
-        refFileIds: Array.isArray(body.ref_file_ids) ? body.ref_file_ids.filter((item): item is string => typeof item === 'string') : [],
+        modelType: typeof modelTypeValue === 'string' ? modelTypeValue : null,
+        searchEnabled: isFlagEnabled(readBodyField(body, fields.searchEnabled)),
+        thinkingEnabled: isFlagEnabled(readBodyField(body, fields.thinkingEnabled)),
+        refFileIds: Array.isArray(refFileIdsValue) ? (refFileIdsValue as unknown[]).filter((item): item is string => typeof item === 'string') : [],
       },
     };
   } catch {
@@ -338,12 +508,12 @@ function createRequestContext(bodyStr: string, overrides: RequestContextOverride
 
 function isChatStreamURL(url: string): boolean {
   const p = getHostPaths();
-  return url.includes(p.completion) || url.includes(p.regenerate) || CHAT_STREAM_PATHS.some((path) => url.includes(path));
+  return url.includes(p.completion) || url.includes(p.regenerate);
 }
 
 function matchesHistoryURL(url: string): boolean {
   const p = getHostPaths();
-  return url.includes(p.history) || url.includes(DEFAULT_HISTORY_PATH);
+  return url.includes(p.history);
 }
 
 function hasBypassHookHeader(headers: HeadersInit | undefined): boolean {
@@ -463,7 +633,74 @@ function isFragmentCreationPatch(parsed: any): boolean {
   return parsed?.p === 'response/fragments' && parsed.o === 'APPEND' && Array.isArray(parsed.v);
 }
 
+function getDoubaoStreamContentBlocks(parsed: any): any[] {
+  const blocks: any[] = [];
+  const initialBlocks = parsed?.content?.content_block;
+  if (Array.isArray(initialBlocks)) {
+    blocks.push(...initialBlocks);
+  }
+  if (!Array.isArray(parsed?.patch_op)) return blocks;
+  for (const operation of parsed.patch_op) {
+    const contentBlocks = operation?.patch_value?.content_block;
+    if (!Array.isArray(contentBlocks)) continue;
+    blocks.push(...contentBlocks);
+  }
+  return blocks;
+}
+
+function getDoubaoStreamTextBlocks(parsed: any): any[] {
+  return getDoubaoStreamContentBlocks(parsed)
+    .map((block) => block?.content?.text_block)
+    .filter((textBlock) => typeof textBlock?.text === 'string');
+}
+
+function isDoubaoStreamPayload(parsed: any): boolean {
+  return typeof parsed?.text === 'string' ||
+    Array.isArray(parsed?.content?.content_block) ||
+    Array.isArray(parsed?.patch_op);
+}
+
+class DoubaoResponseTextTracker {
+  private acceptDeltas = false;
+  private readonly acceptedBlockIds = new Map<string, boolean>();
+
+  append(parsed: any): string | null {
+    const parts: string[] = [];
+    for (const block of getDoubaoStreamContentBlocks(parsed)) {
+      const textBlock = block?.content?.text_block;
+      if (!textBlock || typeof textBlock !== 'object') continue;
+      const blockId = typeof block.block_id === 'string' ? block.block_id : '';
+      let accepted = blockId ? this.acceptedBlockIds.get(blockId) : undefined;
+      if (accepted === undefined) {
+        accepted = !(typeof textBlock.summary === 'string' && textBlock.summary.trim());
+        if (blockId) this.acceptedBlockIds.set(blockId, accepted);
+      }
+      this.acceptDeltas = accepted;
+      if (accepted && typeof textBlock.text === 'string') parts.push(textBlock.text);
+    }
+    if (typeof parsed?.text === 'string') {
+      return this.acceptDeltas ? parsed.text : null;
+    }
+    return parts.length > 0 ? parts.join('') : null;
+  }
+}
+
+function setTextAcrossBlocks(blocks: any[], value: string) {
+  let remaining = value;
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
+    const original = block.text as string;
+    if (i === blocks.length - 1) {
+      block.text = remaining;
+    } else {
+      block.text = remaining.slice(0, original.length);
+      remaining = remaining.slice(original.length);
+    }
+  }
+}
+
 function getDirectPatchText(parsed: any): string | null {
+  if (typeof parsed?.text === 'string') return parsed.text;
   if (!parsed?.p && typeof parsed?.v === 'string') return parsed.v;
   if (isResponseTextPatchPath(parsed?.p) && parsed.o === 'APPEND' && typeof parsed.v === 'string') return parsed.v;
   if (isResponseTextPatchPath(parsed?.p) && typeof parsed.v === 'string' && !parsed.o) {
@@ -477,10 +714,16 @@ function getDirectPatchText(parsed: any): string | null {
     }
     return parts.length > 0 ? parts.join('') : null;
   }
+  const doubaoBlocks = getDoubaoStreamTextBlocks(parsed);
+  if (doubaoBlocks.length > 0) return doubaoBlocks.map((block) => block.text).join('');
   return null;
 }
 
 function setDirectPatchText(parsed: any, value: string) {
+  if (typeof parsed?.text === 'string') {
+    parsed.text = value;
+    return;
+  }
   if (!parsed?.p && typeof parsed?.v === 'string') {
     parsed.v = value;
     return;
@@ -516,7 +759,10 @@ function setDirectPatchText(parsed: any, value: string) {
         }
       }
     }
+    return;
   }
+  const doubaoBlocks = getDoubaoStreamTextBlocks(parsed);
+  if (doubaoBlocks.length > 0) setTextAcrossBlocks(doubaoBlocks, value);
 }
 
 function shouldEmitSanitizedTextPatch(parsed: any): boolean {
@@ -537,6 +783,7 @@ function isResponsePatch(parsed: any): boolean {
 }
 
 function getAnyDirectPatchText(parsed: any): string | null {
+  if (typeof parsed?.text === 'string') return parsed.text;
   if (!parsed?.p && typeof parsed?.v === 'string') return parsed.v;
   if (parsed?.p && parsed.o === 'APPEND' && typeof parsed.v === 'string') return parsed.v;
   if (typeof parsed?.p === 'string' && typeof parsed.v === 'string' && !parsed.o) {
@@ -553,10 +800,16 @@ function getAnyDirectPatchText(parsed: any): string | null {
     }
     return parts.length > 0 ? parts.join('') : null;
   }
+  const doubaoBlocks = getDoubaoStreamTextBlocks(parsed);
+  if (doubaoBlocks.length > 0) return doubaoBlocks.map((block) => block.text).join('');
   return null;
 }
 
 function setAnyDirectPatchText(parsed: any, value: string) {
+  if (typeof parsed?.text === 'string') {
+    parsed.text = value;
+    return;
+  }
   if (!parsed?.p && typeof parsed?.v === 'string') {
     parsed.v = value;
     return;
@@ -592,12 +845,47 @@ function setAnyDirectPatchText(parsed: any, value: string) {
         }
       }
     }
+    return;
   }
+  const doubaoBlocks = getDoubaoStreamTextBlocks(parsed);
+  if (doubaoBlocks.length > 0) setTextAcrossBlocks(doubaoBlocks, value);
+}
+
+function sanitizeDoubaoUserMessageEcho(parsed: any, visiblePrompt: string): boolean {
+  const message = parsed?.message;
+  if (message?.user_type !== 1) return false;
+
+  let blocks: any[] | null = null;
+  let serialized = false;
+  if (Array.isArray(message.content_block)) {
+    blocks = message.content_block;
+  } else if (typeof message.content === 'string') {
+    try {
+      const parsedContent = JSON.parse(message.content);
+      if (Array.isArray(parsedContent)) {
+        blocks = parsedContent;
+        serialized = true;
+      }
+    } catch {}
+  }
+  if (!blocks) return false;
+
+  let changed = false;
+  for (const block of blocks) {
+    const textBlock = block?.content?.text_block;
+    if (typeof textBlock?.text !== 'string') continue;
+    const sanitized = sanitizeInternalPromptText(textBlock.text, visiblePrompt);
+    if (sanitized === textBlock.text) continue;
+    textBlock.text = sanitized;
+    changed = true;
+  }
+  if (changed && serialized) message.content = JSON.stringify(blocks);
+  return changed;
 }
 
 function cloneParsedWithSanitizedInternalPrompt(parsed: any, visiblePrompt: string): any | null {
   const cloned = JSON.parse(JSON.stringify(parsed));
-  let changed = false;
+  let changed = sanitizeDoubaoUserMessageEcho(cloned, visiblePrompt);
 
   const apply = (node: any) => {
     if (!node || typeof node !== 'object') return;
@@ -625,8 +913,13 @@ function cloneParsedWithSanitizedInternalPrompt(parsed: any, visiblePrompt: stri
   return changed ? cloned : null;
 }
 
-function extractCleanResponseTextForParsing(parsed: unknown): string | null {
-  const text = extractResponseTextFromParsed(parsed);
+function extractCleanResponseTextForParsing(
+  parsed: unknown,
+  doubaoTracker?: DoubaoResponseTextTracker,
+): string | null {
+  const text = doubaoTracker && isDoubaoStreamPayload(parsed)
+    ? doubaoTracker.append(parsed)
+    : extractResponseTextFromParsed(parsed);
   if (!text) return text;
 
   const sanitized = sanitizeInternalPromptText(text);
@@ -737,6 +1030,7 @@ export class XmlToolStreamFilter {
   private pendingBlocks: Array<{ block: string; isFragmentCreation: boolean; parsed: any }> = [];
   private chunkBuffer = '';
   private encoder = new TextEncoder();
+  private doubaoTextTracker = new DoubaoResponseTextTracker();
 
   constructor(descriptors: readonly ToolDescriptor[] = DEFAULT_TOOL_DESCRIPTORS, visiblePrompt: string = '') {
     this.visiblePrompt = visiblePrompt;
@@ -782,7 +1076,9 @@ export class XmlToolStreamFilter {
       const sanitizedParsed = cloneParsedWithSanitizedInternalPrompt(parsed, this.visiblePrompt);
       const effectiveParsed = sanitizedParsed ?? parsed;
       const effectiveBlock = sanitizedParsed ? 'data: ' + JSON.stringify(sanitizedParsed) : block;
-      const text = extractResponseTextFromParsed(effectiveParsed);
+      const text = isDoubaoStreamPayload(effectiveParsed)
+        ? this.doubaoTextTracker.append(effectiveParsed)
+        : extractResponseTextFromParsed(effectiveParsed);
       if (text === null) {
         // Non-response events, including request-message echoes, pass through after prompt cleanup.
         this.emit(controller, effectiveBlock);
@@ -1011,9 +1307,10 @@ async function interceptFetchResponse(
     hookState.onResponseTokenSpeed,
     TOKEN_SPEED_EMIT_INTERVAL_MS,
   );
+  const doubaoResponseTextTracker = new DoubaoResponseTextTracker();
   const fullTextParser = createBufferedSSEParser((parsed) => {
     assistantMessageId = collectAssistantMessageId(parsed, assistantMessageId);
-    const eventText = extractCleanResponseTextForParsing(parsed);
+    const eventText = extractCleanResponseTextForParsing(parsed, doubaoResponseTextTracker);
     if (eventText) {
       responseToolState.append(eventText);
       speedTracker.append(eventText);
@@ -1096,6 +1393,7 @@ function setupXHRResponseInterceptor(xhr: XMLHttpRequest, requestContext: Reques
     hookState.onResponseTokenSpeed,
     TOKEN_SPEED_EMIT_INTERVAL_MS,
   );
+  const doubaoResponseTextTracker = new DoubaoResponseTextTracker();
 
   const finalizeIfNeeded = () => {
     if (completed) return;
@@ -1125,7 +1423,7 @@ function setupXHRResponseInterceptor(xhr: XMLHttpRequest, requestContext: Reques
   } as unknown as ReadableStreamDefaultController<Uint8Array>;
   const fullTextParser = createBufferedSSEParser((parsed) => {
     assistantMessageId = collectAssistantMessageId(parsed, assistantMessageId);
-    const text = extractCleanResponseTextForParsing(parsed);
+    const text = extractCleanResponseTextForParsing(parsed, doubaoResponseTextTracker);
     if (text) {
       responseToolState.append(text);
       speedTracker.append(text);

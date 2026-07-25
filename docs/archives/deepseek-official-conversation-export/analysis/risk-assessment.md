@@ -52,12 +52,12 @@ The existing request model only preserves `ref_file_ids`. There is no current lo
 
 ### Raw vs Sanitized Export Risk
 
-DeepSeek++ intentionally cleans internal prompt and tool-call artifacts from visible streams, history responses, and DeepSeek IndexedDB cache reads. That is correct for page display, but it is unsafe as an implicit export policy.
+doubao-wplus intentionally cleans internal prompt and tool-call artifacts from visible streams, history responses, and DeepSeek IndexedDB cache reads. That is correct for page display, but it is unsafe as an implicit export policy.
 
 The export feature must explicitly define at least two modes:
 
 - **Official/raw**: user-owned official records as returned by DeepSeek APIs, with minimal normalization.
-- **Readable/sanitized**: user-visible conversation text with DeepSeek++ internal markers stripped through an explicit transform.
+- **Readable/sanitized**: user-visible conversation text with doubao-wplus internal markers stripped through an explicit transform.
 
 The transform must be named and test-covered, not accidentally inherited from `fetch-hook.ts`.
 

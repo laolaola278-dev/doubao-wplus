@@ -168,13 +168,23 @@ export default defineConfig({
   targetBrowsers: ['chrome', 'edge', 'firefox'],
   modules: ['@wxt-dev/module-react'],
   manifest: createManifest,
-  vite: () => ({
-    plugins: [tailwindcss(), pyodideAssetsPlugin(), asciiJavaScriptOutputPlugin()],
-    resolve: {
-      alias: {
-        '@wxt-dev/browser': safeWxtBrowser,
-        'wxt/browser': safeWxtBrowser,
+  vite: (env) => {
+    // E2E diagnostics gating: when DOUBAO_WPLUS_E2E=1, the runtime-marker writes
+    // window.__DOUBAO_WPLUS_DIAGNOSTICS__ for Playwright tests to inspect.
+    const e2eFlag = process.env.DOUBAO_WPLUS_E2E === '1' ? '1' : undefined;
+    return {
+      plugins: [tailwindcss(), pyodideAssetsPlugin(), asciiJavaScriptOutputPlugin()],
+      resolve: {
+        alias: {
+          '@wxt-dev/browser': safeWxtBrowser,
+          'wxt/browser': safeWxtBrowser,
+        },
       },
-    },
-  }),
+      define: {
+        // Vite statically replaces these at build time. Boolean/string types are required.
+        __DOUBAO_WPLUS_E2E__: JSON.stringify(e2eFlag),
+        __DOUBAO_WPLUS_DEV__: JSON.stringify(env.mode === 'development'),
+      },
+    };
+  },
 });

@@ -6,13 +6,13 @@ import type {
   AutomationRunnerResult,
 } from './types';
 
-export const AUTOMATION_CONTENT_RUN = 'DPP_AUTOMATION_CONTENT_RUN';
-export const AUTOMATION_WINDOW_RUN_REQUEST = 'DPP_AUTOMATION_WINDOW_RUN_REQUEST';
-export const AUTOMATION_WINDOW_RUN_RESULT = 'DPP_AUTOMATION_WINDOW_RUN_RESULT';
+export const AUTOMATION_CONTENT_RUN = 'DWPLUS_AUTOMATION_CONTENT_RUN';
+export const AUTOMATION_WINDOW_RUN_REQUEST = 'DWPLUS_AUTOMATION_WINDOW_RUN_REQUEST';
+export const AUTOMATION_WINDOW_RUN_RESULT = 'DWPLUS_AUTOMATION_WINDOW_RUN_RESULT';
 export const AUTOMATION_BRIDGE_TIMEOUT_MS = 120_000;
 
-export const CONTENT_WINDOW_SOURCE = 'deepseek-pp-content';
-export const MAIN_WORLD_WINDOW_SOURCE = 'deepseek-pp-main';
+export const CONTENT_WINDOW_SOURCE = 'dwplus-content';
+export const MAIN_WORLD_WINDOW_SOURCE = 'dwplus-main';
 
 export interface AutomationContentRunMessage {
   type: typeof AUTOMATION_CONTENT_RUN;

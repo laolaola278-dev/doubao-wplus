@@ -5,69 +5,71 @@ import {
 } from '../chat/official-api-config';
 import { parseSSEChunk, parseSSEData } from '../interceptor/sse-parser';
 
-export const DEEPSEEK_OFFICIAL_API_URL = 'https://api.deepseek.com/chat/completions';
+// 豆包官方 API（火山方舟 Ark）兼容 OpenAI 样式的 chat/completions 端点。
+// 默认指向北京地域；如有需要可通过 SubmitOfficialDoubaoInput.endpoint 覆盖。
+export const DOUBAO_OFFICIAL_API_URL = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
 
-export interface OfficialDeepSeekMessage {
+export interface OfficialDoubaoMessage {
   role: 'user' | 'assistant';
   content: string;
   reasoningContent?: string;
 }
 
-export interface OfficialDeepSeekTurn {
+export interface OfficialDoubaoTurn {
   assistantText: string;
   reasoningText: string;
   finished: boolean;
 }
 
-export interface OfficialDeepSeekCallbacks {
+export interface OfficialDoubaoCallbacks {
   onTextChunk?(text: string, fullText: string): void;
   onReasoningChunk?(text: string, fullText: string): void;
   onFinished?(): void;
 }
 
-export interface SubmitOfficialDeepSeekInput {
+export interface SubmitOfficialDoubaoInput {
   apiKey: string;
   config?: OfficialApiChatConfig;
-  messages: OfficialDeepSeekMessage[];
+  messages: OfficialDoubaoMessage[];
   fetchImpl?: typeof fetch;
   endpoint?: string;
 }
 
-export class DeepSeekOfficialApiError extends Error {
+export class DoubaoOfficialApiError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'DeepSeekOfficialApiError';
+    this.name = 'DoubaoOfficialApiError';
   }
 }
 
-export async function submitOfficialDeepSeekStreaming(
-  input: SubmitOfficialDeepSeekInput,
-  callbacks: OfficialDeepSeekCallbacks,
+export async function submitOfficialDoubaoStreaming(
+  input: SubmitOfficialDoubaoInput,
+  callbacks: OfficialDoubaoCallbacks,
   signal?: AbortSignal,
-): Promise<OfficialDeepSeekTurn> {
+): Promise<OfficialDoubaoTurn> {
   const fetchImpl = input.fetchImpl ?? fetch;
-  const response = await fetchImpl(input.endpoint ?? DEEPSEEK_OFFICIAL_API_URL, {
+  const response = await fetchImpl(input.endpoint ?? DOUBAO_OFFICIAL_API_URL, {
     method: 'POST',
     signal,
     headers: {
       'content-type': 'application/json',
       authorization: `Bearer ${input.apiKey}`,
     },
-    body: JSON.stringify(createOfficialDeepSeekRequestBody(input)),
+    body: JSON.stringify(createOfficialDoubaoRequestBody(input)),
   });
 
   if (!response.ok) {
-    throw new DeepSeekOfficialApiError(await readOfficialApiFailure(response));
+    throw new DoubaoOfficialApiError(await readOfficialApiFailure(response));
   }
 
   if (!response.body) {
-    throw new DeepSeekOfficialApiError('DeepSeek official API response did not include a stream body.');
+    throw new DoubaoOfficialApiError('豆包官方 API 响应未包含流式 body。');
   }
 
   return readOfficialApiStream(response, callbacks);
 }
 
-export function createOfficialDeepSeekRequestBody(input: Pick<SubmitOfficialDeepSeekInput, 'config' | 'messages'>) {
+export function createOfficialDoubaoRequestBody(input: Pick<SubmitOfficialDoubaoInput, 'config' | 'messages'>) {
   const config = normalizeOfficialApiChatConfig(input.config ?? DEFAULT_OFFICIAL_API_CHAT_CONFIG);
   return {
     model: config.model,
@@ -88,12 +90,12 @@ export function createOfficialDeepSeekRequestBody(input: Pick<SubmitOfficialDeep
 
 async function readOfficialApiStream(
   response: Response,
-  callbacks: OfficialDeepSeekCallbacks,
-): Promise<OfficialDeepSeekTurn> {
+  callbacks: OfficialDoubaoCallbacks,
+): Promise<OfficialDoubaoTurn> {
   const reader = response.body!.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
-  const turn: OfficialDeepSeekTurn = { assistantText: '', reasoningText: '', finished: false };
+  const turn: OfficialDoubaoTurn = { assistantText: '', reasoningText: '', finished: false };
 
   while (true) {
     const { done, value } = await reader.read();
@@ -118,8 +120,8 @@ async function readOfficialApiStream(
 
 function consumeOfficialApiSse(
   text: string,
-  turn: OfficialDeepSeekTurn,
-  callbacks: OfficialDeepSeekCallbacks,
+  turn: OfficialDoubaoTurn,
+  callbacks: OfficialDoubaoCallbacks,
 ) {
   const events = parseSSEChunk(text);
   for (const event of events) {
@@ -192,7 +194,7 @@ function isOfficialApiFinished(parsed: unknown): boolean {
 
 async function readOfficialApiFailure(response: Response): Promise<string> {
   const text = await response.text().catch(() => '');
-  if (!text) return `DeepSeek official API failed with HTTP ${response.status}.`;
+  if (!text) return `豆包官方 API 请求失败，HTTP 状态码 ${response.status}。`;
 
   try {
     const parsed = JSON.parse(text);

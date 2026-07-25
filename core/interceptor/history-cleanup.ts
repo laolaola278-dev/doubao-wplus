@@ -1,4 +1,4 @@
-import { DPP_MANAGED_AGENT_PROMPT_MARKER } from '../constants';
+import { DWPLUS_MANAGED_AGENT_PROMPT_MARKER } from '../constants';
 import { replaceTaskCompleteBlocks } from '../inline-agent/prompt';
 import { sanitizeInternalPromptText } from '../prompt';
 import type { ToolCall, ToolCallRestoreRecord, ToolDescriptor } from '../types';
@@ -452,7 +452,7 @@ function sanitizeRestorePayload(payload: Record<string, unknown>): Record<string
 function sanitizeRestoreValue(value: unknown, depth: number): unknown {
   if (typeof value === 'string') return sanitizeRestoreString(value);
   if (value === null || typeof value !== 'object') return value;
-  if (depth >= RESTORE_PAYLOAD_MAX_DEPTH) return { __dppRestoreMaxDepth: true };
+  if (depth >= RESTORE_PAYLOAD_MAX_DEPTH) return { __dwplusRestoreMaxDepth: true };
 
   if (Array.isArray(value)) {
     const items = value
@@ -462,7 +462,7 @@ function sanitizeRestoreValue(value: unknown, depth: number): unknown {
     return [
       ...items,
       {
-        __dppRestoreOmittedItems: value.length - RESTORE_PAYLOAD_ARRAY_MAX_ITEMS,
+        __dwplusRestoreOmittedItems: value.length - RESTORE_PAYLOAD_ARRAY_MAX_ITEMS,
       },
     ];
   }
@@ -474,7 +474,7 @@ function sanitizeRestoreValue(value: unknown, depth: number): unknown {
 
   if (entries.length > RESTORE_PAYLOAD_OBJECT_MAX_KEYS) {
     keptEntries.push([
-      '__dppRestoreOmittedKeys',
+      '__dwplusRestoreOmittedKeys',
       entries.length - RESTORE_PAYLOAD_OBJECT_MAX_KEYS,
     ]);
   }
@@ -485,7 +485,7 @@ function sanitizeRestoreValue(value: unknown, depth: number): unknown {
 function sanitizeRestoreString(value: string): unknown {
   if (value.length <= RESTORE_PAYLOAD_STRING_MAX_LENGTH) return value;
   return {
-    __dppRestoreTruncatedText: true,
+    __dwplusRestoreTruncatedText: true,
     length: value.length,
     hash: hashString(value),
     preview: value.slice(0, RESTORE_PAYLOAD_STRING_PREVIEW_LENGTH),
@@ -570,7 +570,7 @@ function sanitizeInlineAgentContinuationMessage(msg: any) {
 }
 
 function isInternalManagedAgentContent(content: string): boolean {
-  if (content.includes(DPP_MANAGED_AGENT_PROMPT_MARKER)) return true;
+  if (content.includes(DWPLUS_MANAGED_AGENT_PROMPT_MARKER)) return true;
   if (content.includes('DeepSeek++ 托管 Agent Runner') && content.includes('<tool_results>')) return true;
   if (isInlineAgentContinuationPrompt(content)) return true;
   return content.includes('Tool call format reminder:') &&

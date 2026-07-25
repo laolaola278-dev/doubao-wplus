@@ -11,7 +11,7 @@
 
 ## Confirmed Task Definition
 
-Build a user-facing DeepSeek++ export feature that lets users export all of their official DeepSeek web conversation records. The first reliable release target is all-history text export with file references/metadata, `official/raw` and `readable/sanitized` modes, and JSON + Markdown artifacts. PDF support should be added through the same export schema/rendering pipeline if it remains low-risk. File content export is a controlled follow-on task: verify official file download endpoints first, then implement package download only if the endpoint, permissions, and large-file behavior are safe.
+Build a user-facing doubao-wplus export feature that lets users export all of their official DeepSeek web conversation records. The first reliable release target is all-history text export with file references/metadata, `official/raw` and `readable/sanitized` modes, and JSON + Markdown artifacts. PDF support should be added through the same export schema/rendering pipeline if it remains low-risk. File content export is a controlled follow-on task: verify official file download endpoints first, then implement package download only if the endpoint, permissions, and large-file behavior are safe.
 
 ## S.U.P.E.R Design Constraints
 

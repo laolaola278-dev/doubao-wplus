@@ -116,7 +116,7 @@ Adds right-click actions for selected page text so the user can send the selecti
 #### `nativeMessaging`
 
 ```text
-Connects to a user-configured local Native Messaging host for local MCP tools. The built-in Shell preset is disabled until the user installs the DeepSeek++ Shell host, configures it, and enables it.
+Connects to a user-configured local Native Messaging host for local MCP tools. The built-in Shell preset is disabled until the user installs the doubao-wplus Shell host, configures it, and enables it.
 ```
 
 #### `offscreen`
@@ -128,13 +128,13 @@ Creates an invisible extension document for isolated JavaScript, TypeScript, Pyt
 #### `debugger`
 
 ```text
-Enables the optional Browser Control feature. When the user enables Browser Control, DeepSeek++ attaches to the selected browser tab to read an Accessibility Tree snapshot and perform visible browser actions requested through browser_* tools. Users can disable Browser Control or detach from the selected tab in the side panel.
+Enables the optional Browser Control feature. When the user enables Browser Control, doubao-wplus attaches to the selected browser tab to read an Accessibility Tree snapshot and perform visible browser actions requested through browser_* tools. Users can disable Browser Control or detach from the selected tab in the side panel.
 ```
 
 #### `tabs`
 
 ```text
-Lists browser tabs and lets the user choose which tab Browser Control should operate on. Tab titles and URLs are shown only in the extension side panel and returned as browser-control tool context when the user enables the feature. If the browser exposes tab group metadata without an additional permission, DeepSeek++ may show group names only to help users identify the target tab.
+Lists browser tabs and lets the user choose which tab Browser Control should operate on. Tab titles and URLs are shown only in the extension side panel and returned as browser-control tool context when the user enables the feature. If the browser exposes tab group metadata without an additional permission, doubao-wplus may show group names only to help users identify the target tab.
 ```
 
 #### `sidePanel`
@@ -169,7 +169,7 @@ Allows users to connect to their own WebDAV or MCP endpoints. The extension requ
 
 ### Data Use Certification
 
-Use the privacy policy in `docs/chrome-web-store/privacy-policy.md`. The policy states that DeepSeek++:
+Use the privacy policy in `docs/chrome-web-store/privacy-policy.md`. The policy states that doubao-wplus:
 
 - Does not sell user data.
 - Does not use user data for advertising.
@@ -188,7 +188,7 @@ Use this reviewer note:
 4. Open Settings and switch Language between English and Simplified Chinese; the side-panel labels and built-in tool guidance should update.
 5. Create a memory or Skill in the side panel.
 6. Send a DeepSeek message that uses the saved memory/Skill. The extension should use the selected language for extension UI while preserving the user-authored memory/Skill text.
-7. In a DeepSeek conversation, use the DeepSeek++ export button next to the official reply actions such as copy and share. The extension should show format choices, default to HTML, and save the selected current-conversation export formats locally.
+7. In a DeepSeek conversation, use the doubao-wplus export button next to the official reply actions such as copy and share. The extension should show format choices, default to HTML, and save the selected current-conversation export formats locally.
 8. In the side panel, create a saved snippet and insert it into chat, then export saved items as Markdown or JSON.
 9. In Capabilities > Browser, enable Browser Control, choose a normal web tab, and verify the page shows a selected target. Browser Control can be disabled or detached from the same page.
 10. Optional MCP/WebDAV/native messaging features require user-provided endpoints or a user-installed local Shell host and are disabled until configured by the user.

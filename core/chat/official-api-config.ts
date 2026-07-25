@@ -1,22 +1,22 @@
-export const OFFICIAL_API_CHAT_CONFIG_STORAGE_KEY = 'deepseek_pp_official_api_chat_config';
+export const OFFICIAL_API_CHAT_CONFIG_STORAGE_KEY = 'doubao_wplus_official_api_chat_config';
 
-export const OFFICIAL_DEEPSEEK_MODELS = ['deepseek-v4-flash', 'deepseek-v4-pro'] as const;
-export type OfficialDeepSeekModel = typeof OFFICIAL_DEEPSEEK_MODELS[number];
+export const OFFICIAL_DOUBAO_MODELS = ['doubao-pro-32k', 'doubao-lite-32k'] as const;
+export type OfficialDoubaoModel = typeof OFFICIAL_DOUBAO_MODELS[number];
 
-export const OFFICIAL_DEEPSEEK_THINKING_MODES = ['disabled', 'enabled'] as const;
-export type OfficialDeepSeekThinkingMode = typeof OFFICIAL_DEEPSEEK_THINKING_MODES[number];
+export const OFFICIAL_DOUBAO_THINKING_MODES = ['disabled', 'enabled'] as const;
+export type OfficialDoubaoThinkingMode = typeof OFFICIAL_DOUBAO_THINKING_MODES[number];
 
-export const OFFICIAL_DEEPSEEK_REASONING_EFFORTS = ['high', 'max'] as const;
-export type OfficialDeepSeekReasoningEffort = typeof OFFICIAL_DEEPSEEK_REASONING_EFFORTS[number];
+export const OFFICIAL_DOUBAO_REASONING_EFFORTS = ['high', 'max'] as const;
+export type OfficialDoubaoReasoningEffort = typeof OFFICIAL_DOUBAO_REASONING_EFFORTS[number];
 
 export interface OfficialApiChatConfig {
-  model: OfficialDeepSeekModel;
-  thinking: OfficialDeepSeekThinkingMode;
-  reasoningEffort: OfficialDeepSeekReasoningEffort;
+  model: OfficialDoubaoModel;
+  thinking: OfficialDoubaoThinkingMode;
+  reasoningEffort: OfficialDoubaoReasoningEffort;
 }
 
 export const DEFAULT_OFFICIAL_API_CHAT_CONFIG: OfficialApiChatConfig = {
-  model: 'deepseek-v4-flash',
+  model: 'doubao-pro-32k',
   thinking: 'disabled',
   reasoningEffort: 'high',
 };
@@ -46,14 +46,14 @@ export function normalizeOfficialApiChatConfig(value: unknown): OfficialApiChatC
   };
 }
 
-function normalizeModel(value: unknown): OfficialDeepSeekModel {
-  return value === 'deepseek-v4-pro' ? 'deepseek-v4-pro' : 'deepseek-v4-flash';
+function normalizeModel(value: unknown): OfficialDoubaoModel {
+  return value === 'doubao-lite-32k' ? 'doubao-lite-32k' : 'doubao-pro-32k';
 }
 
-function normalizeThinkingMode(value: unknown): OfficialDeepSeekThinkingMode {
+function normalizeThinkingMode(value: unknown): OfficialDoubaoThinkingMode {
   return value === 'enabled' ? 'enabled' : 'disabled';
 }
 
-function normalizeReasoningEffort(value: unknown): OfficialDeepSeekReasoningEffort {
+function normalizeReasoningEffort(value: unknown): OfficialDoubaoReasoningEffort {
   return value === 'max' ? 'max' : 'high';
 }

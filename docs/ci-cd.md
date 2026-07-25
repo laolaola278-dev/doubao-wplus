@@ -1,4 +1,4 @@
-# DeepSeek++ CI/CD
+# doubao-wplus CI/CD
 
 This repository uses a gated GitHub Actions pipeline for extension quality,
 release packaging, and Chrome Web Store uploads.

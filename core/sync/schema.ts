@@ -70,6 +70,10 @@ export function validateStoredMemory(value: unknown, path = 'memory'): Omit<Memo
     updatedAt: requiredFiniteNumber(object.updatedAt, `${path}.updatedAt`),
     accessCount: requiredFiniteNumber(object.accessCount, `${path}.accessCount`),
     lastAccessedAt: requiredFiniteNumber(object.lastAccessedAt, `${path}.lastAccessedAt`),
+    // source 为可选新字段（Memory Studio）；非法值静默丢弃，保持旧数据兼容
+    ...(object.source === 'user' || object.source === 'ai-tool' || object.source === 'import'
+      ? { source: object.source }
+      : {}),
   };
 }
 
@@ -85,6 +89,7 @@ export function validateImportedMemory(value: unknown, path = 'memory'): NewMemo
     description: stored.description,
     tags: stored.tags,
     pinned: stored.pinned,
+    ...(stored.source ? { source: stored.source } : {}),
   };
 }
 

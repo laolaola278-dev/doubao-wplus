@@ -1,6 +1,6 @@
 ## Task Breakdown
 
-Task definition: add Edge and Firefox support for DeepSeek++ while keeping one shared extension codebase.
+Task definition: add Edge and Firefox support for doubao-wplus while keeping one shared extension codebase.
 
 Tracking mode: LOCAL_ONLY for this narrow implementation pass. GitHub pre-flight found `GITHUB_STANDARD` available, but no remote Issues were created.
 

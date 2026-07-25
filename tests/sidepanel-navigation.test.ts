@@ -21,7 +21,7 @@ beforeEach(() => {
     runtime: {
       getManifest: vi.fn(() => ({ version: '0.7.0' })),
       sendMessage: vi.fn(async (message: { type?: string }) => {
-        if (message.type === 'GET_AUTH_STATUS') return { available: true, provider: 'deepseek-web' };
+        if (message.type === 'GET_AUTH_STATUS') return { available: true, provider: 'doubao-web' };
         if (message.type === 'GET_VOICE_SETTINGS') return {};
         return null;
       }),
@@ -60,7 +60,7 @@ describe('sidepanel navigation', () => {
     await renderApp();
 
     const topLabels = navButtonLabels('侧栏导航');
-    expect(topLabels).toEqual(['对话', '资料', '项目', '能力', '设置']);
+    expect(topLabels).toEqual(['对话', '资料', '项目', '能力', 'Studio', '设置']);
 
     unmountRoot();
     await renderElement(React.createElement(LibraryPage, { onInsertPrompt: vi.fn() }));
@@ -68,15 +68,14 @@ describe('sidepanel navigation', () => {
 
     unmountRoot();
     await renderElement(React.createElement(CapabilitiesPage));
-    expect(navButtonLabels('能力子导航')).toEqual(['Skill', 'MCP', '工具', '浏览器', '预设', '自动化']);
+    expect(navButtonLabels('能力子导航')).toEqual(['Skill', 'MCP', '工具', '浏览器', '预设', '自动化', '规则']);
   });
 
-  it('keeps the voice settings surface reachable from Settings', async () => {
+  it('keeps the pet custom icon surface reachable from Settings', async () => {
     await renderElement(React.createElement(SettingsPage));
 
-    expect(container.textContent).toContain('语音');
-    expect(container.textContent).toContain('语音输入');
-    expect(container.textContent).toContain('朗读回复');
+    expect(container.textContent).toContain('宠物');
+    expect(container.textContent).toContain('上传图标');
   });
 
   it('keeps the top navigation from shrinking behind long settings content', () => {

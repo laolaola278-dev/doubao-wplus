@@ -21,7 +21,7 @@ export const PRESET_REINJECTION_INTERVAL = 10;
 
 export const MSG_PREFIX = 'DOUBAO_WPLUS';
 
-export const DPP_MANAGED_AGENT_PROMPT_MARKER = '<!-- doubao-wplus-managed-agent-runner:v1 -->';
+export const DWPLUS_MANAGED_AGENT_PROMPT_MARKER = '<!-- doubao-wplus-managed-agent-runner:v1 -->';
 
 export const DSML = '｜DSML｜';
 

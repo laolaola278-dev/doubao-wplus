@@ -1,9 +1,9 @@
-// DPP Speech Recognition Engine
+// DWPLUS Speech Recognition Engine
 // This file is compiled by WXT and injected into the MAIN world via
 // <script src="chrome-extension://..."> to bypass page CSP restrictions.
 export default defineUnlistedScript(() => {
-  if ((window as any).__dppSpeechEngineInstalled) return;
-  (window as any).__dppSpeechEngineInstalled = true;
+  if ((window as any).__dwplusSpeechEngineInstalled) return;
+  (window as any).__dwplusSpeechEngineInstalled = true;
 
   const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
   if (!SR) return;
@@ -30,39 +30,39 @@ export default defineUnlistedScript(() => {
         }
       }
       if (interim) {
-        window.dispatchEvent(new CustomEvent('dpp-speech-interim', { detail: { text: interim } }));
+        window.dispatchEvent(new CustomEvent('dwplus-speech-interim', { detail: { text: interim } }));
       }
       if (final) {
-        window.dispatchEvent(new CustomEvent('dpp-speech-final', { detail: { text: final } }));
+        window.dispatchEvent(new CustomEvent('dwplus-speech-final', { detail: { text: final } }));
       }
     };
 
     recognition.onerror = (event: any) => {
-      window.dispatchEvent(new CustomEvent('dpp-speech-error', { detail: { error: event.error } }));
+      window.dispatchEvent(new CustomEvent('dwplus-speech-error', { detail: { error: event.error } }));
       active = false;
     };
 
     recognition.onend = () => {
-      window.dispatchEvent(new CustomEvent('dpp-speech-ended'));
+      window.dispatchEvent(new CustomEvent('dwplus-speech-ended'));
       active = false;
     };
 
     return recognition;
   }
 
-  window.addEventListener('dpp-speech-start', () => {
+  window.addEventListener('dwplus-speech-start', () => {
     try {
       const r = ensureRecognition();
       if (active) { r.stop(); }
       active = true;
       r.start();
     } catch (e: any) {
-      window.dispatchEvent(new CustomEvent('dpp-speech-error', { detail: { error: e.message } }));
+      window.dispatchEvent(new CustomEvent('dwplus-speech-error', { detail: { error: e.message } }));
       active = false;
     }
   });
 
-  window.addEventListener('dpp-speech-stop', () => {
+  window.addEventListener('dwplus-speech-stop', () => {
     if (recognition && active) {
       recognition.stop();
       active = false;

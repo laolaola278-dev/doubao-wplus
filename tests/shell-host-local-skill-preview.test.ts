@@ -110,7 +110,7 @@ async function callNativeHost(name: string, args: Record<string, unknown>) {
     });
 
     child.stdin.end(createNativeFrame({
-      protocol: 'deepseek-pp-mcp-native',
+      protocol: 'dwplus-mcp-native',
       version: 1,
       message: {
         jsonrpc: '2.0',

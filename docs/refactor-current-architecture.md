@@ -1,4 +1,4 @@
-# DeepSeek++ Refactor Baseline
+# doubao-wplus Refactor Baseline
 
 This document replaces stale active planning documents. It describes the code that exists on `main` now, so future work does not use a deleted agent-run rewrite plan as truth.
 

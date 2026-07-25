@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(new URL('..', import.meta.url).pathname);
+const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const failures = [];
 
 const requiredFiles = [
@@ -58,10 +59,10 @@ assertContains('entrypoints/background.ts', 'scanDueAutomations');
 assertContains('entrypoints/background.ts', "case 'CREATE_AUTOMATION'");
 assertContains('entrypoints/background.ts', "case 'RUN_AUTOMATION_NOW'");
 assertContains('entrypoints/content.ts', 'runInlineAgentLoop');
-assertContains('entrypoints/content.ts', 'DPP_BRIDGE_INIT');
+assertContains('entrypoints/content.ts', 'installBridge');
 assertContains('entrypoints/content.ts', 'restorePersistedInlineAgentTraces');
 assertContains('entrypoints/main-world.content.ts', 'requestAugmentedBody');
-assertContains('entrypoints/main-world.content.ts', 'DPP_BRIDGE_REQUEST');
+assertContains('entrypoints/main-world.content.ts', 'DWPLUS_BRIDGE_REQUEST');
 assertNotContains('entrypoints/main-world.content.ts', 'EXECUTE_TOOL_CALL');
 assertContains('core/inline-agent/loop.ts', 'INLINE_AGENT_MAX_STEPS');
 assertContains('core/inline-agent/prompt.ts', 'buildContinuationPrompt');

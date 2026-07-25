@@ -10,13 +10,13 @@ import {
   normalizeHistoryOrganizerState,
   parseSessionId,
   startDeepSeekHistoryOrganizer,
-} from '../entrypoints/content/adapters/history-organizer';
+} from '../entrypoints/content/features/deepseek/history-organizer';
 import {
   collectCodeBlocks,
   getCodeBlockText,
   inferCodeFilename,
   startContentUxPolish,
-} from '../entrypoints/content/adapters/ux-polish';
+} from '../entrypoints/content/features/shared/ux-polish';
 import type { SavedItem } from '../core/saved-items';
 
 let storage: Record<string, unknown>;
@@ -96,14 +96,14 @@ describe('Phase 5 product surface helpers', () => {
     `;
 
     const history = startDeepSeekHistoryOrganizer(() => ({
-      enhancedSearchTitle: 'DeepSeek++ 搜索增强',
+      enhancedSearchTitle: 'WPlus 搜索增强',
       tagFilterLabel: '按标签筛选结果',
       tagPlaceholder: '输入标签名',
       currentTagsLabel: '给当前对话加标签',
       currentTagsPlaceholder: '逗号分隔，例如：港股, 写作',
-      emptySearchStatus: 'DeepSeek++：等待官方搜索结果',
-      visibleStatus: (visibleCount, totalCount) => `DeepSeek++：已显示 ${visibleCount}/${totalCount}`,
-      storageError: (_action, message) => `DeepSeek++：历史标签错误：${message}`,
+      emptySearchStatus: 'WPlus：等待官方搜索结果',
+      visibleStatus: (visibleCount, totalCount) => `WPlus：已显示 ${visibleCount}/${totalCount}`,
+      storageError: (_action, message) => `WPlus：历史标签错误：${message}`,
     }));
     const polish = startContentUxPolish(() => ({
       codeDownloadButton: '下载',
@@ -112,16 +112,16 @@ describe('Phase 5 product surface helpers', () => {
     }));
 
     try {
-      expect(document.querySelector('#dpp-history-search-enhancer')).not.toBeNull();
-      expect(document.querySelector('[data-dpp-history-title]')?.textContent).toBe('DeepSeek++ 搜索增强');
-      expect(document.querySelector('[data-dpp-history-search]')).toBeNull();
-      expect(document.querySelector('[data-dpp-history-tag-label]')?.textContent).toBe('按标签筛选结果');
-      expect(document.querySelector<HTMLInputElement>('[data-dpp-history-tag]')?.placeholder).toBe('输入标签名');
-      expect(document.querySelector('[data-dpp-current-tags-label]')?.textContent).toBe('给当前对话加标签');
-      expect(document.querySelector<HTMLInputElement>('[data-dpp-current-tags]')?.placeholder).toBe('逗号分隔，例如：港股, 写作');
-      expect(document.querySelector('[data-dpp-history-status]')?.textContent).toBe('DeepSeek++：已显示 1/1');
-      expect(document.querySelector<HTMLButtonElement>('.dpp-code-download')?.textContent).toBe('下载');
-      expect(document.querySelector<HTMLButtonElement>('.dpp-message-download')?.title).toBe('下载消息为 Markdown');
+      expect(document.querySelector('#dwplus-history-search-enhancer')).not.toBeNull();
+      expect(document.querySelector('[data-dwplus-history-title]')?.textContent).toBe('WPlus 搜索增强');
+      expect(document.querySelector('[data-dwplus-history-search]')).toBeNull();
+      expect(document.querySelector('[data-dwplus-history-tag-label]')?.textContent).toBe('按标签筛选结果');
+      expect(document.querySelector<HTMLInputElement>('[data-dwplus-history-tag]')?.placeholder).toBe('输入标签名');
+      expect(document.querySelector('[data-dwplus-current-tags-label]')?.textContent).toBe('给当前对话加标签');
+      expect(document.querySelector<HTMLInputElement>('[data-dwplus-current-tags]')?.placeholder).toBe('逗号分隔，例如：港股, 写作');
+      expect(document.querySelector('[data-dwplus-history-status]')?.textContent).toBe('WPlus：已显示 1/1');
+      expect(document.querySelector<HTMLButtonElement>('.dwplus-code-download')?.textContent).toBe('下载');
+      expect(document.querySelector<HTMLButtonElement>('.dwplus-message-download')?.title).toBe('下载消息为 Markdown');
     } finally {
       history.stop();
       polish.stop();
@@ -146,7 +146,7 @@ describe('Phase 5 product surface helpers', () => {
 
       await Promise.resolve();
       vi.advanceTimersByTime(60);
-      expect(pre.querySelector('.dpp-code-download')).not.toBeNull();
+      expect(pre.querySelector('.dwplus-code-download')).not.toBeNull();
 
       Object.defineProperty(pre, 'textContent', {
         configurable: true,
@@ -158,13 +158,13 @@ describe('Phase 5 product surface helpers', () => {
 
       await Promise.resolve();
       vi.advanceTimersByTime(60);
-      expect(pre.querySelectorAll('.dpp-code-download')).toHaveLength(1);
+      expect(pre.querySelectorAll('.dwplus-code-download')).toHaveLength(1);
     } finally {
       polish.stop();
     }
   });
 
-  it('filters official search results by DeepSeek++ history tags', async () => {
+  it('filters official search results by WPlus history tags', async () => {
     storage.deepseek_pp_history_organizer = {
       tagsBySessionId: {
         'session-one': ['release'],
@@ -185,25 +185,25 @@ describe('Phase 5 product surface helpers', () => {
     `;
 
     const history = startDeepSeekHistoryOrganizer(() => ({
-      enhancedSearchTitle: 'DeepSeek++ 搜索增强',
+      enhancedSearchTitle: 'WPlus 搜索增强',
       tagFilterLabel: '按标签筛选结果',
       tagPlaceholder: '输入标签名',
       currentTagsLabel: '给当前对话加标签',
       currentTagsPlaceholder: '逗号分隔，例如：港股, 写作',
-      emptySearchStatus: 'DeepSeek++：等待官方搜索结果',
-      visibleStatus: (visibleCount, totalCount) => `DeepSeek++：已显示 ${visibleCount}/${totalCount}`,
-      storageError: (_action, message) => `DeepSeek++：历史标签错误：${message}`,
+      emptySearchStatus: 'WPlus：等待官方搜索结果',
+      visibleStatus: (visibleCount, totalCount) => `WPlus：已显示 ${visibleCount}/${totalCount}`,
+      storageError: (_action, message) => `WPlus：历史标签错误：${message}`,
     }));
 
     try {
       await Promise.resolve();
-      const tagInput = document.querySelector<HTMLInputElement>('[data-dpp-history-tag]');
+      const tagInput = document.querySelector<HTMLInputElement>('[data-dwplus-history-tag]');
       tagInput!.value = 'rel';
       tagInput!.dispatchEvent(new Event('input', { bubbles: true }));
 
       expect(document.querySelector<HTMLElement>('[data-testid="release-result"]')?.hidden).toBe(false);
       expect(document.querySelector<HTMLElement>('[data-testid="android-result"]')?.hidden).toBe(true);
-      expect(document.querySelector('[data-dpp-history-status]')?.textContent).toBe('DeepSeek++：已显示 1/2');
+      expect(document.querySelector('[data-dwplus-history-status]')?.textContent).toBe('WPlus：已显示 1/2');
     } finally {
       history.stop();
     }

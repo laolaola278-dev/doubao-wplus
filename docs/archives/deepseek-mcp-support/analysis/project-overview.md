@@ -2,7 +2,7 @@
 
 ## Preliminary Direction
 
-Add MCP capability to DeepSeek++ so the Chrome extension can configure MCP servers, discover available tools, inject those tool schemas into DeepSeek prompts, execute model-requested MCP calls, and reuse the same capability from manual chats and automations.
+Add MCP capability to doubao-wplus so the Chrome extension can configure MCP servers, discover available tools, inject those tool schemas into DeepSeek prompts, execute model-requested MCP calls, and reuse the same capability from manual chats and automations.
 
 ## Current Architecture
 
@@ -19,7 +19,7 @@ flowchart LR
   CS --> DOM["DeepSeek DOM tool result block"]
 ```
 
-DeepSeek++ is a WXT Chrome MV3 extension. The current architecture has three runtime layers:
+doubao-wplus is a WXT Chrome MV3 extension. The current architecture has three runtime layers:
 
 - `entrypoints/background.ts`: extension service worker, message router, persistence coordinator, WebDAV sync handler, automation scheduler, and DeepSeek tab orchestration.
 - `entrypoints/content.ts`: DeepSeek page content script, DOM integration, tool-call execution for built-in memory tools, result rendering, restoration, background image handling, and automation bridge.

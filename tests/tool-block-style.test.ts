@@ -6,7 +6,7 @@ describe('content tool block styles', () => {
   it('keeps restored tool detail content scrollable for long source output', () => {
     const path = join(process.cwd(), 'entrypoints/content.ts');
     const source = readFileSync(path, 'utf8');
-    const rule = source.match(/\.dpp-tool-block-item-detail \{([\s\S]*?)\n    \}/)?.[1] ?? '';
+    const rule = source.match(/\.dwplus-tool-block-item-detail \{([\s\S]*?)\n    \}/)?.[1] ?? '';
 
     expect(rule).toContain('max-height:');
     expect(rule).toContain('overflow: auto;');
@@ -29,9 +29,9 @@ describe('content tool block styles', () => {
 
     expect(source).toContain("import { injectInjectedThemeStyles } from '../core/ui/injected-theme';");
     expect(source).toContain('injectInjectedThemeStyles();');
-    expect(source).toContain('color: var(--dpp-ui-text);');
-    expect(source).toContain('color: var(--dpp-ui-text-muted);');
-    expect(source).not.toContain('body.dpp-theme-dark .dpp-tool-block-item { color: rgb(200, 200, 200); }');
+    expect(source).toContain('color: var(--dwplus-ui-text);');
+    expect(source).toContain('color: var(--dwplus-ui-text-muted);');
+    expect(source).not.toContain('body.dwplus-theme-dark .dwplus-tool-block-item { color: rgb(200, 200, 200); }');
   });
 
   it('mounts inline agent output after DeepSeek final answer content instead of the reasoning block', () => {
@@ -67,10 +67,10 @@ describe('content tool block styles', () => {
   it('keeps permission banner text on the same injected theme contract', () => {
     const path = join(process.cwd(), 'entrypoints/content.ts');
     const source = readFileSync(path, 'utf8');
-    const rule = source.match(/\.dpp-permission-banner \{([\s\S]*?)\n    \}/)?.[1] ?? '';
+    const rule = source.match(/\.dwplus-permission-banner \{([\s\S]*?)\n    \}/)?.[1] ?? '';
 
-    expect(rule).toContain('background: var(--dpp-ui-surface);');
-    expect(rule).toContain('color: var(--dpp-ui-text);');
+    expect(rule).toContain('background: var(--dwplus-ui-surface);');
+    expect(rule).toContain('color: var(--dwplus-ui-text);');
     expect(source).not.toContain('var(--ds-text');
     expect(source).not.toContain('var(--ds-text-secondary');
   });

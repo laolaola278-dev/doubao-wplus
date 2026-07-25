@@ -24,12 +24,49 @@ export interface PromptAugmentationOptions {
   systemPromptEnabled?: boolean;
   forceResponseLanguage?: SupportedLocale | null;
   hasFileAttachments?: boolean;
+  /** 宿主专用的工具协议尾部约束；为空时不改变现有 Prompt。 */
+  toolProtocolReminderSuffix?: string;
+  /**
+   * Prompt Inspector（dev 工具）：为 true 时在结果上附加 stagePieces —— 拼接
+   * 最终 prompt 用的各中间字符串的引用。零重算：这些字符串本来就会被计算，
+   * 此选项只决定是否把引用暴露出去。默认 false，结果形状与旧版完全一致。
+   */
+  captureStages?: boolean;
+}
+
+/**
+ * 最终 prompt 的拼接件（Prompt Inspector 采集用）。
+ * 不变量：presetPrefix + systemPrefix + markedUserPrompt + toolReminder === augmented
+ * （由 tests/prompt-inspector.test.ts 锁定）。
+ */
+export interface PromptStagePieces {
+  /** Preset 前缀（含分隔线；无 preset 为空串） */
+  presetPrefix: string;
+  /** 系统脚手架前缀（角色/记忆/工具/项目上下文/搜索规则；含尾随空行） */
+  systemPrefix: string;
+  /** 带可见性标记的用户输入段 */
+  markedUserPrompt: string;
+  /** 工具格式提醒尾缀 */
+  toolReminder: string;
+  /** 记忆块单独引用（systemPrefix 的组成部分，便于 Inspector 单独展示） */
+  memoriesBlock: string;
+  /** Project Context 单独引用（同上） */
+  projectContextBlock: string;
 }
 
 export interface PromptAugmentationResult {
   augmented: string;
   usedMemoryIds: number[];
   renderedToolCount: number;
+  /** Memory 查询（selectMemories）耗时（ms；memoryEnabled=false 时为 0）。AI Insights 采集用 */
+  memorySelectDurationMs: number;
+  /** 仅 captureStages=true 时存在（Prompt Inspector 采集） */
+  stagePieces?: PromptStagePieces;
+}
+
+/** performance.now() 安全封装（非浏览器环境退回 Date.now()） */
+function nowMs(): number {
+  return typeof performance !== 'undefined' ? performance.now() : Date.now();
 }
 
 export function buildPromptAugmentation(
@@ -47,14 +84,21 @@ export function buildPromptAugmentation(
     systemPromptEnabled = true,
     forceResponseLanguage = null,
     hasFileAttachments = false,
+    toolProtocolReminderSuffix = '',
+    captureStages = false,
   } = options ?? {};
   const toolDescriptors = options?.toolDescriptors ?? createDefaultToolDescriptors(locale);
 
   const promptTokens = estimateTokens(originalPrompt);
   const budget = getMemoryBudget(promptTokens);
+  // Memory 查询计时（AI Insights）：只包 selectMemories 本身，微秒级开销
+  const memorySelectStart = memoryEnabled ? nowMs() : 0;
   const selected = memoryEnabled
     ? selectMemories(originalPrompt, [...memories], { budget, identityOnly })
     : [];
+  const memorySelectDurationMs = memoryEnabled
+    ? Math.round((nowMs() - memorySelectStart) * 100) / 100
+    : 0;
   const memBlock = memoryEnabled
     ? formatMemoriesBlock(selected, locale)
     : translate(locale, 'prompt.memoryDisabled');
@@ -78,14 +122,31 @@ export function buildPromptAugmentation(
     renderForcedResponseLanguage(forceResponseLanguage, locale),
   ].filter(Boolean).join('\n\n');
   const presetPrefix = presetContent ? `${presetContent}\n\n---\n\n` : '';
-  const toolReminder = systemPromptEnabled ? renderToolFormatReminder(toolDescriptors, locale) : '';
+  const toolReminder = systemPromptEnabled
+    ? renderToolFormatReminder(toolDescriptors, locale) +
+      (toolProtocolReminderSuffix ? `\n\n${toolProtocolReminderSuffix}` : '')
+    : '';
   const systemPrefix = system ? `${system}\n\n` : '';
+  const markedUserPrompt = markVisibleUserPrompt(originalPrompt);
 
-  return {
-    augmented: presetPrefix + systemPrefix + markVisibleUserPrompt(originalPrompt) + toolReminder,
+  const result: PromptAugmentationResult = {
+    augmented: presetPrefix + systemPrefix + markedUserPrompt + toolReminder,
     usedMemoryIds: selected.map((memory) => memory.id!).filter(Boolean),
     renderedToolCount: systemPromptEnabled ? toolDescriptors.length : 0,
+    memorySelectDurationMs,
   };
+  if (captureStages) {
+    // 零重算：仅暴露既有中间字符串的引用（Prompt Inspector 采集点）
+    result.stagePieces = {
+      presetPrefix,
+      systemPrefix,
+      markedUserPrompt,
+      toolReminder,
+      memoriesBlock: memBlock,
+      projectContextBlock: renderProjectContext(projectContext),
+    };
+  }
+  return result;
 }
 
 function renderProjectContext(projectContext?: string | null): string {

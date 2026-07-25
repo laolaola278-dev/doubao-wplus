@@ -23,14 +23,13 @@ import {
 import PageIntro from '../components/PageIntro';
 import PromptControlPanel from '../components/PromptControlPanel';
 import ScenarioManager from '../components/ScenarioManager';
-import VoiceSettingsPanel from '../components/VoiceSettingsPanel';
 import { useI18n } from '../i18n';
 
 const DEFAULT_SYNC_CONFIG: SyncConfig = {
   url: '',
   username: '',
   password: '',
-  remotePath: 'DeepSeekPP',
+  remotePath: 'DoubaoWPlus',
   lastSyncAt: null,
 };
 
@@ -67,6 +66,7 @@ export default function SettingsPage() {
   const [petSize, setPetSize] = useState(DEFAULT_PET_CONFIG.size);
   const [petOpacity, setPetOpacity] = useState(DEFAULT_PET_CONFIG.opacity);
   const [petMotion, setPetMotion] = useState(DEFAULT_PET_CONFIG.motion);
+  const [petIconData, setPetIconData] = useState('');
   const [chatEnabled, setChatEnabledState] = useState(false);
   const [apiKeyConfigured, setApiKeyConfigured] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState('');
@@ -79,10 +79,13 @@ export default function SettingsPage() {
   const [shellHostInput, setShellHostInput] = useState(DEFAULT_SHELL_NATIVE_HOST);
   const [extensionId, setExtensionId] = useState<string>('');
   const [shellHostMessage, setShellHostMessage] = useState<'' | 'saved' | 'cleared' | 'error'>('');
+  // GitHub 仓库地址：默认留空，由用户自行填写
+  const [repoUrl, setRepoUrl] = useState('');
+  const [repoUrlInput, setRepoUrlInput] = useState('');
 
   useEffect(() => {
     getChatEnabled().then(setChatEnabledState);
-    chrome.runtime.sendMessage({ type: 'GET_DEEPSEEK_API_KEY_STATUS' })
+    chrome.runtime.sendMessage({ type: 'GET_DOUBAO_API_KEY_STATUS' })
       .then((result: { configured?: boolean } | undefined) => {
         setApiKeyConfigured(result?.configured === true);
       })
@@ -98,9 +101,15 @@ export default function SettingsPage() {
     } catch {
       setExtensionId('');
     }
+    chrome.storage.local.get('doubao_wplus_repo_url').then((data) => {
+      const url = (data?.doubao_wplus_repo_url as string) ?? '';
+      setRepoUrl(url);
+      setRepoUrlInput(url);
+    }).catch(() => {});
   }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const petIconInputRef = useRef<HTMLInputElement>(null);
   const bgConfigRef = useRef<BackgroundConfig>(DEFAULT_BACKGROUND_CONFIG);
   const petConfigRef = useRef<PetConfig>(DEFAULT_PET_CONFIG);
 
@@ -123,6 +132,7 @@ export default function SettingsPage() {
     setPetSize(config.size);
     setPetOpacity(config.opacity);
     setPetMotion(config.motion);
+    setPetIconData(config.iconData ?? '');
   };
 
   useEffect(() => {
@@ -310,6 +320,23 @@ export default function SettingsPage() {
     await savePetConfig({ motion });
   };
 
+  const handlePetIconUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === 'string' ? reader.result : '';
+      if (!dataUrl) return;
+      setPetIconData(dataUrl);
+      void savePetConfig({ iconData: dataUrl });
+    };
+    reader.onerror = () => setPetIconData('');
+    reader.readAsDataURL(file);
+  };
+
+  const handlePetIconClear = async () => {
+    setPetIconData('');
+    await savePetConfig({ iconData: undefined });
+  };
+
   const handleSaveApiKey = async () => {
     const apiKey = apiKeyInput.trim();
     if (!apiKey) {
@@ -322,7 +349,7 @@ export default function SettingsPage() {
     setApiKeyMessage('');
     try {
       const result = await chrome.runtime.sendMessage({
-        type: 'SAVE_DEEPSEEK_API_KEY',
+        type: 'SAVE_DOUBAO_API_KEY',
         payload: { apiKey },
       });
       if (!result?.ok) throw new Error(result?.error || t('sidepanel.settings.saveFailed'));
@@ -345,7 +372,7 @@ export default function SettingsPage() {
     setApiKeyStatus('clearing');
     setApiKeyMessage('');
     try {
-      const result = await chrome.runtime.sendMessage({ type: 'CLEAR_DEEPSEEK_API_KEY' });
+      const result = await chrome.runtime.sendMessage({ type: 'CLEAR_DOUBAO_API_KEY' });
       if (!result?.ok) throw new Error(result?.error || t('sidepanel.settings.clearFailed'));
       setApiKeyConfigured(false);
       setApiKeyInput('');
@@ -355,6 +382,16 @@ export default function SettingsPage() {
       setApiKeyStatus('error');
       setApiKeyMessage(error instanceof Error ? error.message : t('sidepanel.settings.clearFailed'));
     }
+  };
+
+  const handleSaveRepoUrl = async () => {
+    const url = repoUrlInput.trim();
+    if (url && !/^https?:\/\//i.test(url)) {
+      setRepoUrlInput('');
+      return;
+    }
+    await chrome.storage.local.set({ doubao_wplus_repo_url: url });
+    setRepoUrl(url);
   };
 
   const updateField = (field: keyof SyncConfig, value: string) => {
@@ -455,7 +492,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `deepseek-pp-memories-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `doubao-wplus-memories-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -651,7 +688,7 @@ export default function SettingsPage() {
             <div className="flex justify-between items-center gap-3">
               <div>
                 <div className="text-xs font-medium" style={{ color: 'var(--ds-text)' }}>
-                  DeepSeek API Key
+                  豆包 API Key
                 </div>
                 <div className="text-[11px] mt-0.5" style={{ color: 'var(--ds-text-tertiary)' }}>
                   {t('sidepanel.settings.apiKeyDescription')}
@@ -818,7 +855,7 @@ export default function SettingsPage() {
               className="font-mono mt-1 px-3 py-2 rounded text-[10.5px] whitespace-pre-wrap break-all"
               style={{ background: 'var(--ds-surface)', color: 'var(--ds-text)' }}
             >
-{`npx deepseek-pp-shell-host install \\
+{`npx doubao-wplus-shell-host install \\
   --browser chrome \\
   --extension-id ${extensionId || '<your-extension-id>'} \\
   --host-name ${shellHostName}`}
@@ -831,8 +868,6 @@ export default function SettingsPage() {
       </section>
 
       <PromptControlPanel />
-
-      <VoiceSettingsPanel />
 
       <section className="space-y-3">
         <h2 className="text-[13px] font-medium" style={{ color: 'var(--ds-text)' }}>
@@ -994,6 +1029,63 @@ export default function SettingsPage() {
                 {item.label}
               </button>
             ))}
+          </div>
+
+          <div className="pt-3 border-t" style={{ borderColor: 'var(--ds-border)' }}>
+            <div className="text-[11px] mb-2" style={{ color: 'var(--ds-text-secondary)' }}>
+              {t('sidepanel.settings.petIcon')}
+            </div>
+            <div className="flex items-center gap-3">
+              <div
+                className="w-14 h-14 rounded-xl overflow-hidden shrink-0 flex items-center justify-center"
+                style={{
+                  background: 'var(--ds-surface)',
+                  border: '1px solid var(--ds-border)',
+                  backgroundImage: petIconData ? `url("${petIconData}")` : undefined,
+                  backgroundSize: 'contain',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'center',
+                }}
+              >
+                {!petIconData && (
+                  <span className="text-lg" aria-hidden>🐳</span>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => petIconInputRef.current?.click()}
+                    className="ds-btn-secondary px-3 py-1.5 text-[11px] font-medium rounded-lg transition-all duration-150"
+                  >
+                    {t('sidepanel.settings.petIconUpload')}
+                  </button>
+                  {petIconData && (
+                    <button
+                      type="button"
+                      onClick={() => void handlePetIconClear()}
+                      className="ds-btn-secondary px-3 py-1.5 text-[11px] font-medium rounded-lg transition-all duration-150"
+                    >
+                      {t('sidepanel.settings.petIconClear')}
+                    </button>
+                  )}
+                </div>
+                <span className="text-[10px]" style={{ color: 'var(--ds-text-tertiary)' }}>
+                  {t('sidepanel.settings.petIconHint')}
+                </span>
+              </div>
+            </div>
+            <input
+              ref={petIconInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handlePetIconUpload(file);
+                e.target.value = '';
+              }}
+            />
           </div>
 
           <div>
@@ -1254,25 +1346,47 @@ export default function SettingsPage() {
             </div>
             <div>
               <div className="text-sm font-medium" style={{ color: 'var(--ds-text)' }}>
-                DeepSeek++ v{version}
+                WPlus v{version}
               </div>
               <div className="text-[11px]" style={{ color: 'var(--ds-text-tertiary)' }}>
                 {t('sidepanel.settings.aboutTagline')}
               </div>
             </div>
           </div>
-          <a
-            href="https://github.com/zhu1090093659/deepseek-pp"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-[11px] mt-1 transition-colors hover:opacity-80"
-            style={{ color: 'var(--ds-text-secondary)' }}
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-            </svg>
-            GitHub
-          </a>
+          <div className="flex items-center gap-2 mt-2">
+            <input
+              type="text"
+              value={repoUrlInput}
+              onChange={(e) => setRepoUrlInput(e.target.value)}
+              placeholder="https://github.com/你的仓库地址"
+              className="flex-1 ds-input rounded-lg px-2 py-1.5 text-xs"
+            />
+            <button
+              type="button"
+              onClick={handleSaveRepoUrl}
+              className="ds-btn-secondary shrink-0 px-3 py-2 text-[11px] font-medium rounded-lg transition-all duration-150"
+            >
+              {t('common.save')}
+            </button>
+          </div>
+          {repoUrl ? (
+            <a
+              href={repoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-[11px] mt-1 transition-colors hover:opacity-80"
+              style={{ color: 'var(--ds-text-secondary)' }}
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+              </svg>
+              GitHub
+            </a>
+          ) : (
+            <span className="text-[11px] mt-1" style={{ color: 'var(--ds-text-tertiary)' }}>
+              {t('sidepanel.settings.githubEmpty')}
+            </span>
+          )}
         </div>
       </section>
 

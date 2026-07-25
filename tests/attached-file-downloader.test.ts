@@ -192,7 +192,7 @@ describe('downloadAttachedFile (B-08)', () => {
     const result = await downloadAttachedFile({ fileId: '', downloadApi: {} as ChromeDownloadsApi });
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.code).toBe('dpp_invalid_file_id');
+    expect(result.code).toBe('dwplus_invalid_file_id');
   });
 
   it('reports missing metadata when fetch_files returns no matching entry', async () => {
@@ -204,7 +204,7 @@ describe('downloadAttachedFile (B-08)', () => {
     const result = await downloadAttachedFile({ fileId: 'file_123', fetchImpl: fetchMock, downloadApi: {} as ChromeDownloadsApi });
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.code).toBe('dpp_metadata_not_found');
+    expect(result.code).toBe('dwplus_metadata_not_found');
   });
 
   it('reports HTTP failure on the metadata endpoint', async () => {
@@ -216,7 +216,7 @@ describe('downloadAttachedFile (B-08)', () => {
     const result = await downloadAttachedFile({ fileId: 'file_500', fetchImpl: fetchMock, downloadApi: {} as ChromeDownloadsApi });
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.code).toBe('dpp_metadata_http_error');
+    expect(result.code).toBe('dwplus_metadata_http_error');
     expect(result.retryable).toBe(true);
   });
 
@@ -232,7 +232,7 @@ describe('downloadAttachedFile (B-08)', () => {
     const result = await downloadAttachedFile({ fileId: 'file_big', fetchImpl: fetchMock, downloadApi: {} as ChromeDownloadsApi });
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.code).toBe('dpp_file_too_large');
+    expect(result.code).toBe('dwplus_file_too_large');
   });
 
   it('uses bypassChromeDownloads when provided and skips the chrome API', async () => {
@@ -268,6 +268,6 @@ describe('downloadAttachedFile (B-08)', () => {
     const result = await downloadAttachedFile({ fileId: 'file_nodl', fetchImpl: fetchMock });
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.code).toBe('dpp_no_downloader');
+    expect(result.code).toBe('dwplus_no_downloader');
   });
 });

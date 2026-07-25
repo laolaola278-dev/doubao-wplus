@@ -2,7 +2,7 @@
 
 ### Confirmed Task Definition
 
-Build Codex-style automations for DeepSeek++.
+Build Codex-style automations for doubao-wplus.
 
 Users can create an automation with a prompt, click to execute it immediately in a new DeepSeek chat session, and attach a cron/RRULE-like frequency so later runs continue in that automation's DeepSeek session. Scheduling and task state live in the extension background. Actual DeepSeek execution runs from the DeepSeek page main-world context so it can reuse the logged-in web session and DeepSeek's current challenge/proof-of-work flow.
 

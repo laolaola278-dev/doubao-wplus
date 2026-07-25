@@ -25,7 +25,7 @@ import { getExtensionVersion } from '../version';
 
 export const MCP_PROTOCOL_VERSION = '2025-06-18';
 
-const CLIENT_NAME = 'DeepSeek++';
+const CLIENT_NAME = 'WPlus';
 
 export class McpProtocolError extends Error {
   readonly code: string;

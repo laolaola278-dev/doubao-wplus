@@ -10,7 +10,7 @@
 | **E** Environment-Agnostic | 🔴 | Current product is WebExtension-first. Native messaging, sidePanel, downloads, storage, and DOM assumptions are not Android-ready. | Critical |
 | **R** Replaceable Parts | 🟡 | Tool providers and MCP transports are replaceable; platform/runtime/UI entrypoints are not yet cleanly replaceable for Android or sandboxed artifacts. | High |
 
-**Overall Health**: 0/5 fully healthy for this transformation target — refactoring needed before large feature porting.
+**Overall Health**: 0/5 fully healthy for this transformation target �?refactoring needed before large feature porting.
 
 ## S.U.P.E.R Violation Hotspots
 
@@ -18,11 +18,11 @@
 2. `core/interceptor/fetch-hook.ts`: critical and large; new output tags or stream behavior must be added through explicit contracts.
 3. `entrypoints/sidepanel/pages/SettingsPage.tsx` and `McpPage.tsx`: large UI pages; new settings should not be appended indefinitely.
 4. Platform APIs: WebExtension APIs are assumed directly in runtime, storage, sidepanel, native messaging, and downloads.
-5. Model-facing tool syntax: DeepSeek++ has one XML/JSON ToolDescriptor path; Better DeepSeek has BDS tags. Supporting both naively would create a second source of truth.
+5. Model-facing tool syntax: doubao-wplus has one XML/JSON ToolDescriptor path; Better DeepSeek has BDS tags. Supporting both naively would create a second source of truth.
 
 ## Better DeepSeek Gap Matrix
 
-| Capability | Better DeepSeek evidence | DeepSeek++ status | Priority | Recommended mapping |
+| Capability | Better DeepSeek evidence | doubao-wplus status | Priority | Recommended mapping |
 |:--|:--|:--|:--|:--|
 | Android WebView app | `android/`, `build:android`, Android bridge/polyfills/tests | Not supported | P0 | Add platform abstraction + Android host; keep browser extension path unchanged |
 | Advanced attach menu: folder upload, GitHub repo import, web fetch | `src/content/ui/AttachMenu.svelte`, `files/github-reader.js`, `folder-reader.js` | Partial: web fetch exists; GitHub Skill import exists, not repo context; no folder/project upload | P0 | Build Project Context feature with file/GitHub/web sources and explicit persisted schemas |
@@ -33,7 +33,7 @@
 | Voice STT/TTS | README and settings | Not supported | P1 | Add optional Web Speech API surface for browser; Android bridge later |
 | Saved items/bookmarks/snippets | `SavedItems.svelte`, snippets | Not supported | P1 | Add saved item/snippet store and prompt insertion UX |
 | Chat tags/filtering/history search | sidebar injectors/tag modules | Not supported | P1 | Requires DeepSeek sidebar DOM adapter; keep separate from official export |
-| Memory import from another AI | memory import prompts and UI | Partial: memory import/export JSON exists; no cross-AI import workflow | P1 | Add import assistant flow that creates typed DeepSeek++ memories |
+| Memory import from another AI | memory import prompts and UI | Partial: memory import/export JSON exists; no cross-AI import workflow | P1 | Add import assistant flow that creates typed doubao-wplus memories |
 | Skill creator tool | `BDS:skill_create`, Skill card | Partial: custom/GitHub skills exist; no AI-created skill capture card | P1 | Add structured `skill_create` local tool writing to existing Skill registry after user review |
 | Prompt injection controls | always/first/every X, disable prompt/memory, force language | Partial: presets and fixed reinjection interval; no user-configurable cadence/disable memory | P1 | Extend preset/settings contracts; preserve prompt-freeze |
 | Export images/specific messages | Better export UI | Partial: official full/current export to HTML/Markdown/PDF | P2 | Add message-level and image artifact after export UX redesign |
@@ -45,7 +45,7 @@
 
 ## Priority Recommendation
 
-The best sequence is not to copy Better DeepSeek feature-by-feature. DeepSeek++ already has a stronger agentic spine through ToolDescriptor, MCP, Shell, automation, export, and i18n. The highest return is to add missing user-facing workflows on top of those contracts:
+The best sequence is not to copy Better DeepSeek feature-by-feature. doubao-wplus already has a stronger agentic spine through ToolDescriptor, MCP, Shell, automation, export, and i18n. The highest return is to add missing user-facing workflows on top of those contracts:
 
 1. **P0 Android and platform ports**: create the seams needed for WebView, storage, downloads, file picking, asset URLs, and runtime injection.
 2. **P0 project context ingestion**: folder/GitHub/web sources, persisted projects/files, retrieval, prompt budget integration.
@@ -70,11 +70,11 @@ The best sequence is not to copy Better DeepSeek feature-by-feature. DeepSeek++ 
 
 ### Android Platform Boundary
 
-Android is valuable, but it is not just another WXT target. Better DeepSeek has a native Kotlin WebView host, a JavaScript bridge, Android file/folder pickers, native downloads, WebViewAssetLoader, cookie handling, theme/status-bar sync, and tests. DeepSeek++ must first define platform ports for storage, runtime messages, downloads, file picking, asset URLs, and injected bundles. Without that, Android support would become a fork of the extension runtime.
+Android is valuable, but it is not just another WXT target. Better DeepSeek has a native Kotlin WebView host, a JavaScript bridge, Android file/folder pickers, native downloads, WebViewAssetLoader, cookie handling, theme/status-bar sync, and tests. doubao-wplus must first define platform ports for storage, runtime messages, downloads, file picking, asset URLs, and injected bundles. Without that, Android support would become a fork of the extension runtime.
 
 ### Tool Syntax and Prompt Contract
 
-Better DeepSeek relies on many `<BDS:...>` tags. DeepSeek++ already has model-facing ToolDescriptor prompts, XML-like tool tags with JSON payloads, prompt-freeze validation, MCP descriptors, and tool-card rendering. Adding raw BDS tags would duplicate parsing, validation, execution policy, and UI rendering. The safer plan is to expose new features as DeepSeek++ local tools and optional aliases only where compatibility is intentional.
+Better DeepSeek relies on many `<BDS:...>` tags. doubao-wplus already has model-facing ToolDescriptor prompts, XML-like tool tags with JSON payloads, prompt-freeze validation, MCP descriptors, and tool-card rendering. Adding raw BDS tags would duplicate parsing, validation, execution policy, and UI rendering. The safer plan is to expose new features as doubao-wplus local tools and optional aliases only where compatibility is intentional.
 
 ### Generated Artifacts and Code Execution
 

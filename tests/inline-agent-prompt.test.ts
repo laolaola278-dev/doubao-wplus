@@ -13,7 +13,7 @@ const SUCCESS_EXECUTION: ToolExecutionRecord = {
   provider: {
     kind: 'local',
     id: 'web',
-    displayName: 'DeepSeek++ Web Search',
+    displayName: 'WPlus Web Search',
     transport: 'in_process',
   },
   result: {

@@ -1,6 +1,6 @@
 ## Edge And Firefox Support Progress
 
-> **Task**: Add Edge and Firefox support to DeepSeek++ while preserving one shared WXT extension codebase.
+> **Task**: Add Edge and Firefox support to doubao-wplus while preserving one shared WXT extension codebase.
 > **Started**: 2026-05-25
 > **Last Updated**: 2026-05-25
 > **Mode**: LOCAL_ONLY

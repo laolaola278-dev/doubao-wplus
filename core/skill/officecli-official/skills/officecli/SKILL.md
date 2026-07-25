@@ -25,9 +25,9 @@ Verify with `officecli --version`. If still not found after install, open a new 
 
 ## Strategy
 
-**L1 (read) â†’ L2 (DOM edit) â†’ L3 (raw XML)**. Always prefer higher layers. Add `--json` for structured output.
+**L1 (read) â†?L2 (DOM edit) â†?L3 (raw XML)**. Always prefer higher layers. Add `--json` for structured output.
 
-**Before doc work, check Specialized Skills** (bottom of this file). Fundraising decks, academic papers, financial models, dashboards, and Morph animations need their own skill loaded first â€” `load_skill` once, then proceed.
+**Before doc work, check Specialized Skills** (bottom of this file). Fundraising decks, academic papers, financial models, dashboards, and Morph animations need their own skill loaded first â€?`load_skill` once, then proceed.
 
 ---
 
@@ -35,7 +35,7 @@ Verify with `officecli --version`. If still not found after install, open a new 
 
 **When unsure about property names, value formats, or command syntax, ALWAYS run help instead of guessing.** One help query beats guess-fail-retry loops.
 
-`officecli help` â‰¡ `officecli --help`, and `officecli <cmd> --help` â‰¡ `officecli help <cmd>` â€” same content.
+`officecli help` â‰?`officecli --help`, and `officecli <cmd> --help` â‰?`officecli help <cmd>` â€?same content.
 
 ```bash
 officecli help                                  # All commands + global options + schema entry points
@@ -51,7 +51,7 @@ Format aliases: `word`â†’`docx`, `excel`â†’`xlsx`, `ppt`/`powerpoint`â†’`pptx`. 
 
 ## Performance: Resident Mode
 
-**Every command auto-starts a resident on first access** (60s idle timeout) â€” file-lock conflicts are automatically avoided. Explicit `open`/`close` is still recommended for longer sessions (12min idle):
+**Every command auto-starts a resident on first access** (60s idle timeout) â€?file-lock conflicts are automatically avoided. Explicit `open`/`close` is still recommended for longer sessions (12min idle):
 ```bash
 officecli open report.docx       # explicitly keep in memory
 officecli set report.docx ...    # no file I/O overhead
@@ -106,7 +106,7 @@ officecli validate <file>             # Validate against OpenXML schema
 | `issues` | Formatting/content/structure problems | `--type format\|content\|structure`, `--limit N` |
 | `text` | Plain text extraction | `--start N --end N`, `--max-lines N` |
 | `annotated` | Text with formatting annotations | |
-| `html` | Static HTML snapshot â€” same renderer as `watch`, no server needed | `--browser`, `--page N` (docx), `--start N --end N` (pptx) |
+| `html` | Static HTML snapshot â€?same renderer as `watch`, no server needed | `--browser`, `--page N` (docx), `--start N --end N` (pptx) |
 | `screenshot` / `svg` / `pdf` / `forms` | PNG via headless browser / SVG (pptx slide) / PDF via exporter plugin / form-fields JSON via format-handler plugin | `-o`, `--screenshot-width/-height`, pptx `--grid N` |
 
 Use `view html` for one-shot snapshots (CI artifacts, archival, diffing); use `watch` when you need live refresh or browser-side click-to-select.
@@ -123,7 +123,7 @@ officecli get data.xlsx '/Sheet1/B2' --json
 
 ### Stable ID Addressing
 
-Elements with stable IDs return `@attr=value` paths instead of positional indices. Prefer these in multi-step workflows â€” positional indices shift on insert/delete, stable IDs do not.
+Elements with stable IDs return `@attr=value` paths instead of positional indices. Prefer these in multi-step workflows â€?positional indices shift on insert/delete, stable IDs do not.
 
 ```
 /slide[1]/shape[@id=550950021]                    # PPT shape
@@ -157,7 +157,7 @@ officecli goto <file> <path>           # Scroll watching browser(s) to element (
 
 Open the printed `http://localhost:N` URL. Click to select; shift/cmd/ctrl+click to multi-select; drag from empty space to box-select. PPT/Word use blue outline; Excel uses native-style green selection (double-click cell to edit inline; drag a chart to reposition).
 
-### `get <file> selected` â€” read what the user clicked
+### `get <file> selected` â€?read what the user clicked
 
 ```bash
 officecli get <file> selected [--json]
@@ -177,9 +177,9 @@ for p in $PATHS; do officecli set deck.pptx "$p" --prop fill=FF0000; done
 - **All connected browsers share one selection.** Last-write-wins.
 - **Same-file single-watch.** A given file can have only one watch process at a time.
 - **Group shapes select as a whole.** Drilling into individual children of a group is not supported in v1.
-- **Coverage:** `.pptx` shapes/pictures/tables/charts/connectors/groups; `.docx` top-level paragraphs and tables. Inherited layout/master decorations and Word nested elements (table cells, run-level) are not addressable. **`.xlsx` does not emit `data-path`** â€” `mark`/`selection` on xlsx always resolve `stale=true` (v2 candidate).
+- **Coverage:** `.pptx` shapes/pictures/tables/charts/connectors/groups; `.docx` top-level paragraphs and tables. Inherited layout/master decorations and Word nested elements (table cells, run-level) are not addressable. **`.xlsx` does not emit `data-path`** â€?`mark`/`selection` on xlsx always resolve `stale=true` (v2 candidate).
 
-### Marks â€” edit proposals waiting for review
+### Marks â€?edit proposals waiting for review
 
 Use `mark` when changes need human review BEFORE they hit the file. Marks live in the watch process only; a separate `set` pipeline applies accepted ones. For one-shot changes use `set` directly; for permanent file annotations use `add --type comment` (Word native).
 
@@ -189,19 +189,19 @@ officecli unmark <file> [--path <p> | --all] [--json]
 officecli get-marks <file> [--json]
 ```
 
-Props: `find` (literal or regex when `regex=true`; raw form `find='r"[abc]"'`), `color` (hex / `rgb(...)` / 22 named whitelist), `note`, `tofix` (drives apply pipeline). **Path** must be `data-path` format from watch HTML â€” see subskills for full pipeline.
+Props: `find` (literal or regex when `regex=true`; raw form `find='r"[abc]"'`), `color` (hex / `rgb(...)` / 22 named whitelist), `note`, `tofix` (drives apply pipeline). **Path** must be `data-path` format from watch HTML â€?see subskills for full pipeline.
 
 ---
 
 ## L2: DOM Operations
 
-### set â€” modify properties
+### set â€?modify properties
 
 ```bash
 officecli set <file> <path> --prop key=value [--prop ...]
 ```
 
-**Any XML attribute is settable** via element path (found via `get --depth N`) â€” even attributes not currently present. Without `find=`, `set` applies format to the entire element.
+**Any XML attribute is settable** via element path (found via `get --depth N`) â€?even attributes not currently present. Without `find=`, `set` applies format to the entire element.
 
 **Value formats:**
 
@@ -211,11 +211,11 @@ officecli set <file> <path> --prop key=value [--prop ...]
 | Spacing | Unit-qualified | `12pt`, `0.5cm`, `1.5x`, `150%` |
 | Dimensions | EMU or suffixed | `914400`, `2.54cm`, `1in`, `72pt`, `96px` |
 
-**Dotted-attr aliases** â€” `font.<attr>` forms accepted on shape/run/paragraph/table/row/cell/section/styles, e.g. `--prop font.color=red --prop font.bold=true --prop font.size=14pt`. Run `officecli help <fmt> <element>` for the full list.
+**Dotted-attr aliases** â€?`font.<attr>` forms accepted on shape/run/paragraph/table/row/cell/section/styles, e.g. `--prop font.color=red --prop font.bold=true --prop font.size=14pt`. Run `officecli help <fmt> <element>` for the full list.
 
-### find â€” format or replace matched text
+### find â€?format or replace matched text
 
-Use `find=` with `set` to target specific text for formatting or replacement. Format props are separate `--prop` flags â€” do NOT nest them.
+Use `find=` with `set` to target specific text for formatting or replacement. Format props are separate `--prop` flags â€?do NOT nest them.
 
 ```bash
 # Format matched text (auto-splits runs)
@@ -227,7 +227,7 @@ officecli set doc.docx '/body/p[1]' --prop 'find=\d+%' --prop regex=true --prop 
 # Replace text (use `/` for whole-document scope)
 officecli set doc.docx / --prop find=draft --prop replace=final
 
-# PPT â€” same syntax, different paths
+# PPT â€?same syntax, different paths
 officecli set slides.pptx / --prop find=draft --prop replace=final
 ```
 
@@ -239,7 +239,7 @@ officecli set slides.pptx / --prop find=draft --prop replace=final
 - No match = silent success. `--json` includes `"matched": N`
 - **Excel:** only `find` + `replace` supported (no find + format props)
 
-### add â€” add elements or clone
+### add â€?add elements or clone
 
 ```bash
 officecli add <file> <parent> --type <type> [--prop ...]
@@ -256,8 +256,8 @@ officecli add <file> <parent> --from <path>                               # clon
 | Format | Types |
 |--------|-------|
 | **pptx** | slide (incl. hidden), shape (font.latin/ea/cs, direction=rtl, underline.color, effective.X+effective.X.src; arrow alias for rightArrow; slideMaster/slideLayout typed add/set/remove), picture (SVG, brightness/contrast/glow/shadow, rotation, link, tooltip), chart (direction=rtl, pieOfPie, barOfPie, axisLine/gridline per-attr setters, animation+chartBuild=byCategory|bySeries, line dropLines/hiLowLines/upDownBars, anchor=x,y,w,h shorthand), table (cell direction=rtl, fill/background, built-in PowerPoint style catalogue, /col[C] get + swap/copyFrom, row/col Move/CopyFrom), row (tr), connector (from/to accept @name=, startshape/endshape SetByPath), group (link, tooltip, deep walk by get/query/add/remove), video/audio (loop, autoStart alias), equation, notes (direction=rtl, lang), comment (legacy + modern p188 threaded round-trip), animation (15 emphasis + 16 exit presets, multi-effect chains, motion-path presets, repeat/restart/autoReverse, chart animations), transition (12 p15 presets + morph/p14), paragraph (para), run, zoom, ole (preview=, full dump round-trip via add-part+raw-set), placeholder (phType=...), model3d (rotation=ax,ay,az; full dump round-trip), smartart (dump round-trip via add-part). |
-| **docx** | paragraph (direction/font.latin/ea/cs, bold.cs/italic.cs/size.cs, lang.latin/ea/cs, wordWrap, framePr.\*, tabs shorthand), run (lang slots, direction, underline.color, position half-pts, **revision.type=ins\|del\|format\|moveFrom\|moveTo + revision.action=accept\|reject** with .author/.date â€” `/revision[@author=X]` selector for filtered accept/reject), table (direction=rtl, hMerge, **virtual column ops**: add/remove/move/copyfrom on /body/tbl[N]/col), row (tr), cell (td), image, header/footer (direction), section (pageNumFmt full enum, direction=rtl, rtlGutter, pgBorders=box), bookmark, comment, footnote, endnote, formfield, sdt, chart, equation, field (28 types), hyperlink, style (direction, indents, pbdr, lineSpacing on Add/Set), toc, watermark, break, ole, **num/abstractNum/lvl**, **tab**, **textbox/shape** (full Add+Get; geometry, fill, line, wrap, alt, anchor). docDefaults.rtl, autoHyphenation, `get /` exposes locale + /comments /footnotes /endnotes. `create --minimal` for raw OOXML scaffolding. |
-| **xlsx** | sheet (visible/hidden/veryHidden, print margins, printTitleRows/Cols, rightToLeft sheetView, cascade-aware rename), row (c{N}= cell-content shorthand; add accepts --from /Sheet/col[L]; formula-ref rewrite on insert), col (formula-ref rewrite, named-range follow on move), cell (type=richtext+runs, merge=range/sweep, direction=rtl, phonetic; **--shift left\|up on remove, shift=right\|down on add** â€” Excel UI dialog parity; formula auto-detect; OFFSET/INDIRECT in calc), chart (per-axis RTL/title, anchor=x,y,w,h, pareto), image (SVG), comment (direction=rtl), table (listobject), namedrange (definedname, volatile, `[@name=X]`; formula-body inlined at parse), pivottable (cache CoW + cross-pivot sharing, labelFilter, topN, fillDownLabels, calculatedField), sparkline, validation, autofilter, shape, textbox, CF (databar/colorscale/iconset/formulacf/cellIs/topN/aboveAverage), ole, csv. Query supports `merge`/`mergedrange`. Workbook: password. Shape selector enumerates leaves inside grpSp. |
+| **docx** | paragraph (direction/font.latin/ea/cs, bold.cs/italic.cs/size.cs, lang.latin/ea/cs, wordWrap, framePr.\*, tabs shorthand), run (lang slots, direction, underline.color, position half-pts, **revision.type=ins\|del\|format\|moveFrom\|moveTo + revision.action=accept\|reject** with .author/.date â€?`/revision[@author=X]` selector for filtered accept/reject), table (direction=rtl, hMerge, **virtual column ops**: add/remove/move/copyfrom on /body/tbl[N]/col), row (tr), cell (td), image, header/footer (direction), section (pageNumFmt full enum, direction=rtl, rtlGutter, pgBorders=box), bookmark, comment, footnote, endnote, formfield, sdt, chart, equation, field (28 types), hyperlink, style (direction, indents, pbdr, lineSpacing on Add/Set), toc, watermark, break, ole, **num/abstractNum/lvl**, **tab**, **textbox/shape** (full Add+Get; geometry, fill, line, wrap, alt, anchor). docDefaults.rtl, autoHyphenation, `get /` exposes locale + /comments /footnotes /endnotes. `create --minimal` for raw OOXML scaffolding. |
+| **xlsx** | sheet (visible/hidden/veryHidden, print margins, printTitleRows/Cols, rightToLeft sheetView, cascade-aware rename), row (c{N}= cell-content shorthand; add accepts --from /Sheet/col[L]; formula-ref rewrite on insert), col (formula-ref rewrite, named-range follow on move), cell (type=richtext+runs, merge=range/sweep, direction=rtl, phonetic; **--shift left\|up on remove, shift=right\|down on add** â€?Excel UI dialog parity; formula auto-detect; OFFSET/INDIRECT in calc), chart (per-axis RTL/title, anchor=x,y,w,h, pareto), image (SVG), comment (direction=rtl), table (listobject), namedrange (definedname, volatile, `[@name=X]`; formula-body inlined at parse), pivottable (cache CoW + cross-pivot sharing, labelFilter, topN, fillDownLabels, calculatedField), sparkline, validation, autofilter, shape, textbox, CF (databar/colorscale/iconset/formulacf/cellIs/topN/aboveAverage), ole, csv. Query supports `merge`/`mergedrange`. Workbook: password. Shape selector enumerates leaves inside grpSp. |
 
 ### Pivot tables (xlsx)
 
@@ -304,7 +304,7 @@ officecli add doc.docx '/body/p[1]' --type table --after "find:First sentence." 
 
 ### Clone
 
-`officecli add <file> / --from '/slide[1]'` â€” copies with all cross-part relationships.
+`officecli add <file> / --from '/slide[1]'` â€?copies with all cross-part relationships.
 
 ### move, swap, remove
 
@@ -314,13 +314,13 @@ officecli swap <file> <path1> <path2>
 officecli remove <file> '/body/p[4]'
 ```
 
-When using `--after` or `--before`, `--to` can be omitted â€” the target container is inferred from the anchor.
+When using `--after` or `--before`, `--to` can be omitted â€?the target container is inferred from the anchor.
 
-### batch â€” multiple operations in one save cycle
+### batch â€?multiple operations in one save cycle
 
 Continues on error by default (returns exit 1 if any item fails). Use `--stop-on-error` to abort on the first failure. `--force` is the docx-protection bypass.
 
-`officecli dump <file> [<path>]` emits a replayable batch JSON for round-trip â€” `.docx` (full coverage) and `.pptx` (text/tables/pictures/charts/notes/theme + OLE/3D/video/audio/SmartArt/morph/p15 transitions via raw-set passthrough). Path defaults to `/` (whole document); pass a subtree path (`/body`, `/body/p[N]`, `/body/tbl[N]`, `/theme`, `/settings`, `/numbering`, `/styles`) to scope the dump. `officecli refresh <file.docx>` recalculates TOC page numbers / PAGE / cross-references after replay (Word backend on Windows; headless-HTML fallback elsewhere). `officecli plugins list` extends support to `.doc`, `.hwpx`, `.pdf` export.
+`officecli dump <file> [<path>]` emits a replayable batch JSON for round-trip â€?`.docx` (full coverage) and `.pptx` (text/tables/pictures/charts/notes/theme + OLE/3D/video/audio/SmartArt/morph/p15 transitions via raw-set passthrough). Path defaults to `/` (whole document); pass a subtree path (`/body`, `/body/p[N]`, `/body/tbl[N]`, `/theme`, `/settings`, `/numbering`, `/styles`) to scope the dump. `officecli refresh <file.docx>` recalculates TOC page numbers / PAGE / cross-references after replay (Word backend on Windows; headless-HTML fallback elsewhere). `officecli plugins list` extends support to `.doc`, `.hwpx`, `.pdf` export.
 
 ```bash
 echo '[
@@ -338,7 +338,7 @@ Supports: `add`, `set`, `get`, `query`, `remove`, `move`, `swap`, `view`, `raw`,
 
 ## L3: Raw XML
 
-Use when L2 cannot express what you need. No xmlns declarations needed â€” prefixes auto-registered.
+Use when L2 cannot express what you need. No xmlns declarations needed â€?prefixes auto-registered.
 
 ```bash
 officecli raw <file> <part>                          # view raw XML
@@ -354,7 +354,7 @@ officecli add-part <file> <parent>                   # create new document part 
 
 | Pitfall | Correct Approach |
 |---------|-----------------|
-| `--name "foo"` | Use `--prop name="foo"` â€” all attributes go through `--prop` |
+| `--name "foo"` | Use `--prop name="foo"` â€?all attributes go through `--prop` |
 | Unquoted `[N]` paths in zsh/bash | Always quote: `'/slide[1]'` or `"/slide[1]"` (shell glob-expands brackets) |
 | PPT `shape[1]` for content | `shape[1]` is typically the title placeholder. Use `shape[2]+` for content shapes |
 | `/shape[myname]` | Name indexing not supported. Use numeric index or `@name=` (PPT only) |
@@ -367,13 +367,13 @@ officecli add-part <file> <parent>                   # create new document part 
 
 ## Specialized Skills
 
-`officecli load_skill <name>` â€” output is a SKILL.md, follow its rules.
+`officecli load_skill <name>` â€?output is a SKILL.md, follow its rules.
 
 **Loading rule**:
 - Pick the most specific match in "When to use"; if none fits, load the format default (`word` / `pptx` / `excel`).
-- Scenes already contain the format default's rules â€” load **one** skill per artifact, never stack.
+- Scenes already contain the format default's rules â€?load **one** skill per artifact, never stack.
 - Loaded rules persist across turns; don't re-load each reply.
-- Two distinct artifacts â†’ two separate loads.
+- Two distinct artifacts â†?two separate loads.
 
 ### Word (.docx)
 
@@ -387,7 +387,7 @@ officecli add-part <file> <parent>                   # create new document part 
 | Name | When to use |
 |------|-------------|
 | `pptx` | Generic decks: board reviews, sales decks, all-hands, product launches |
-| `pitch-deck` | **Fundraising only** â€” seed / Series A-C / SAFE / convertible / strategic raise. NOT for sales / product / board decks (route those to `pptx`) |
+| `pitch-deck` | **Fundraising only** â€?seed / Series A-C / SAFE / convertible / strategic raise. NOT for sales / product / board decks (route those to `pptx`) |
 | `morph-ppt` | Cinematic Morph-animated presentations. NOT for static decks (route those to `pptx`) |
 | `morph-ppt-3d` | 3D Morph: GLB models, camera moves, depth. NOT for 2D-only Morph (route those to `morph-ppt`) |
 
@@ -397,9 +397,9 @@ officecli add-part <file> <parent>                   # create new document part 
 |------|-------------|
 | `excel` | Generic workbooks, formulas, pivots, trackers |
 | `financial-model` | Financial models, scenarios, projections. NOT for general data analysis (route those to `excel`) |
-| `data-dashboard` | CSV/tabular data â†’ KPI / analytics / executive dashboards with charts and sparklines. NOT for raw data tracking (route those to `excel`) |
+| `data-dashboard` | CSV/tabular data â†?KPI / analytics / executive dashboards with charts and sparklines. NOT for raw data tracking (route those to `excel`) |
 
-Example: a fundraising deck task â†’ `officecli load_skill pitch-deck` â†’ use the printed rules.
+Example: a fundraising deck task â†?`officecli load_skill pitch-deck` â†?use the printed rules.
 
 ---
 
@@ -413,9 +413,9 @@ Example: a fundraising deck task â†’ `officecli load_skill pitch-deck` â†’ use t
 
 ---
 
-## DeepSeek++ integration (B-03 + B-08)
+## doubao-wplus integration (B-03 + B-08)
 
-When this Skill is loaded inside DeepSeek++ (the browser extension), uploaded files reach the model as `ref_file_ids` (DeepSeek web UI uploads), **not** as local paths. The model cannot call `officecli` on a `ref_file_id` directly.
+When this Skill is loaded inside doubao-wplus (the browser extension), uploaded files reach the model as `ref_file_ids` (DeepSeek web UI uploads), **not** as local paths. The model cannot call `officecli` on a `ref_file_id` directly.
 
 **Required workflow for analysing a user-uploaded file:**
 
@@ -432,13 +432,13 @@ When this Skill is loaded inside DeepSeek++ (the browser extension), uploaded fi
    - macOS / Linux: `~/Downloads/deepseek-pp/...`
    - Windows: `C:\Users\<you>\Downloads\deepseek-pp\...`
    - Filename is sanitized (Windows-forbidden characters and `..` traversal are replaced with `_`); the same name in `deepseek-pp/` is uniquified by `chrome.downloads` automatically.
-   - Safety cap: files larger than **64 MB** are refused (`dpp_file_too_large`). For larger files the user should download them manually and tell the model the local path.
+   - Safety cap: files larger than **64 MB** are refused (`dwplus_file_too_large`). For larger files the user should download them manually and tell the model the local path.
 5. **Use the returned `localPath` with every subsequent `shell_exec` / `officecli` call**:
    ```bash
    <shell_exec>{"command": "officecli view '/Users/me/Downloads/deepseek-pp/report.docx' outline", "timeoutMs": 60000}</shell_exec>
    ```
 
-**Do not** try to call `officecli` with the `ref_file_id` directly â€” it has no meaning to the local binary. **Do not** ask the user to re-pick the file; the extension already has their upload.
+**Do not** try to call `officecli` with the `ref_file_id` directly â€?it has no meaning to the local binary. **Do not** ask the user to re-pick the file; the extension already has their upload.
 
 If `download_attached_file` returns an error (`{"ok": false, "error": "..."}`), surface the message to the user; do not retry with a guessed local path.
 
@@ -468,7 +468,7 @@ Optional `file_name` and `mime_type` arguments override the defaults; only set t
 
 **B-08 implementation note** (same as `download_attached_file`): `upload_attached_file` is **not** a native host tool. The native host runs outside the browser and cannot carry the user's `chat.deepseek.com` session cookie that the upload endpoint requires. The call short-circuits inside `core/mcp/discovery.ts` and is executed by the extension via `fetch(url, { credentials: 'include' })`.
 
-If `upload_attached_file` returns `dpp_upload_http_error` (especially 4xx), surface the error to the user â€” the endpoint may have moved or required additional auth. If it returns `dpp_file_too_large`, the file is over 64 MB; suggest the user compress it or upload manually.
+If `upload_attached_file` returns `dwplus_upload_http_error` (especially 4xx), surface the error to the user â€?the endpoint may have moved or required additional auth. If it returns `dwplus_file_too_large`, the file is over 64 MB; suggest the user compress it or upload manually.
 
 **Local prerequisites** (one-time, on the user's machine where the native shell host runs):
 - `officecli` installed and on `PATH` (see the officecli project page for installer).

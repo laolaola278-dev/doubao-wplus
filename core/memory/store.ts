@@ -70,6 +70,15 @@ export async function deleteMemory(id: number): Promise<void> {
   await db.memories.delete(id);
 }
 
+/** 批量删除（Memory Studio 用）；返回实际删除数 */
+export async function deleteMemories(ids: number[]): Promise<number> {
+  const valid = ids.filter((id) => Number.isInteger(id));
+  if (valid.length === 0) return 0;
+  const existing = await db.memories.where('id').anyOf(valid).primaryKeys();
+  await db.memories.bulkDelete(existing);
+  return existing.length;
+}
+
 export async function deleteMemoriesForProject(projectId: string): Promise<number> {
   const trimmedProjectId = projectId.trim();
   if (!trimmedProjectId) throw new Error('Project id is required.');

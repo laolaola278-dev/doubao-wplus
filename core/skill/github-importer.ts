@@ -610,7 +610,7 @@ function buildImportedInstructions(input: {
   const header = [
     `# GitHub Skill: ${parsed.name}`,
     '',
-    '## DeepSeek++ Import Metadata',
+    '## WPlus Import Metadata',
     '',
     `- Source: ${source.repository}`,
     `- Path: ${skillPath}`,

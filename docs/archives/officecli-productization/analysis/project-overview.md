@@ -2,7 +2,7 @@
 
 ## Preliminary Direction
 
-Productize OfficeCLI inside DeepSeek++ by adding a built-in `/officecli` skill and exposing controlled local Office document operations through MCP, stdio bridge, or browser Native Messaging execution.
+Productize OfficeCLI inside doubao-wplus by adding a built-in `/officecli` skill and exposing controlled local Office document operations through MCP, stdio bridge, or browser Native Messaging execution.
 
 ## Current Architecture
 
@@ -24,7 +24,7 @@ flowchart LR
   Sidepanel["React sidepanel"] --> BG
 ```
 
-DeepSeek++ is a WXT MV3 browser extension. The runtime is split across three extension layers:
+doubao-wplus is a WXT MV3 browser extension. The runtime is split across three extension layers:
 
 - `entrypoints/main-world.content.ts` installs the DeepSeek fetch/XHR hook, mutates prompts, observes streamed responses, and sends detected tool calls to the isolated content script.
 - `entrypoints/content.ts` bridges page messages to the extension runtime, renders tool result blocks, restores prior executions, and triggers manual MCP result continuation.

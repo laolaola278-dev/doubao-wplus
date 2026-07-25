@@ -18,9 +18,9 @@ describe('inline agent renderer', () => {
       '| **Average price** | 47k |',
     ].join('\n'));
 
-    const body = step.querySelector<HTMLElement>('.dpp-agent-step-body');
+    const body = step.querySelector<HTMLElement>('.dwplus-agent-step-body');
 
-    expect(body?.getAttribute('data-dpp-raw-text')).toContain('| Metric | Value |');
+    expect(body?.getAttribute('data-dwplus-raw-text')).toContain('| Metric | Value |');
     expect(body?.innerHTML).toContain('<h4>Market summary</h4>');
     expect(body?.innerHTML).toContain('<table>');
     expect(body?.innerHTML).toContain('<td><strong>Average price</strong></td>');
@@ -28,7 +28,7 @@ describe('inline agent renderer', () => {
 
   it('keeps the streaming step body scrolled to the newest output', () => {
     const step = createAgentStepElement(0);
-    const body = step.querySelector<HTMLElement>('.dpp-agent-step-body');
+    const body = step.querySelector<HTMLElement>('.dwplus-agent-step-body');
     expect(body).toBeTruthy();
     Object.defineProperty(body, 'scrollHeight', { configurable: true, value: 480 });
 
@@ -40,11 +40,11 @@ describe('inline agent renderer', () => {
   it('uses the shared injected theme for dark-mode readable text', () => {
     injectInlineAgentStyles();
 
-    const agentStyle = document.getElementById('dpp-inline-agent-css');
-    expect(document.getElementById('dpp-injected-theme-css')).not.toBeNull();
-    expect(agentStyle?.textContent).toContain('color: var(--dpp-ui-text);');
-    expect(agentStyle?.textContent).toContain('[data-dpp-body-text]');
-    expect(agentStyle?.textContent).toContain('color: var(--dpp-ui-accent);');
+    const agentStyle = document.getElementById('dwplus-inline-agent-css');
+    expect(document.getElementById('dwplus-injected-theme-css')).not.toBeNull();
+    expect(agentStyle?.textContent).toContain('color: var(--dwplus-ui-text);');
+    expect(agentStyle?.textContent).toContain('[data-dwplus-body-text]');
+    expect(agentStyle?.textContent).toContain('color: var(--dwplus-ui-accent);');
     expect(agentStyle?.textContent).not.toContain('var(--ds-text');
   });
 });

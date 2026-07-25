@@ -68,7 +68,7 @@ export async function uploadAttachedFile(
   if (!localPath) {
     return {
       ok: false,
-      code: 'dpp_invalid_local_path',
+      code: 'dwplus_invalid_local_path',
       message: 'local_path is required',
       retryable: false,
       localPath: options.localPath ?? '',
@@ -84,19 +84,19 @@ export async function uploadAttachedFile(
   } catch (error) {
     return {
       ok: false,
-      code: 'dpp_file_read_failed',
+      code: 'dwplus_file_read_failed',
       message: error instanceof Error ? error.message : `Cannot read local file: ${localPath}`,
       retryable: false,
       localPath,
     };
   }
   if (file.sizeBytes <= 0) {
-    return { ok: false, code: 'dpp_file_empty', message: 'Local file is empty', retryable: false, localPath };
+    return { ok: false, code: 'dwplus_file_empty', message: 'Local file is empty', retryable: false, localPath };
   }
   if (file.sizeBytes > UPLOAD_ATTACHED_FILE_MAX_BYTES) {
     return {
       ok: false,
-      code: 'dpp_file_too_large',
+      code: 'dwplus_file_too_large',
       message: `Local file exceeds the ${UPLOAD_ATTACHED_FILE_MAX_BYTES}-byte safety cap`,
       retryable: false,
       localPath,
@@ -139,7 +139,7 @@ export async function uploadAttachedFile(
   } catch (error) {
     return {
       ok: false,
-      code: 'dpp_upload_fetch_failed',
+      code: 'dwplus_upload_fetch_failed',
       message: error instanceof Error ? error.message : `POST ${url} failed`,
       retryable: true,
       localPath,
@@ -148,7 +148,7 @@ export async function uploadAttachedFile(
   if (!response.ok) {
     return {
       ok: false,
-      code: 'dpp_upload_http_error',
+      code: 'dwplus_upload_http_error',
       message: `Upload endpoint returned HTTP ${response.status}`,
       retryable: response.status >= 500,
       localPath,
@@ -162,7 +162,7 @@ export async function uploadAttachedFile(
   } catch (error) {
     return {
       ok: false,
-      code: 'dpp_upload_parse_failed',
+      code: 'dwplus_upload_parse_failed',
       message: error instanceof Error ? error.message : 'Upload response is not JSON',
       retryable: false,
       localPath,
@@ -172,7 +172,7 @@ export async function uploadAttachedFile(
   if (!refFileId) {
     return {
       ok: false,
-      code: 'dpp_upload_no_ref_file_id',
+      code: 'dwplus_upload_no_ref_file_id',
       message: 'Upload response did not contain a recognizable ref_file_id',
       retryable: false,
       localPath,

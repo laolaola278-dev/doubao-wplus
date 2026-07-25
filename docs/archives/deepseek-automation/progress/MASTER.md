@@ -1,6 +1,6 @@
-## DeepSeek++ Codex-Style Automations - Progress Tracker
+## doubao-wplus Codex-Style Automations - Progress Tracker
 
-> **Task**: Build browser-local Codex-style automations for DeepSeek++ with run-now sessions and scheduled continuation in the same automation chat.
+> **Task**: Build browser-local Codex-style automations for doubao-wplus with run-now sessions and scheduled continuation in the same automation chat.
 > **Started**: 2026-05-21
 > **Last Updated**: 2026-05-21
 > **Mode**: GITHUB_STANDARD

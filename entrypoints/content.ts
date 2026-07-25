@@ -1,6 +1,5 @@
 import type {
   BackgroundConfig,
-  DeepSeekTheme,
   Memory,
   ModelType,
   PetConfig,
@@ -72,21 +71,40 @@ import {
   createToolRestoreBlockId,
   createToolRestoreBlockUrl,
 } from '../core/tool/restore-block';
-import { validateBridgeMessage } from '../core/messaging/schema';
-import { startDeepSeekHistoryOrganizer, type HistoryOrganizerController } from './content/adapters/history-organizer';
-import { startDeepSeekProjectSidebarOrganizer, type ProjectSidebarOrganizerController } from './content/adapters/project-sidebar-organizer';
-import { startContentUxPolish, type ContentUxPolishController } from './content/adapters/ux-polish';
+import { startThemeSync, stopThemeSync } from './content/features/deepseek/theme-sync';
+import { startDeepSeekHistoryOrganizer, type HistoryOrganizerController } from './content/features/deepseek/history-organizer';
+import { startDeepSeekProjectSidebarOrganizer, type ProjectSidebarOrganizerController } from './content/features/deepseek/project-sidebar-organizer';
+import { startDoubaoHistoryOrganizer } from './content/features/doubao/history-organizer';
+import { startDoubaoProjectSidebarOrganizer } from './content/features/doubao/project-sidebar-organizer';
+import { startDoubaoThemeSync } from './content/features/doubao/theme-sync';
+import { startContentUxPolish, type ContentUxPolishController } from './content/features/shared/ux-polish';
+import { installBridge, setBridgeMessageHandler, postToBridge, MAIN_WORLD_SOURCE, DEPRECATED_MAIN_WORLD_SOURCE } from './content/features/shared/bridge';
+import { persistDeepSeekClientHeaders, normalizeCapturedClientHeaders } from './content/features/deepseek/auth';
 
-import { createClientHeaders, rememberDeepSeekClientHeaders, saveClientHeadersToStorage } from '../core/deepseek/adapter';
-import { getActiveAdapter, detectHost, setActiveHostId } from '../core/hosts/registry';
+import { getActiveAdapter, getActiveFeatures, getActiveHostId, detectHost, setActiveHostId } from '../core/hosts/registry';
+import { readBodyField } from '../core/hosts/shared/body-fields';
+import { isDiagnosticsEnabled, markBridgeReady, markContentReady, writeDiagnostics } from '../core/diagnostics/runtime-marker';
+import { runAndReportStartupSelfCheck } from '../core/diagnostics/startup-self-check';
+import {
+  buildPromptSnapshot,
+  getPromptSnapshots,
+  isPromptInspectorEnabled,
+  markSnapshotSendResult,
+  recordFailedAugmentation,
+  recordPromptSnapshot,
+  summarizeSnapshot,
+} from '../core/diagnostics/prompt-inspector';
+import { applyRulesToAugmentationInput } from '../core/rules/pipeline';
+import { EMPTY_RULE_ENGINE_CONFIG, validateRuleEngineConfig, type RuleEngineConfig } from '../core/rules/types';
+import { installPromptInspectorPanel } from '../core/ui/prompt-inspector-panel';
 import type {
   ConversationExportArtifact,
   ConversationExportProgress,
   ConversationExportResult,
 } from '../core/export/types';
 
-const TOOL_BLOCK_ID = 'dpp-tool-block';
-const TOOL_BLOCK_STYLE_ID = 'dpp-tool-block-css';
+const TOOL_BLOCK_ID = 'dwplus-tool-block';
+const TOOL_BLOCK_STYLE_ID = 'dwplus-tool-block-css';
 /** 获取当前宿主的助手消息内容选择器（逗号分隔字符串） */
 function getAssistantResponseSelector(): string {
   const adapter = getActiveAdapter();
@@ -184,25 +202,25 @@ function getActionRowSelector(): string {
 // 选择器全部从 active host adapter 读取，请使用 getAssistantResponseSelector() / getHostActionControls() 等函数。
 const REASONING_HOST_META_RE = /\b(?:reason|reasoning|think|thinking|thought)\b/i;
 const REASONING_HOST_TEXT_RE = /^(?:已思考|思考中|正在思考|thinking|reasoning|thought)(?:[（(:：]|$)/i;
-const TOKEN_SPEED_BADGE_ID = 'dpp-token-speed-badge';
-const TOKEN_SPEED_STYLE_ID = 'dpp-token-speed-css';
-const EXPORT_ACTION_CLASS = 'dpp-export-action';
-const EXPORT_ACTION_STYLE_ID = 'dpp-export-action-css';
-const EXPORT_ACTION_TOAST_CLASS = 'dpp-export-toast';
-const EXPORT_ACTION_MENU_CLASS = 'dpp-export-menu';
+const TOKEN_SPEED_BADGE_ID = 'dwplus-token-speed-badge';
+const TOKEN_SPEED_STYLE_ID = 'dwplus-token-speed-css';
+const EXPORT_ACTION_CLASS = 'dwplus-export-action';
+const EXPORT_ACTION_STYLE_ID = 'dwplus-export-action-css';
+const EXPORT_ACTION_TOAST_CLASS = 'dwplus-export-toast';
+const EXPORT_ACTION_MENU_CLASS = 'dwplus-export-menu';
 const EXPORT_ACTION_MOUNT_DEBOUNCE_MS = 250;
 const EXPORT_ACTION_RETRY_MS = 250;
 const EXPORT_ACTION_RETRY_LIMIT = 20;
 const EXPORT_ACTION_TOAST_VISIBLE_MS = 4000;
-const PET_HOST_ID = 'dpp-pet-host';
-const PET_STYLE_ID = 'dpp-pet-css';
+const PET_HOST_ID = 'dwplus-pet-host';
+const PET_STYLE_ID = 'dwplus-pet-css';
 const TOKEN_SPEED_BOOTSTRAP_RETRY_MS = 250;
 const TOKEN_SPEED_BOOTSTRAP_RETRY_LIMIT = 40;
 const TOKEN_SPEED_MOUNT_DEBOUNCE_MS = 500;
 const TOKEN_SPEED_ROUTE_CHECK_MS = 500;
 const TOOL_BLOCK_ROUTE_CHECK_MS = 500;
-const TOOL_RESTORE_STORAGE_KEY = 'dpp_tool_execution_blocks';
-const INLINE_AGENT_TRACE_STORAGE_KEY = 'dpp_inline_agent_traces';
+const TOOL_RESTORE_STORAGE_KEY = 'dwplus_tool_execution_blocks';
+const INLINE_AGENT_TRACE_STORAGE_KEY = 'dwplus_inline_agent_traces';
 const INLINE_AGENT_TRACE_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const INLINE_AGENT_TRACE_LIMIT = 100;
 const INLINE_AGENT_TRACE_WRITE_DEBOUNCE_MS = 300;
@@ -210,8 +228,6 @@ const INLINE_AGENT_STEP_RENDER_MAX_CHARS = 8000;
 const INLINE_AGENT_FINAL_RENDER_MAX_CHARS = 12000;
 const CLEANABLE_TEXT_DEEP_SCAN_MAX_CHARS = 120_000;
 const CLEANUP_MESSAGE_SCAN_LIMIT = 24;
-const THEME_BOOTSTRAP_RETRY_MS = 250;
-const THEME_BOOTSTRAP_RETRY_LIMIT = 20;
 const PET_IDLE_DELAY_MS = 900;
 const PET_SIDE_OFFSET_PX = 24;
 const PET_BOTTOM_OFFSET_PX = 92;
@@ -219,13 +235,11 @@ const PET_CUSTOM_EDGE_MARGIN_PX = 12;
 const PET_HEIGHT_RATIO = 1;
 const PET_FEEDBACK_DELAY_MS = 1400;
 const PET_SLEEP_DELAY_MS = 12000;
-const PET_SPRITE_PATH = 'pet/deepseek-whale-pet-states.png';
+const PET_SPRITE_PATH = 'pet/doubao-pet-states.png';
 const DEEPSEEK_POW_WASM_PATH = 'deepseek/sha3_wasm_bg.wasm';
-const MAIN_WORLD_SOURCE = 'deepseek-pp-main';
-const CONTENT_SOURCE = 'deepseek-pp-content';
-const BRIDGE_REQUEST_TYPE = 'DPP_BRIDGE_REQUEST';
-const BRIDGE_INIT_TYPE = 'DPP_BRIDGE_INIT';
-const BRIDGE_READY_TYPE = 'DPP_BRIDGE_READY';
+/** @deprecated Use POW_WASM_PATH instead */
+const POW_WASM_PATH = DEEPSEEK_POW_WASM_PATH;
+
 const PET_BUBBLE_VISIBLE_MS = 6000;
 const PET_BUBBLE_REPEAT_MIN_MS = 8000;
 const PET_BUBBLE_REPEAT_MAX_MS = 12000;
@@ -316,14 +330,6 @@ let restoredRenderTimer: ReturnType<typeof setTimeout> | null = null;
 let restoredRenderAttempts = 0;
 const pendingToolExecutionTasks = new Set<Promise<ToolCardResult>>();
 let backgroundPatchObserver: MutationObserver | null = null;
-let themeObserver: MutationObserver | null = null;
-let themeTreeObserver: MutationObserver | null = null;
-let themeMediaQuery: MediaQueryList | null = null;
-let themeMediaListener: ((event: MediaQueryListEvent) => void) | null = null;
-let themeSyncTimer: ReturnType<typeof setTimeout> | null = null;
-let themeBootstrapTimer: ReturnType<typeof setTimeout> | null = null;
-let themeBootstrapAttempts = 0;
-let currentDeepSeekTheme: DeepSeekTheme | null = null;
 let currentPetConfig: PetConfig | null = null;
 let petHostEl: HTMLElement | null = null;
 let petIdleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -350,14 +356,18 @@ let restoredInlineAgentRenderAttempts = 0;
 let currentMemories: Memory[] = [];
 let currentSkills: Skill[] = [];
 let currentActivePreset: SystemPromptPreset | null = null;
+// Rule Engine：content 持有配置副本供增强热路径同步读取（RULE_CONFIG_UPDATED 推送更新）
+let currentRuleConfig: RuleEngineConfig = EMPTY_RULE_ENGINE_CONFIG;
+let currentPresets: SystemPromptPreset[] = [];
 let currentModelType: ModelType = null;
 let currentPromptSettings: PromptInjectionSettings = DEFAULT_PROMPT_INJECTION_SETTINGS;
 let currentContentLocale: SupportedLocale = DEFAULT_LOCALE;
+// 启动自检报告缓存（dev-only 生成；Studio Diagnostics 页只读拉取）
+let lastSelfCheckReport: ReturnType<typeof runAndReportStartupSelfCheck> = null;
 let currentContentTranslator = createTranslator(DEFAULT_LOCALE);
 let currentToolDescriptors: ToolDescriptor[] = [...createDefaultToolDescriptors(currentContentLocale)];
 let currentRequestMessageCount = 0;
-let mainWorldPort: MessagePort | null = null;
-let mainWorldBridgeReady = false;
+
 let activeAgentAbort: AbortController | null = null;
 let toolOpenTagRe = buildToolOpenTagRegex(currentToolDescriptors);
 let toolMarkerRe = buildToolMarkerRegex(currentToolDescriptors);
@@ -470,10 +480,15 @@ export default defineContentScript({
   ],
   runAt: 'document_start',
   async main() {
-    // 根据当前 URL 自动检测宿主并切换（豆包 / DeepSeek 由 registry 决定）
+    // 根据当前 URL 自动检测宿主并切换（由 host registry 决定）
     const detectedHost = detectHost(window.location.href);
     if (detectedHost) {
       setActiveHostId(detectedHost.id);
+    }
+
+    // Diagnostics: 初始化运行时 marker（仅 dev/test/e2e 模式）
+    if (isDiagnosticsEnabled()) {
+      writeDiagnostics({});
     }
 
     registerDefaultToolResultRenderers();
@@ -484,12 +499,16 @@ export default defineContentScript({
         .catch(() => undefined);
     });
     installExtensionInvalidationGuards();
-    installMainWorldBridge();
+    installBridge();
 
     const handleMainWorldMessage = async (data: any) => {
-      if (data?.source !== MAIN_WORLD_SOURCE) return;
+      if (data?.source !== MAIN_WORLD_SOURCE && data?.source !== DEPRECATED_MAIN_WORLD_SOURCE) return;
       try {
         switch (data.type) {
+          case 'AUGMENT_REQUEST_BODY': {
+            await handleAugmentRequestBody(data);
+            return;
+          }
           case 'TOOL_CALL_STARTED': {
             const call = data.data as ToolCall;
             showPendingToolExecution(call);
@@ -515,6 +534,8 @@ export default defineContentScript({
             break;
           }
           case 'RESPONSE_COMPLETE': {
+            // Prompt Inspector：回填最近一条 pending 快照的发送结果（门控关闭为 no-op）
+            markSnapshotSendResult('sent');
             const complete = normalizeResponseCompletePayload(data.payload, data.text);
             const gen = ++responseGeneration;
             activeStreamingToolCount = 0;
@@ -561,23 +582,61 @@ export default defineContentScript({
       }
     };
 
-    setMainWorldMessageHandler(handleMainWorldMessage);
+    setBridgeMessageHandler(handleMainWorldMessage);
 
-    void loadAndSyncRuntimeState().catch(() => undefined);
+    void loadAndSyncRuntimeState().catch((err) => {
+      if (typeof console !== 'undefined' && console.error) {
+        console.error('[DWPLUS] loadAndSyncRuntimeState failed — skills/commands will not work:', err);
+      }
+    });
+
+    // Diagnostics: content script 入口已走完（检测 host、启动桥、准备 runtime 同步）
+    if (isDiagnosticsEnabled()) {
+      writeDiagnostics({});
+      markContentReady();
+    }
+
+    // dev-only 启动自检：宿主识别 / 聊天路径 / Prompt 路径 / 增强执行 / 映射兼容性。
+    // 纯函数检查（合成 body，不发网络请求），生产构建为 no-op。
+    // 报告转发给 main world 写入 window.__DWPLUS_DIAG__.selfCheck，便于 DevTools 查看。
+    // 同时缓存到模块变量，供 Studio Diagnostics 页只读拉取（GET_SELF_CHECK_REPORT）。
+    const selfCheckReport = runAndReportStartupSelfCheck(window.location.href);
+    if (selfCheckReport) {
+      lastSelfCheckReport = selfCheckReport;
+      postToBridge({ type: 'SELF_CHECK_REPORT', report: selfCheckReport });
+    }
+
+    // dev-only Prompt Inspector 面板（Ctrl+Shift+P）。门控关闭时 no-op。
+    installPromptInspectorPanel(document);
 
     await new Promise((r) => {
       if (document.readyState === 'complete' || document.readyState === 'interactive') r(undefined);
       else document.addEventListener('DOMContentLoaded', () => r(undefined), { once: true });
     });
 
-    startDeepSeekThemeSync();
     startTokenSpeedIndicatorBootstrap();
     startTokenSpeedIndicatorMountObserver();
     startTokenSpeedRouteWatcher();
     startToolBlockRouteWatcher();
     startConversationExportActionInjector();
-    historyOrganizerController = startDeepSeekHistoryOrganizer(getHistoryOrganizerLabels);
-    projectSidebarOrganizerController = startDeepSeekProjectSidebarOrganizer(getProjectSidebarOrganizerLabels);
+    // Host-only feature modules: 由 host adapter 声明的 feature flag 决定是否启用。
+    // 业务层不需知道具体宿主，只需查询 getActiveFeatures()。
+    const features = getActiveFeatures(window.location.href);
+    const activeHostId = getActiveHostId();
+    if (features.themeSync) {
+      if (activeHostId === 'doubao') startDoubaoThemeSync();
+      else startThemeSync();
+    }
+    if (features.historyOrganizer) {
+      historyOrganizerController = activeHostId === 'doubao'
+        ? startDoubaoHistoryOrganizer(getHistoryOrganizerLabels)
+        : startDeepSeekHistoryOrganizer(getHistoryOrganizerLabels);
+    }
+    if (features.projectSidebarOrganizer) {
+      projectSidebarOrganizerController = activeHostId === 'doubao'
+        ? startDoubaoProjectSidebarOrganizer(getProjectSidebarOrganizerLabels)
+        : startDeepSeekProjectSidebarOrganizer(getProjectSidebarOrganizerLabels);
+    }
     contentUxPolishController = startContentUxPolish(getContentUxPolishLabels);
     startFileUploadModelGuard();
     injectPageVoiceInput();
@@ -603,6 +662,16 @@ export default defineContentScript({
           currentToolDescriptors,
           normalizePromptInjectionSettings(message.promptSettings),
         );
+      } else if (message.type === 'RULE_CONFIG_UPDATED') {
+        // Rule Engine 配置推送：校验通过才接受（防御坏广播）
+        const validated = validateRuleEngineConfig(message.config);
+        if (validated.ok) {
+          currentRuleConfig = message.config as RuleEngineConfig;
+        }
+        // preset 列表可能同时变化（set-preset 动作按 id 查找），一并刷新
+        sendRuntimeMessage<SystemPromptPreset[]>({ type: 'GET_PRESETS' })
+          .then((presets) => { currentPresets = presets ?? []; })
+          .catch(() => undefined);
       } else if (message.type === 'TOOL_DESCRIPTORS_UPDATED') {
         syncToMainWorld(currentMemories, currentSkills, currentActivePreset, currentModelType, normalizeToolDescriptors(message.toolDescriptors), currentPromptSettings);
       } else if (message.type === 'MCP_SERVERS_UPDATED') {
@@ -613,7 +682,7 @@ export default defineContentScript({
         applyBackground(message.config as BackgroundConfig | null);
       } else if (message.type === 'PET_UPDATED') {
         applyPetConfig(message.config as PetConfig | null);
-      } else if (message.type === 'REFRESH_DEEPSEEK_AUTH') {
+      } else if (message.type === 'REFRESH_AUTH' || message.type === 'REFRESH_DEEPSEEK_AUTH') {
         persistDeepSeekClientHeaders()
           .then((hasToken) => sendResponse({ ok: hasToken, hasToken }))
           .catch((error) => sendResponse({
@@ -622,9 +691,22 @@ export default defineContentScript({
             error: error instanceof Error ? error.message : String(error),
           }));
         return true;
-      } else if (message.type === 'DEEPSEEK_EXPORT_PROGRESS') {
+      } else if (message.type === 'DEEPSEEK_EXPORT_PROGRESS' || message.type === 'EXPORT_PROGRESS') {
         updateConversationExportProgress(message.progress as ConversationExportProgress | undefined);
-      } else if (message.type === 'GET_CURRENT_DEEPSEEK_CONVERSATION') {
+      } else if (message.type === 'GET_PROMPT_SNAPSHOT_SUMMARIES') {
+        // Studio Prompt 页只读拉取：脱敏摘要（无 prompt 全文，同 diagnostics-export 分层）。
+        // 门控关闭（生产构建）时环形缓冲恒空，返回 enabled:false + 空数组。
+        sendResponse({
+          ok: true,
+          enabled: isPromptInspectorEnabled(),
+          summaries: getPromptSnapshots().map(summarizeSnapshot),
+        });
+        return true;
+      } else if (message.type === 'GET_SELF_CHECK_REPORT') {
+        // Studio Diagnostics 页只读拉取：启动自检报告（dev-only 生成；生产为 null）
+        sendResponse({ ok: true, report: lastSelfCheckReport });
+        return true;
+      } else if (message.type === 'GET_CURRENT_DEEPSEEK_CONVERSATION' || message.type === 'GET_CURRENT_CONVERSATION') {
         const conversationId = getCurrentChatSessionId();
         sendResponse(conversationId
           ? {
@@ -643,55 +725,7 @@ export default defineContentScript({
   },
 });
 
-let mainWorldMessageHandler: ((data: any) => void | Promise<void>) | null = null;
-const pendingMainWorldMessages: Record<string, unknown>[] = [];
 
-function setMainWorldMessageHandler(handler: (data: any) => void | Promise<void>): void {
-  mainWorldMessageHandler = handler;
-}
-
-function installMainWorldBridge(): void {
-  window.addEventListener('message', (event) => {
-    if (event.origin !== window.location.origin) return;
-    if (event.data?.source !== MAIN_WORLD_SOURCE || event.data.type !== BRIDGE_REQUEST_TYPE) return;
-    connectMainWorldPort();
-  });
-}
-
-function connectMainWorldPort(): void {
-  if (mainWorldPort) return;
-
-  const channel = new MessageChannel();
-  mainWorldPort = channel.port1;
-  mainWorldPort.onmessage = (event) => {
-    void handleMainWorldPortMessage(event.data);
-  };
-  mainWorldPort.start();
-
-  window.postMessage(
-    { source: CONTENT_SOURCE, type: BRIDGE_INIT_TYPE },
-    window.location.origin,
-    [channel.port2],
-  );
-}
-
-async function handleMainWorldPortMessage(data: any): Promise<void> {
-  const message = validateBridgeMessage(data, MAIN_WORLD_SOURCE);
-  if (!message) return;
-
-  if (message.type === BRIDGE_READY_TYPE) {
-    mainWorldBridgeReady = true;
-    flushMainWorldMessages();
-    return;
-  }
-
-  if (message.type === 'AUGMENT_REQUEST_BODY') {
-    await handleAugmentRequestBody(message);
-    return;
-  }
-
-  await mainWorldMessageHandler?.(message);
-}
 
 async function handleAugmentRequestBody(data: { id?: unknown; body?: unknown }): Promise<void> {
   const id = typeof data.id === 'string' ? data.id : '';
@@ -702,11 +736,83 @@ async function handleAugmentRequestBody(data: { id?: unknown; body?: unknown }):
       throw new Error('Request body must be a string.');
     }
 
-    const project = await resolveProjectContextForRequestBody(data.body);
-    const result = augmentRequestBody(data.body, {
+    // ---- Rule Engine 前置预处理（无启用规则时零开销透传）----
+    // 规则效果被翻译成「prompt 改写 + 记忆 pinned + preset 替换」，
+    // 全部走 augmentRequestBody 既有的注入通道；引擎绝不直接改最终 body 结构。
+    let effectiveBody = data.body;
+    let effectiveMemories = currentMemories;
+    let effectiveActivePreset = currentActivePreset;
+    // Rule Engine 耗时（AI Insights + 规则日志）；引擎未运行时保持 null
+    let ruleDurationMs: number | null = null;
+    const ruleStartMs = performance.now();
+    const ruleResult = applyRulesToAugmentationInput({
+      bodyStr: data.body,
+      config: currentRuleConfig,
       memories: currentMemories,
-      skills: currentSkills,
+      presets: currentPresets,
       activePreset: currentActivePreset,
+      pageUrl: location.href,
+    });
+    if (ruleResult.engineRan && ruleResult.outcome) {
+      const outcome = ruleResult.outcome;
+      ruleDurationMs = Math.round((performance.now() - ruleStartMs) * 100) / 100;
+      // 执行日志（摘要，无 prompt 全文）
+      void sendRuntimeMessage({
+        type: 'APPEND_RULE_EXECUTION_LOG',
+        payload: {
+          timestamp: Date.now(),
+          hostId: getActiveHostId(),
+          promptLengthBefore: data.body.length,
+          promptLengthAfter: ruleResult.bodyStr.length,
+          blocked: Boolean(outcome.blocked),
+          blockedReason: outcome.blocked?.reason ?? null,
+          confirmationCount: outcome.confirmations.length,
+          pinnedMemoryCount: outcome.pinnedMemoryIds.length,
+          presetOverridden: outcome.presetOverrideId !== undefined,
+          records: outcome.records,
+          durationMs: ruleDurationMs,
+        },
+      }).catch(() => undefined);
+      for (const log of outcome.diagnosticsLogs) {
+        console.info(`[DWPLUS-RULES] ${log}`);
+      }
+      // 阻止发送：经既有 ok:false 错误通道拒绝请求（fetch 端已有传播路径）
+      if (outcome.blocked) {
+        postToBridge({
+          type: 'AUGMENT_REQUEST_BODY_RESULT',
+          id,
+          ok: false,
+          error: `[规则「${outcome.records.find((r) => r.ruleId === outcome.blocked!.ruleId)?.ruleName ?? outcome.blocked.ruleId}」阻止发送] ${outcome.blocked.reason}`,
+        });
+        return;
+      }
+      // 弹出确认：任何一条取消即阻断
+      for (const confirmation of outcome.confirmations) {
+        if (!window.confirm(confirmation.message)) {
+          postToBridge({
+            type: 'AUGMENT_REQUEST_BODY_RESULT',
+            id,
+            ok: false,
+            error: `[规则确认被取消] ${confirmation.message}`,
+          });
+          return;
+        }
+      }
+      effectiveBody = ruleResult.bodyStr;
+      effectiveMemories = ruleResult.memories;
+      effectiveActivePreset = ruleResult.activePreset;
+    }
+
+    // Prompt Inspector（dev 工具）：门控开启时透传 captureInspection。
+    // 增强计时始终开启（AI Insights 需要；2 次 performance.now()，微秒级开销）。
+    const inspectorOn = isPromptInspectorEnabled();
+    const augmentStartMs = performance.now();
+
+    const project = await resolveProjectContextForRequestBody(effectiveBody);
+    const result = augmentRequestBody(effectiveBody, {
+      memories: effectiveMemories,
+      skills: currentSkills,
+      activePreset: effectiveActivePreset,
       projectContext: project?.context ?? null,
       projectId: project?.projectId ?? null,
       modelType: currentModelType,
@@ -714,16 +820,61 @@ async function handleAugmentRequestBody(data: { id?: unknown; body?: unknown }):
       messageCount: currentRequestMessageCount,
       locale: currentContentLocale,
       promptSettings: currentPromptSettings,
+      captureInspection: inspectorOn,
     });
+    // 增强耗时在 TOUCH_MEMORIES 等后续 await 之前定格（口径与 Inspector 一致）
+    const augmentDurationMs = Math.round((performance.now() - augmentStartMs) * 100) / 100;
 
     if (result) {
       currentRequestMessageCount = result.messageCount;
       if (result.usedMemoryIds.length > 0) {
         await sendRuntimeMessage({ type: 'TOUCH_MEMORIES', payload: { ids: result.usedMemoryIds } });
       }
+      // AI Insights：fire-and-forget 上报行为标量（无 prompt 文本；见 core/insights/events.ts）
+      void sendRuntimeMessage({
+        type: 'INSIGHTS_RECORD_PROMPT',
+        payload: {
+          timestamp: Date.now(),
+          host: getActiveHostId(),
+          originalLength: result.stats.originalLength,
+          finalLength: result.stats.finalLength,
+          usedMemoryIds: result.usedMemoryIds,
+          matchedSkills: result.stats.matchedSkills,
+          presetInjected: result.stats.presetInjected,
+          augmentDurationMs,
+          memorySelectDurationMs: result.stats.memorySelectDurationMs,
+          ruleDurationMs,
+        },
+      }).catch(() => undefined);
     }
 
-    postToMainWorld({
+    if (inspectorOn) {
+      const durationMs = augmentDurationMs;
+      if (result?.inspection) {
+        const snapshot = buildPromptSnapshot({
+          inspection: result.inspection,
+          usedMemoryIds: result.usedMemoryIds,
+          augmentDurationMs: durationMs,
+        });
+        recordPromptSnapshot(snapshot);
+        // 脱敏摘要转发 main world → __DWPLUS_DIAG__.lastPromptSnapshot（诊断导出用）
+        postToBridge({ type: 'PROMPT_SNAPSHOT_SUMMARY', summary: summarizeSnapshot(snapshot) });
+        console.info(
+          `[DWPLUS-INSPECTOR] snapshot #${snapshot.seq}: ` +
+          `${snapshot.originalPrompt.length}→${snapshot.finalLength} 字符, ` +
+          `skills=[${snapshot.matchedSkills.join(',')}], memories=${snapshot.usedMemoryIds.length}, ` +
+          `preset=${snapshot.presetInjected}, ${durationMs}ms`,
+        );
+      } else {
+        recordFailedAugmentation(
+          data.body.slice(0, 200),
+          durationMs,
+          result ? 'inspection 数据缺失' : 'augmentRequestBody 返回 null（body 非聊天结构或写回失败）',
+        );
+      }
+    }
+
+    postToBridge({
       type: 'AUGMENT_REQUEST_BODY_RESULT',
       id,
       ok: true,
@@ -732,7 +883,7 @@ async function handleAugmentRequestBody(data: { id?: unknown; body?: unknown }):
         : null,
     });
   } catch (error) {
-    postToMainWorld({
+    postToBridge({
       type: 'AUGMENT_REQUEST_BODY_RESULT',
       id,
       ok: false,
@@ -742,19 +893,22 @@ async function handleAugmentRequestBody(data: { id?: unknown; body?: unknown }):
 }
 
 async function resolveProjectContextForRequestBody(bodyStr: string): Promise<ResolvedProjectAugmentationContext | null> {
-  let body: { chat_session_id?: unknown; parent_message_id?: unknown; prompt?: unknown };
+  let body: unknown;
   try {
-    body = JSON.parse(bodyStr) as { chat_session_id?: unknown; parent_message_id?: unknown; prompt?: unknown };
+    body = JSON.parse(bodyStr);
   } catch {
     return null;
   }
 
-  const sessionId = typeof body.chat_session_id === 'string' && body.chat_session_id.trim()
-    ? body.chat_session_id.trim()
+  const fields = getActiveAdapter().getRequestBodyFields();
+  const sessionValue = readBodyField(body, fields.chatSessionId);
+  const sessionId = typeof sessionValue === 'string' && sessionValue.trim()
+    ? sessionValue.trim()
     : getCurrentChatSessionId();
   if (!sessionId) return null;
 
-  const bindPendingProject = body.parent_message_id === null;
+  const parentValue = readBodyField(body, fields.parentMessageId);
+  const bindPendingProject = parentValue === null || parentValue === undefined;
   const project = await sendRuntimeMessageStrict<ResolvedProjectAugmentationContext | null>({
     type: 'GET_PROJECT_CONTEXT_FOR_CONVERSATION',
     payload: {
@@ -769,31 +923,32 @@ async function resolveProjectContextForRequestBody(bodyStr: string): Promise<Res
   return project ?? null;
 }
 
-function postToMainWorld(message: Record<string, unknown>): void {
-  if (!mainWorldPort || !mainWorldBridgeReady) {
-    pendingMainWorldMessages.push(message);
-    return;
-  }
-  mainWorldPort.postMessage({ source: CONTENT_SOURCE, ...message });
-}
 
-function flushMainWorldMessages(): void {
-  if (!mainWorldPort || !mainWorldBridgeReady) return;
-  while (pendingMainWorldMessages.length > 0) {
-    const message = pendingMainWorldMessages.shift()!;
-    mainWorldPort.postMessage({ source: CONTENT_SOURCE, ...message });
-  }
-}
 
 async function loadAndSyncRuntimeState() {
-  const [memories, skills, activePreset, modelType, toolDescriptors, promptSettings] = await Promise.all([
+  const [memories, skills, activePreset, modelType, toolDescriptors, promptSettings, ruleConfig, presets] = await Promise.all([
     sendRuntimeMessage<Memory[]>({ type: 'GET_MEMORIES' }),
     sendRuntimeMessage<Skill[]>({ type: 'GET_SKILLS' }),
     sendRuntimeMessage<SystemPromptPreset | null>({ type: 'GET_ACTIVE_PRESET' }),
     sendRuntimeMessage<ModelType>({ type: 'GET_MODEL_TYPE' }),
     sendRuntimeMessage<ToolDescriptor[]>({ type: 'GET_TOOL_DESCRIPTORS' }),
     sendRuntimeMessage<PromptInjectionSettings>({ type: 'GET_PROMPT_INJECTION_SETTINGS' }),
+    sendRuntimeMessage<RuleEngineConfig>({ type: 'GET_RULE_ENGINE_CONFIG' }),
+    sendRuntimeMessage<SystemPromptPreset[]>({ type: 'GET_PRESETS' }),
   ]);
+
+  // Rule Engine 副本（校验兜底：坏数据按空配置运行）
+  currentRuleConfig = ruleConfig && validateRuleEngineConfig(ruleConfig).ok
+    ? ruleConfig
+    : EMPTY_RULE_ENGINE_CONFIG;
+  currentPresets = presets ?? [];
+
+  if (typeof console !== 'undefined' && console.info) {
+    console.info(
+      `[DWPLUS] loadAndSyncRuntimeState: memories=${memories?.length ?? 0}, skills=${skills?.length ?? 0}, ` +
+      `toolDescriptors=${toolDescriptors?.length ?? 0}. Sending SYNC_HOOK_STATE to main world.`,
+    );
+  }
 
   syncToMainWorld(
     memories ?? [],
@@ -851,7 +1006,9 @@ function invalidateExtensionContext() {
   backgroundPatchObserver?.disconnect();
   backgroundPatchObserver = null;
   removePet();
-  stopDeepSeekThemeSync();
+  if (getActiveFeatures(window.location.href).themeSync) {
+    stopThemeSync();
+  }
   if (restoredRenderTimer) {
     clearTimeout(restoredRenderTimer);
     restoredRenderTimer = null;
@@ -879,25 +1036,7 @@ function invalidateExtensionContext() {
   contentUxPolishController = null;
 }
 
-/** Isolated world writes captured DeepSeek request headers to chrome.storage. */
-async function persistDeepSeekClientHeaders(capturedHeaders?: Record<string, string> | null): Promise<boolean> {
-  try {
-    const headers = capturedHeaders ?? createClientHeaders();
-    if (headers) {
-      rememberDeepSeekClientHeaders(headers);
-      const saved = await saveClientHeadersToStorage();
-      if (!saved) return false;
-      // Ask the sidepanel to re-check login status.
-      chrome.runtime.sendMessage({ type: 'AUTH_STATUS_CHANGED' }).catch(() => {});
-      return true;
-    }
-  } catch (error) {
-    if (isExtensionInvalidatedError(error)) {
-      invalidateExtensionContext();
-    }
-  }
-  return false;
-}
+
 
 function startConversationExportActionInjector() {
   injectConversationExportActionStyles();
@@ -1015,7 +1154,7 @@ function getHostActionControls(root: ParentNode): HTMLElement[] {
 function isOfficialActionControlCandidate(control: HTMLElement, responseHost: Element): boolean {
   if (control.classList.contains(EXPORT_ACTION_CLASS)) return false;
   if (responseHost.contains(control)) return false;
-  if (control.closest('.dpp-tool-block, .dpp-agent-container')) return false;
+  if (control.closest('.dwplus-tool-block, .dwplus-agent-container')) return false;
   if (!isVisibleElement(control)) return false;
 
   const rect = control.getBoundingClientRect();
@@ -1064,7 +1203,7 @@ function findGlobalAssistantActionRows(): HTMLElement[] {
 
 function isGlobalActionControlCandidate(control: HTMLElement): boolean {
   if (control.classList.contains(EXPORT_ACTION_CLASS)) return false;
-  if (control.closest('.dpp-tool-block, .dpp-agent-container')) return false;
+  if (control.closest('.dwplus-tool-block, .dwplus-agent-container')) return false;
   if (control.closest('aside, nav, header, [role="navigation"], [role="banner"]')) return false;
   if (findHostInputBox()?.contains(control)) return false;
   if (!isVisibleElement(control)) return false;
@@ -1133,7 +1272,7 @@ function ensureConversationExportButton(row: HTMLElement, sessionId: string): HT
   }
 
   placeConversationExportButton(row, button);
-  button.dataset.dppExportSessionId = sessionId;
+  button.dataset.dwplusExportSessionId = sessionId;
   applyConversationExportButtonStatus(button, activeConversationExportId ? 'running' : 'idle');
   return button;
 }
@@ -1192,13 +1331,13 @@ function showConversationExportMenu(button: HTMLButtonElement) {
 
   const form = document.createElement('form');
   const title = document.createElement('div');
-  title.className = 'dpp-export-menu-title';
+  title.className = 'dwplus-export-menu-title';
   title.textContent = contentT('content.export.formatTitle');
   form.appendChild(title);
 
   for (const option of CONVERSATION_EXPORT_FORMAT_OPTIONS) {
     const label = document.createElement('label');
-    label.className = 'dpp-export-menu-option';
+    label.className = 'dwplus-export-menu-option';
     const input = document.createElement('input');
     input.type = 'checkbox';
     input.name = 'format';
@@ -1211,7 +1350,7 @@ function showConversationExportMenu(button: HTMLButtonElement) {
   }
 
   const actions = document.createElement('div');
-  actions.className = 'dpp-export-menu-actions';
+  actions.className = 'dwplus-export-menu-actions';
   const cancel = document.createElement('button');
   cancel.type = 'button';
   cancel.textContent = contentT('common.cancel');
@@ -1492,7 +1631,7 @@ function injectConversationExportActionStyles() {
       opacity: 0.68;
     }
     .${EXPORT_ACTION_CLASS}[data-status="running"] svg {
-      animation: dpp-export-pulse 0.9s ease-in-out infinite;
+      animation: dwplus-export-pulse 0.9s ease-in-out infinite;
     }
     .${EXPORT_ACTION_CLASS} svg {
       width: 18px;
@@ -1516,13 +1655,13 @@ function injectConversationExportActionStyles() {
     .${EXPORT_ACTION_MENU_CLASS} form {
       margin: 0;
     }
-    .${EXPORT_ACTION_MENU_CLASS} .dpp-export-menu-title {
+    .${EXPORT_ACTION_MENU_CLASS} .dwplus-export-menu-title {
       margin: 0 0 8px;
       color: #475569;
       font-size: 12px;
       font-weight: 600;
     }
-    .${EXPORT_ACTION_MENU_CLASS} .dpp-export-menu-option {
+    .${EXPORT_ACTION_MENU_CLASS} .dwplus-export-menu-option {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -1532,7 +1671,7 @@ function injectConversationExportActionStyles() {
       cursor: pointer;
       user-select: none;
     }
-    .${EXPORT_ACTION_MENU_CLASS} .dpp-export-menu-option:hover {
+    .${EXPORT_ACTION_MENU_CLASS} .dwplus-export-menu-option:hover {
       background: rgba(77, 107, 254, 0.08);
     }
     .${EXPORT_ACTION_MENU_CLASS} input {
@@ -1541,7 +1680,7 @@ function injectConversationExportActionStyles() {
       margin: 0;
       accent-color: #4d6bfe;
     }
-    .${EXPORT_ACTION_MENU_CLASS} .dpp-export-menu-actions {
+    .${EXPORT_ACTION_MENU_CLASS} .dwplus-export-menu-actions {
       display: flex;
       justify-content: flex-end;
       gap: 8px;
@@ -1610,14 +1749,14 @@ function injectConversationExportActionStyles() {
         color: #f9fafb;
         box-shadow: 0 16px 38px rgba(0, 0, 0, 0.38);
       }
-      .${EXPORT_ACTION_MENU_CLASS} .dpp-export-menu-title,
+      .${EXPORT_ACTION_MENU_CLASS} .dwplus-export-menu-title,
       .${EXPORT_ACTION_MENU_CLASS} button[type="button"] {
         color: #cbd5e1;
       }
-      .${EXPORT_ACTION_MENU_CLASS} .dpp-export-menu-option:hover {
+      .${EXPORT_ACTION_MENU_CLASS} .dwplus-export-menu-option:hover {
         background: rgba(96, 165, 250, 0.14);
       }
-      .${EXPORT_ACTION_MENU_CLASS} .dpp-export-menu-actions {
+      .${EXPORT_ACTION_MENU_CLASS} .dwplus-export-menu-actions {
         border-top-color: rgba(255, 255, 255, 0.1);
       }
       .${EXPORT_ACTION_TOAST_CLASS} {
@@ -1629,7 +1768,7 @@ function injectConversationExportActionStyles() {
         color: #fca5a5;
       }
     }
-    @keyframes dpp-export-pulse {
+    @keyframes dwplus-export-pulse {
       0%, 100% { transform: translateY(0); opacity: 1; }
       50% { transform: translateY(1px); opacity: 0.62; }
     }
@@ -1637,19 +1776,7 @@ function injectConversationExportActionStyles() {
   document.head.appendChild(style);
 }
 
-function normalizeCapturedClientHeaders(value: unknown): Record<string, string> | null {
-  if (!value || typeof value !== 'object') return null;
-  const headers = value as Record<string, unknown>;
-  const authorization = headers.Authorization;
-  if (typeof authorization !== 'string' || !authorization) return null;
 
-  const normalized: Record<string, string> = { Authorization: authorization };
-  for (const [key, entry] of Object.entries(headers)) {
-    if (key === 'Authorization') continue;
-    if (typeof entry === 'string' && entry) normalized[key] = entry;
-  }
-  return normalized;
-}
 
 async function sendRuntimeMessage<T>(message: unknown): Promise<T | undefined> {
   if (!hasLiveExtensionContext()) return undefined;
@@ -1750,196 +1877,6 @@ function addRuntimeMessageListener(
   }
 }
 
-function startDeepSeekThemeSync() {
-  syncDeepSeekTheme();
-
-  themeObserver?.disconnect();
-  themeObserver = new MutationObserver(scheduleDeepSeekThemeSync);
-  observeThemeHost(document.documentElement);
-  observeThemeHost(document.body);
-  observeThemeHost(document.getElementById('root'));
-
-  themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  themeMediaListener = () => scheduleDeepSeekThemeSync();
-  themeMediaQuery.addEventListener('change', themeMediaListener);
-
-  startThemeBootstrapSync();
-}
-
-function stopDeepSeekThemeSync() {
-  themeObserver?.disconnect();
-  themeObserver = null;
-  stopThemeBootstrapSync();
-  if (themeSyncTimer) {
-    clearTimeout(themeSyncTimer);
-    themeSyncTimer = null;
-  }
-  if (themeMediaQuery && themeMediaListener) {
-    themeMediaQuery.removeEventListener('change', themeMediaListener);
-  }
-  themeMediaQuery = null;
-  themeMediaListener = null;
-}
-
-function startThemeBootstrapSync() {
-  stopThemeBootstrapSync();
-  themeBootstrapAttempts = 0;
-  themeTreeObserver = new MutationObserver(() => {
-    observeThemeTree(document.getElementById('root'));
-    scheduleDeepSeekThemeSync();
-  });
-
-  observeThemeTree(document.body);
-  observeThemeTree(document.getElementById('root'));
-  scheduleThemeBootstrapRetry();
-}
-
-function stopThemeBootstrapSync() {
-  themeTreeObserver?.disconnect();
-  themeTreeObserver = null;
-  if (themeBootstrapTimer) {
-    clearTimeout(themeBootstrapTimer);
-    themeBootstrapTimer = null;
-  }
-}
-
-function observeThemeHost(element: Element | null) {
-  if (!element || !themeObserver) return;
-  themeObserver.observe(element, {
-    attributes: true,
-    attributeFilter: ['class', 'style', 'data-theme', 'data-color-mode', 'data-mode', 'color-scheme'],
-  });
-}
-
-function observeThemeTree(element: Element | null) {
-  if (!element || !themeTreeObserver) return;
-  themeTreeObserver.observe(element, { childList: true, subtree: true });
-}
-
-function scheduleThemeBootstrapRetry() {
-  if (themeBootstrapTimer) return;
-  themeBootstrapTimer = setTimeout(() => {
-    themeBootstrapTimer = null;
-    themeBootstrapAttempts += 1;
-    syncDeepSeekTheme();
-
-    if (themeBootstrapAttempts >= THEME_BOOTSTRAP_RETRY_LIMIT) {
-      stopThemeBootstrapSync();
-      return;
-    }
-    scheduleThemeBootstrapRetry();
-  }, THEME_BOOTSTRAP_RETRY_MS);
-}
-
-function scheduleDeepSeekThemeSync() {
-  if (themeSyncTimer) clearTimeout(themeSyncTimer);
-  themeSyncTimer = setTimeout(() => {
-    themeSyncTimer = null;
-    syncDeepSeekTheme();
-  }, 50);
-}
-
-function syncDeepSeekTheme() {
-  const theme = detectHostTheme();
-  applyDeepSeekThemeClass(theme);
-  if (theme === currentDeepSeekTheme) return;
-  currentDeepSeekTheme = theme;
-  void sendRuntimeMessage({ type: 'SET_DEEPSEEK_THEME', payload: { theme } });
-}
-
-function applyDeepSeekThemeClass(theme: DeepSeekTheme) {
-  document.body.classList.toggle('dpp-theme-dark', theme === 'dark');
-  document.body.classList.toggle('dpp-theme-light', theme === 'light');
-}
-
-function detectHostTheme(): DeepSeekTheme {
-  return detectExplicitTheme() ??
-    detectBackgroundTheme() ??
-    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-}
-
-function detectExplicitTheme(): DeepSeekTheme | null {
-  const hosts = [document.documentElement, document.body, document.getElementById('root')]
-    .filter((element): element is HTMLElement => Boolean(element));
-  const attributeNames = ['data-theme', 'data-color-mode', 'data-mode', 'color-scheme'];
-
-  for (const host of hosts) {
-    for (const name of attributeNames) {
-      const theme = parseThemeText(host.getAttribute(name));
-      if (theme) return theme;
-    }
-
-    const themeFromClass = parseThemeText(typeof host.className === 'string' ? host.className : '');
-    if (themeFromClass) return themeFromClass;
-
-    const scheme = getComputedStyle(host).colorScheme.toLowerCase().trim();
-    if (scheme === 'dark' || scheme === 'light') return scheme;
-  }
-
-  return null;
-}
-
-function parseThemeText(value: string | null): DeepSeekTheme | null {
-  if (!value) return null;
-  const normalized = value.toLowerCase();
-  if (/(^|[\s_-])(dark|black|night)([\s_-]|$)/.test(normalized)) return 'dark';
-  if (/(^|[\s_-])(light|white|day)([\s_-]|$)/.test(normalized)) return 'light';
-  return null;
-}
-
-function detectBackgroundTheme(): DeepSeekTheme | null {
-  const sampled = document.elementFromPoint(
-    Math.max(0, Math.floor(window.innerWidth / 2)),
-    Math.max(0, Math.min(Math.floor(window.innerHeight / 2), 240)),
-  );
-  const candidates = [
-    sampled,
-    document.querySelector('main'),
-    document.getElementById('root'),
-    document.body,
-    document.documentElement,
-  ].filter((element): element is Element => Boolean(element));
-
-  for (const candidate of candidates) {
-    let element: Element | null = candidate;
-    while (element && element !== document.documentElement.parentElement) {
-      const theme = themeFromBackgroundColor(getComputedStyle(element).backgroundColor);
-      if (theme) return theme;
-      element = element.parentElement;
-    }
-  }
-
-  return null;
-}
-
-function themeFromBackgroundColor(color: string): DeepSeekTheme | null {
-  const rgb = parseRgbColor(color);
-  if (!rgb || rgb.alpha < 0.2) return null;
-  return relativeLuminance(rgb.red, rgb.green, rgb.blue) < 0.45 ? 'dark' : 'light';
-}
-
-function parseRgbColor(color: string): { red: number; green: number; blue: number; alpha: number } | null {
-  const match = color.match(/^rgba?\((.+)\)$/);
-  if (!match) return null;
-
-  const parts = match[1]
-    .replace(/\//g, ' ')
-    .split(/[\s,]+/)
-    .map((part) => part.trim())
-    .filter(Boolean);
-  const [red, green, blue] = parts.slice(0, 3).map(Number);
-  const alpha = parts[3] === undefined ? 1 : Number(parts[3]);
-  if ([red, green, blue, alpha].some((part) => Number.isNaN(part))) return null;
-  return { red, green, blue, alpha };
-}
-
-function relativeLuminance(red: number, green: number, blue: number): number {
-  const [r, g, b] = [red, green, blue].map((channel) => {
-    const value = channel / 255;
-    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
 
 function startInlineAgentIfNeeded(
   complete: ResponseCompletePayload,
@@ -1984,12 +1921,12 @@ function startInlineAgentIfNeeded(
         d.name.startsWith('browser_'),
     ),
     locale: currentContentLocale,
-    powWasmUrl: chrome.runtime.getURL(DEEPSEEK_POW_WASM_PATH),
+    powWasmUrl: chrome.runtime.getURL(POW_WASM_PATH),
   };
 
   injectInlineAgentStyles();
   const container = createAgentContainer();
-  container.setAttribute('data-dpp-agent-loop-id', loopId);
+  container.setAttribute('data-dwplus-agent-loop-id', loopId);
 
   const messages = getAssistantMessages();
   const anchorContent = getInlineAgentAnchorContent(complete);
@@ -2248,7 +2185,7 @@ function handleAgentLoopComplete(msg: InlineAgentLoopCompleteMsg): void {
       finalText,
     }), { immediate: true });
   } catch (err) {
-    console.error('[DeepSeek++] handleAgentLoopComplete error:', err);
+    console.error('[dwplus] handleAgentLoopComplete error:', err);
   } finally {
     // ALWAYS clean up state �?even if rendering throws, the next agent loop
     // must start fresh. Otherwise subsequent searches silently fail.
@@ -2260,7 +2197,7 @@ function handleAgentLoopComplete(msg: InlineAgentLoopCompleteMsg): void {
     inlineAgentContainerObserver = null;
 
     // Note: no silent refresh �?it breaks the extension's tool execution state.
-    // After manual page refresh, DeepSeek's native renderer will show the
+    // After manual page refresh, the native renderer will show the
     // continuation message with proper Markdown.
   }
 }
@@ -2278,8 +2215,8 @@ function appendInlineAgentFinalAnswer(container: HTMLElement, text: string, loop
 
   const textDiv = document.createElement('div');
   textDiv.innerHTML = renderInlineMarkdown(renderText);
-  textDiv.setAttribute('data-dpp-body-text', 'true');
-  textDiv.setAttribute('data-dpp-agent-loop-id', loopId);
+  textDiv.setAttribute('data-dwplus-body-text', 'true');
+  textDiv.setAttribute('data-dwplus-agent-loop-id', loopId);
   parent.appendChild(textDiv);
 }
 
@@ -2301,7 +2238,7 @@ function handleAgentLoopError(msg: InlineAgentLoopErrorMsg): void {
       error: msg.error,
     }), { immediate: true });
   } catch (err) {
-    console.error('[DeepSeek++] handleAgentLoopError:', err);
+    console.error('[dwplus] handleAgentLoopError:', err);
   } finally {
     inlineAgentLoopId = null;
     inlineAgentContainer = null;
@@ -2610,7 +2547,7 @@ function isTokenSpeedIndicatorMountedOnCurrentInput(): boolean {
 function removeTokenSpeedIndicator() {
   const parent = tokenSpeedEl?.parentElement;
   tokenSpeedEl?.remove();
-  parent?.removeAttribute('data-dpp-token-speed-anchor');
+  parent?.removeAttribute('data-dwplus-token-speed-anchor');
   tokenSpeedEl = null;
 }
 
@@ -2626,12 +2563,12 @@ function ensureTokenSpeedIndicator(): HTMLElement | null {
 
   const previousParent = tokenSpeedEl?.parentElement;
   tokenSpeedEl?.remove();
-  previousParent?.removeAttribute('data-dpp-token-speed-anchor');
-  inputBox.setAttribute('data-dpp-token-speed-anchor', '');
+  previousParent?.removeAttribute('data-dwplus-token-speed-anchor');
+  inputBox.setAttribute('data-dwplus-token-speed-anchor', '');
 
   const badge = document.createElement('div');
   badge.id = TOKEN_SPEED_BADGE_ID;
-  badge.className = 'dpp-token-speed-badge';
+  badge.className = 'dwplus-token-speed-badge';
   badge.setAttribute('role', 'status');
   badge.setAttribute('aria-live', 'polite');
   inputBox.appendChild(badge);
@@ -2645,11 +2582,11 @@ function injectTokenSpeedStyles() {
   const style = document.createElement('style');
   style.id = TOKEN_SPEED_STYLE_ID;
   style.textContent = `
-    [data-dpp-token-speed-anchor] {
+    [data-dwplus-token-speed-anchor] {
       position: relative !important;
     }
 
-    .dpp-token-speed-badge {
+    .dwplus-token-speed-badge {
       position: absolute;
       top: 8px;
       right: 12px;
@@ -2671,14 +2608,14 @@ function injectTokenSpeedStyles() {
       -webkit-backdrop-filter: blur(10px);
     }
 
-    body.dpp-theme-dark .dpp-token-speed-badge {
+    body.dwplus-theme-dark .dwplus-token-speed-badge {
       border-color: rgba(125, 145, 255, 0.28);
       background: rgba(22, 26, 36, 0.86);
       color: #d1d7e6;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
     }
 
-    .dpp-token-speed-badge[data-active='false'] {
+    .dwplus-token-speed-badge[data-active='false'] {
       opacity: 0.72;
     }
   `;
@@ -2710,7 +2647,7 @@ function syncToMainWorld(
   toolOpenTagRe = buildToolOpenTagRegex(toolDescriptors);
   toolMarkerRe = buildToolMarkerRegex(toolDescriptors);
 
-  postToMainWorld({
+  postToBridge({
     type: 'SYNC_HOOK_STATE',
     toolDescriptors,
     skillSummaries: skills
@@ -2806,8 +2743,8 @@ function createInlineAgentTrace(
 }
 
 function getInlineAgentStepText(step: HTMLElement): string {
-  const body = step.querySelector<HTMLElement>('.dpp-agent-step-body');
-  return (body?.getAttribute('data-dpp-raw-text') ?? body?.textContent ?? '').trim();
+  const body = step.querySelector<HTMLElement>('.dwplus-agent-step-body');
+  return (body?.getAttribute('data-dwplus-raw-text') ?? body?.textContent ?? '').trim();
 }
 
 function updateActiveInlineAgentTrace(
@@ -3376,8 +3313,8 @@ function previewUnknown(value: unknown): string {
 
 // --- Auto permission request for web_fetch ---
 
-const PERMISSION_BANNER_ID = 'dpp-permission-banner';
-const PERMISSION_BANNER_STYLE_ID = 'dpp-permission-banner-css';
+const PERMISSION_BANNER_ID = 'dwplus-permission-banner';
+const PERMISSION_BANNER_STYLE_ID = 'dwplus-permission-banner-css';
 const PERMISSION_BANNER_TIMEOUT_MS = 60_000;
 
 interface ActivePermissionRequest {
@@ -3405,8 +3342,8 @@ async function requestWebFetchPermission(url: string): Promise<boolean> {
       const session: ActivePermissionRequest = { banner, resolve, timeoutId: null };
       activePermissionRequest = session;
 
-      const grantBtn = banner.querySelector<HTMLButtonElement>('.dpp-permission-grant');
-      const denyBtn = banner.querySelector<HTMLButtonElement>('.dpp-permission-deny');
+      const grantBtn = banner.querySelector<HTMLButtonElement>('.dwplus-permission-grant');
+      const denyBtn = banner.querySelector<HTMLButtonElement>('.dwplus-permission-deny');
       if (!grantBtn || !denyBtn) {
         finishPermissionRequest(session, false);
         return;
@@ -3464,14 +3401,14 @@ function createPermissionBanner(origin: string): HTMLElement | null {
 
   const banner = document.createElement('div');
   banner.id = PERMISSION_BANNER_ID;
-  banner.className = 'dpp-permission-banner';
+  banner.className = 'dwplus-permission-banner';
   banner.innerHTML = `
-    <span class="dpp-permission-text">${contentT('content.permission.webFetch', {
+    <span class="dwplus-permission-text">${contentT('content.permission.webFetch', {
       origin: `<strong>${escapeHtml(origin)}</strong>`,
     })}</span>
-    <div class="dpp-permission-actions">
-      <button type="button" class="dpp-permission-deny">${contentT('content.permission.deny')}</button>
-      <button type="button" class="dpp-permission-grant">${contentT('content.permission.grant')}</button>
+    <div class="dwplus-permission-actions">
+      <button type="button" class="dwplus-permission-deny">${contentT('content.permission.deny')}</button>
+      <button type="button" class="dwplus-permission-grant">${contentT('content.permission.grant')}</button>
     </div>
   `;
 
@@ -3488,7 +3425,7 @@ function injectPermissionBannerStyles() {
   const style = document.createElement('style');
   style.id = PERMISSION_BANNER_STYLE_ID;
   style.textContent = `
-    .dpp-permission-banner {
+    .dwplus-permission-banner {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -3496,34 +3433,34 @@ function injectPermissionBannerStyles() {
       padding: 10px 16px;
       margin: 8px 12px;
       border-radius: 10px;
-      background: var(--dpp-ui-surface);
-      border: 1px solid var(--dpp-ui-accent);
+      background: var(--dwplus-ui-surface);
+      border: 1px solid var(--dwplus-ui-accent);
       box-shadow: 0 2px 12px rgba(77, 107, 254, 0.15);
       font: 13px/1.4 -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
-      color: var(--dpp-ui-text);
+      color: var(--dwplus-ui-text);
       animation: dppPermFadeIn 0.2s ease-out;
       z-index: 100;
     }
 
-    .dpp-permission-text {
+    .dwplus-permission-text {
       flex: 1;
       min-width: 0;
     }
 
-    .dpp-permission-text strong {
-      color: var(--dpp-ui-accent);
+    .dwplus-permission-text strong {
+      color: var(--dwplus-ui-accent);
     }
 
-    .dpp-permission-actions {
+    .dwplus-permission-actions {
       display: flex;
       gap: 8px;
       flex-shrink: 0;
     }
 
-    .dpp-permission-actions button {
+    .dwplus-permission-actions button {
       padding: 5px 14px;
       border-radius: 8px;
-      border: 1px solid var(--dpp-ui-border);
+      border: 1px solid var(--dwplus-ui-border);
       font: inherit;
       font-size: 12px;
       font-weight: 500;
@@ -3531,29 +3468,29 @@ function injectPermissionBannerStyles() {
       transition: all 0.15s ease;
     }
 
-    .dpp-permission-deny {
-      background: var(--dpp-ui-surface-muted);
-      color: var(--dpp-ui-text-muted);
+    .dwplus-permission-deny {
+      background: var(--dwplus-ui-surface-muted);
+      color: var(--dwplus-ui-text-muted);
     }
 
-    .dpp-permission-deny:hover {
-      background: var(--dpp-ui-danger-panel);
-      color: var(--dpp-ui-error);
-      border-color: var(--dpp-ui-error);
+    .dwplus-permission-deny:hover {
+      background: var(--dwplus-ui-danger-panel);
+      color: var(--dwplus-ui-error);
+      border-color: var(--dwplus-ui-error);
     }
 
-    .dpp-permission-grant {
-      background: var(--dpp-ui-accent);
+    .dwplus-permission-grant {
+      background: var(--dwplus-ui-accent);
       color: #fff;
-      border-color: var(--dpp-ui-accent);
+      border-color: var(--dwplus-ui-accent);
     }
 
-    .dpp-permission-grant:hover {
+    .dwplus-permission-grant:hover {
       opacity: 0.9;
     }
 
-    .dpp-permission-grant:disabled,
-    .dpp-permission-deny[disabled] {
+    .dwplus-permission-grant:disabled,
+    .dwplus-permission-deny[disabled] {
       opacity: 0.5;
       cursor: not-allowed;
     }
@@ -3581,43 +3518,43 @@ function injectToolBlockStyles() {
   const style = document.createElement('style');
   style.id = TOOL_BLOCK_STYLE_ID;
   style.textContent = `
-    .dpp-tool-block {
+    .dwplus-tool-block {
       margin-top: 8px;
     }
-    .dpp-tool-block-header {
+    .dwplus-tool-block-header {
       display: flex;
       align-items: center;
       gap: 4px;
       cursor: pointer;
       user-select: none;
-      color: var(--dpp-ui-text-muted);
+      color: var(--dwplus-ui-text-muted);
       font-size: 14px;
       line-height: 20px;
     }
-    .dpp-tool-block-header:hover {
-      color: var(--dpp-ui-text);
+    .dwplus-tool-block-header:hover {
+      color: var(--dwplus-ui-text);
     }
-    .dpp-tool-block-icon {
+    .dwplus-tool-block-icon {
       width: 16px;
       height: 16px;
-      color: var(--dpp-ui-accent);
+      color: var(--dwplus-ui-accent);
       flex-shrink: 0;
     }
-    .dpp-tool-block-title {
+    .dwplus-tool-block-title {
       font-weight: 500;
       color: inherit;
     }
-    .dpp-tool-block-chevron {
+    .dwplus-tool-block-chevron {
       width: 12px;
       height: 12px;
       color: inherit;
       transition: transform 0.2s ease;
       margin-left: 2px;
     }
-    .dpp-tool-block[data-collapsed="true"] .dpp-tool-block-chevron {
+    .dwplus-tool-block[data-collapsed="true"] .dwplus-tool-block-chevron {
       transform: rotate(-90deg);
     }
-    .dpp-tool-block-body {
+    .dwplus-tool-block-body {
       overflow: hidden;
       transition: max-height 0.25s ease, opacity 0.2s ease;
       max-height: 500px;
@@ -3625,51 +3562,51 @@ function injectToolBlockStyles() {
       padding-left: 20px;
       margin-top: 6px;
     }
-    .dpp-tool-block[data-collapsed="true"] .dpp-tool-block-body {
+    .dwplus-tool-block[data-collapsed="true"] .dwplus-tool-block-body {
       max-height: 0;
       opacity: 0;
       margin-top: 0;
     }
-    .dpp-tool-block-item {
+    .dwplus-tool-block-item {
       display: flex;
       align-items: flex-start;
       gap: 8px;
       padding: 3px 0;
       font-size: 13px;
-      color: var(--dpp-ui-text);
+      color: var(--dwplus-ui-text);
       line-height: 1.5;
     }
-    .dpp-tool-block-dot {
+    .dwplus-tool-block-dot {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--dpp-ui-accent);
+      background: var(--dwplus-ui-accent);
       flex-shrink: 0;
       margin-top: 7px;
     }
-    .dpp-tool-block-item-text {
+    .dwplus-tool-block-item-text {
       flex: 1;
       min-width: 0;
     }
-    .dpp-tool-block-item-name {
+    .dwplus-tool-block-item-name {
       font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
       font-size: 12px;
-      color: var(--dpp-ui-accent);
+      color: var(--dwplus-ui-accent);
     }
-    .dpp-tool-block-item-status {
-      color: var(--dpp-ui-success);
+    .dwplus-tool-block-item-status {
+      color: var(--dwplus-ui-success);
       margin-left: 6px;
     }
-    .dpp-tool-block-item-status.error {
-      color: var(--dpp-ui-error);
+    .dwplus-tool-block-item-status.error {
+      color: var(--dwplus-ui-error);
     }
-    .dpp-tool-block-item-detail {
+    .dwplus-tool-block-item-detail {
       margin-top: 4px;
       padding: 6px 8px;
       max-height: min(52vh, 420px);
       border-radius: 6px;
-      background: var(--dpp-ui-accent-panel);
-      color: var(--dpp-ui-text-muted);
+      background: var(--dwplus-ui-accent-panel);
+      color: var(--dwplus-ui-text-muted);
       font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
       font-size: 12px;
       line-height: 1.45;
@@ -3678,30 +3615,30 @@ function injectToolBlockStyles() {
       overflow-wrap: anywhere;
       overscroll-behavior: contain;
     }
-    .dpp-manual-continuation {
+    .dwplus-manual-continuation {
       margin: 10px 0 0 20px;
       padding: 10px 12px;
-      border-left: 2px solid var(--dpp-ui-accent);
+      border-left: 2px solid var(--dwplus-ui-accent);
       border-radius: 6px;
-      background: var(--dpp-ui-accent-panel);
-      color: var(--dpp-ui-text);
+      background: var(--dwplus-ui-accent-panel);
+      color: var(--dwplus-ui-text);
       font-size: 14px;
       line-height: 1.65;
     }
-    .dpp-manual-continuation.error {
-      border-left-color: var(--dpp-ui-error);
-      background: var(--dpp-ui-danger-panel);
+    .dwplus-manual-continuation.error {
+      border-left-color: var(--dwplus-ui-error);
+      background: var(--dwplus-ui-danger-panel);
     }
-    .dpp-manual-continuation-title {
+    .dwplus-manual-continuation-title {
       margin-bottom: 6px;
-      color: var(--dpp-ui-accent);
+      color: var(--dwplus-ui-accent);
       font-size: 12px;
       font-weight: 600;
     }
-    .dpp-manual-continuation.error .dpp-manual-continuation-title {
-      color: var(--dpp-ui-error);
+    .dwplus-manual-continuation.error .dwplus-manual-continuation-title {
+      color: var(--dwplus-ui-error);
     }
-    .dpp-manual-continuation-content {
+    .dwplus-manual-continuation-content {
       white-space: pre-wrap;
       overflow-wrap: anywhere;
     }
@@ -3712,19 +3649,19 @@ function injectToolBlockStyles() {
 function createToolBlockShell(options?: { id?: string; restoreId?: string; collapsed?: boolean }): HTMLElement {
   const block = document.createElement('div');
   if (options?.id) block.id = options.id;
-  if (options?.restoreId) block.setAttribute('data-dpp-tool-key', options.restoreId);
-  block.className = 'dpp-tool-block';
+  if (options?.restoreId) block.setAttribute('data-dwplus-tool-key', options.restoreId);
+  block.className = 'dwplus-tool-block';
   block.setAttribute('data-collapsed', options?.collapsed ? 'true' : 'false');
   block.innerHTML = `
-    <div class="dpp-tool-block-header">
-      <svg class="dpp-tool-block-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-      <span class="dpp-tool-block-title"></span>
-      <svg class="dpp-tool-block-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    <div class="dwplus-tool-block-header">
+      <svg class="dwplus-tool-block-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      <span class="dwplus-tool-block-title"></span>
+      <svg class="dwplus-tool-block-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-    <div class="dpp-tool-block-body"></div>
+    <div class="dwplus-tool-block-body"></div>
   `;
 
-  block.querySelector('.dpp-tool-block-header')!.addEventListener('click', () => {
+  block.querySelector('.dwplus-tool-block-header')!.addEventListener('click', () => {
     const collapsed = block.getAttribute('data-collapsed') === 'true';
     block.setAttribute('data-collapsed', collapsed ? 'false' : 'true');
   });
@@ -3734,38 +3671,38 @@ function createToolBlockShell(options?: { id?: string; restoreId?: string; colla
 
 function updateToolBlockContent(block: HTMLElement, executions: ToolExecutionRecord[]) {
   const count = executions.length;
-  const title = block.querySelector('.dpp-tool-block-title')!;
+  const title = block.querySelector('.dwplus-tool-block-title')!;
   title.textContent = contentT('content.toolBlock.title', { count });
 
-  const body = block.querySelector('.dpp-tool-block-body')!;
+  const body = block.querySelector('.dwplus-tool-block-body')!;
   body.innerHTML = '';
   for (const exec of executions) {
     const item = document.createElement('div');
-    item.className = 'dpp-tool-block-item';
+    item.className = 'dwplus-tool-block-item';
     item.innerHTML = `
-      <div class="dpp-tool-block-dot"></div>
-      <div class="dpp-tool-block-item-text">
+      <div class="dwplus-tool-block-dot"></div>
+      <div class="dwplus-tool-block-item-text">
         <div>
-          <span class="dpp-tool-block-item-name"></span>
-          <span class="dpp-tool-block-item-status ${exec.result.ok ? '' : 'error'}"></span>
+          <span class="dwplus-tool-block-item-name"></span>
+          <span class="dwplus-tool-block-item-status ${exec.result.ok ? '' : 'error'}"></span>
         </div>
       </div>
     `;
-    const nameEl = item.querySelector('.dpp-tool-block-item-name')!;
-    const statusEl = item.querySelector('.dpp-tool-block-item-status')!;
+    const nameEl = item.querySelector('.dwplus-tool-block-item-name')!;
+    const statusEl = item.querySelector('.dwplus-tool-block-item-status')!;
     nameEl.textContent = formatToolExecutionName(exec);
     statusEl.textContent = exec.result.summary;
     const detail = formatToolResultDetail(exec.result);
     if (detail) {
       const detailEl = document.createElement('div');
-      detailEl.className = 'dpp-tool-block-item-detail';
+      detailEl.className = 'dwplus-tool-block-item-detail';
       const rendered = renderToolResultWithRegistry({
         target: detailEl,
         result: exec.result,
         sendMessage: sendRuntimeMessage,
       });
       if (!rendered) detailEl.textContent = detail;
-      item.querySelector('.dpp-tool-block-item-text')!.appendChild(detailEl);
+      item.querySelector('.dwplus-tool-block-item-text')!.appendChild(detailEl);
     }
     body.appendChild(item);
   }
@@ -3852,7 +3789,7 @@ function renderToolBlock(session: ActiveToolBlockSession = getActiveToolBlockSes
   const existing = findRestoredToolBlock(session.id) as HTMLElement | null;
   if (existing) {
     toolBlockEl = existing;
-  } else if (!toolBlockEl || toolBlockEl.getAttribute('data-dpp-tool-key') !== session.id) {
+  } else if (!toolBlockEl || toolBlockEl.getAttribute('data-dwplus-tool-key') !== session.id) {
     toolBlockEl = createToolBlockShell({ id: TOOL_BLOCK_ID, restoreId: session.id });
   }
 
@@ -3955,8 +3892,8 @@ function renderRestoredInlineAgentTraces(): number {
 }
 
 function findRestoredInlineAgentTrace(id: string): Element | null {
-  for (const container of document.querySelectorAll('.dpp-agent-container[data-dpp-agent-trace-key]')) {
-    if (container.getAttribute('data-dpp-agent-trace-key') === id) return container;
+  for (const container of document.querySelectorAll('.dwplus-agent-container[data-dwplus-agent-trace-key]')) {
+    if (container.getAttribute('data-dwplus-agent-trace-key') === id) return container;
   }
   return null;
 }
@@ -4042,8 +3979,8 @@ function findAssistantMessageByContentSnippet(
 function createRestoredInlineAgentContainer(trace: InlineAgentTraceRecord): HTMLElement {
   const container = createAgentContainer();
   container.setAttribute('data-restored', 'true');
-  container.setAttribute('data-dpp-agent-trace-key', trace.id);
-  container.setAttribute('data-dpp-agent-loop-id', trace.loopId);
+  container.setAttribute('data-dwplus-agent-trace-key', trace.id);
+  container.setAttribute('data-dwplus-agent-loop-id', trace.loopId);
 
   for (const step of [...trace.steps].sort((a, b) => a.index - b.index)) {
     const stepEl = createAgentStepElement(step.index, undefined, getAgentRendererLabels());
@@ -4090,8 +4027,8 @@ function mountRestoredInlineAgentContainer(
 }
 
 function findRestoredToolBlock(id: string): Element | null {
-  for (const block of document.querySelectorAll('.dpp-tool-block[data-dpp-tool-key]')) {
-    if (block.getAttribute('data-dpp-tool-key') === id) return block;
+  for (const block of document.querySelectorAll('.dwplus-tool-block[data-dwplus-tool-key]')) {
+    if (block.getAttribute('data-dwplus-tool-key') === id) return block;
   }
   return null;
 }
@@ -4161,10 +4098,10 @@ function hasRestoreOmittedPayload(value: unknown): boolean {
 
   const record = value as Record<string, unknown>;
   if (
-    record.__dppRestoreTruncatedText === true ||
-    typeof record.__dppRestoreOmittedItems === 'number' ||
-    typeof record.__dppRestoreOmittedKeys === 'number' ||
-    record.__dppRestoreMaxDepth === true
+    record.__dwplusRestoreTruncatedText === true ||
+    typeof record.__dwplusRestoreOmittedItems === 'number' ||
+    typeof record.__dwplusRestoreOmittedKeys === 'number' ||
+    record.__dwplusRestoreMaxDepth === true
   ) {
     return true;
   }
@@ -4188,13 +4125,13 @@ function getAssistantResponseHost(message: Element): Element {
   const hosts = getAssistantContentHosts(message);
   if (hosts.length === 0) return message;
 
-  // DeepSeek reuses the same content class for reasoning and final-answer blocks.
+  // Host reuses the same content class for reasoning and final-answer blocks.
   const responseHosts = hosts.filter((host) => !looksLikeReasoningContentHost(host));
   return getLastElement(responseHosts) ?? getLastElement(hosts) ?? message;
 }
 
 function getAssistantContentHosts(message: Element): HTMLElement[] {
-  // 根据当前宿主动态选择选择器（豆包 vs DeepSeek）
+  // 根据当前宿主动态选择选择器（由 host adapter 提供）
   const selector = getAssistantResponseSelector();
   return Array.from(message.querySelectorAll<HTMLElement>(selector))
     .filter((host) => !host.parentElement?.closest(selector));
@@ -4348,7 +4285,7 @@ function addedNodeMayContainCleanableText(node: Node): boolean {
   }
 
   if (!(node instanceof Element)) return false;
-  if (node.closest('.dpp-tool-block, .dpp-agent-container, script, style, textarea, input, [contenteditable="true"]')) {
+  if (node.closest('.dwplus-tool-block, .dwplus-agent-container, script, style, textarea, input, [contenteditable="true"]')) {
     return false;
   }
 
@@ -4405,7 +4342,7 @@ function getToolCleanupRoots(): Element[] {
   const activeMessage = toolBlockEl?.closest(getMessageRowSelector());
   if (activeMessage) roots.add(activeMessage);
 
-  for (const block of document.querySelectorAll(`#${TOOL_BLOCK_ID}, .dpp-tool-block`)) {
+  for (const block of document.querySelectorAll(`#${TOOL_BLOCK_ID}, .dwplus-tool-block`)) {
     const message = block.closest(getMessageRowSelector());
     if (message) roots.add(message);
   }
@@ -4434,7 +4371,7 @@ function stripToolCallTextNodes(root: Element) {
       const parent = node.parentElement;
       if (!parent) return NodeFilter.FILTER_REJECT;
       if (
-        parent.closest('.dpp-tool-block') ||
+        parent.closest('.dwplus-tool-block') ||
         parent.closest('script, style, textarea, input, [contenteditable="true"]')
       ) {
         return NodeFilter.FILTER_REJECT;
@@ -4517,7 +4454,7 @@ function pruneEmptyToolContainers(start: HTMLElement, boundary: Element) {
     const parent: HTMLElement | null = el.parentElement;
     const hasVisibleText = (el.textContent ?? '').trim().length > 0;
     const hasProtectedChild = Boolean(
-      el.querySelector('.dpp-tool-block, img, svg, canvas, video, button, input, textarea'),
+      el.querySelector('.dwplus-tool-block, img, svg, canvas, video, button, input, textarea'),
     );
 
     if (!hasVisibleText && !hasProtectedChild) {
@@ -4662,7 +4599,7 @@ function isTightPromptInputFrame(
 }
 
 function patchContainerBackgrounds() {
-  if (!document.body.classList.contains('dpp-bg-active')) return;
+  if (!document.body.classList.contains('dwplus-bg-active')) return;
   const root = document.getElementById('root');
   if (!root) return;
 
@@ -4676,14 +4613,14 @@ function patchContainerBackgrounds() {
   while (el && el !== root && el !== document.body) {
     const style = getComputedStyle(el);
     if (hasVisibleBackground(style)) {
-      (el as HTMLElement).setAttribute('data-dpp-transparent', '');
+      (el as HTMLElement).setAttribute('data-dwplus-transparent', '');
     }
 
     if (style.position === 'sticky') {
       for (const child of el.children) {
         if (child.contains(textarea)) continue;
         if (hasVisibleBackground(getComputedStyle(child))) {
-          (child as HTMLElement).setAttribute('data-dpp-transparent', '');
+          (child as HTMLElement).setAttribute('data-dwplus-transparent', '');
         }
       }
     }
@@ -4695,12 +4632,12 @@ function patchContainerBackgrounds() {
 function removeBackground() {
   backgroundPatchObserver?.disconnect();
   backgroundPatchObserver = null;
-  document.getElementById('dpp-bg')?.remove();
-  document.getElementById('dpp-bg-style')?.remove();
-  document.body.classList.remove('dpp-bg-active');
-  document.body.style.removeProperty('--dpp-overlay-light');
-  document.body.style.removeProperty('--dpp-overlay-dark');
-  document.body.style.removeProperty('--dpp-blur');
+  document.getElementById('dwplus-bg')?.remove();
+  document.getElementById('dwplus-bg-style')?.remove();
+  document.body.classList.remove('dwplus-bg-active');
+  document.body.style.removeProperty('--dwplus-overlay-light');
+  document.body.style.removeProperty('--dwplus-overlay-dark');
+  document.body.style.removeProperty('--dwplus-blur');
 }
 
 function applyPetConfig(config: PetConfig | null) {
@@ -4713,11 +4650,24 @@ function applyPetConfig(config: PetConfig | null) {
   }
 
   const host = ensurePet();
-  host.style.setProperty('--dpp-pet-size', `${normalizedConfig.size}px`);
+  host.style.setProperty('--dwplus-pet-size', `${normalizedConfig.size}px`);
   host.style.opacity = normalizedConfig.opacity.toFixed(2);
   host.dataset.motion = String(normalizedConfig.motion);
   host.dataset.position = normalizedConfig.position;
+  applyPetIcon(host, normalizedConfig.iconData);
   applyPetPosition(host, normalizedConfig);
+}
+
+function applyPetIcon(host: HTMLElement, iconData: string | undefined) {
+  const spriteEl = host.querySelector<HTMLElement>('.dwplus-pet-sprite');
+  if (!spriteEl) return;
+  if (iconData && iconData.length > 0) {
+    spriteEl.style.backgroundImage = `url("${escapeCssUrl(iconData)}")`;
+    host.dataset.petIcon = 'custom';
+  } else {
+    spriteEl.style.backgroundImage = '';
+    delete host.dataset.petIcon;
+  }
 }
 
 function ensurePet(): HTMLElement {
@@ -4739,8 +4689,8 @@ function ensurePet(): HTMLElement {
   host.addEventListener('pointerenter', handlePetPointerEnter);
   document.body.appendChild(host);
   petHostEl = host;
-  petBubbleEl = host.querySelector<HTMLElement>('.dpp-pet-bubble');
-  petBubbleTextEl = host.querySelector<HTMLElement>('.dpp-pet-bubble-text');
+  petBubbleEl = host.querySelector<HTMLElement>('.dwplus-pet-bubble');
+  petBubbleTextEl = host.querySelector<HTMLElement>('.dwplus-pet-bubble-text');
   return host;
 }
 
@@ -5058,10 +5008,10 @@ function injectPetStyles() {
   style.id = PET_STYLE_ID;
   style.textContent = `
     #${PET_HOST_ID} {
-      --dpp-pet-size: 132px;
+      --dwplus-pet-size: 132px;
       position: fixed;
-      width: var(--dpp-pet-size);
-      height: var(--dpp-pet-size);
+      width: var(--dwplus-pet-size);
+      height: var(--dwplus-pet-size);
       z-index: 2147483646;
       pointer-events: auto;
       cursor: grab;
@@ -5077,17 +5027,17 @@ function injectPetStyles() {
       cursor: grabbing;
     }
 
-    #${PET_HOST_ID} .dpp-pet-motion,
-    #${PET_HOST_ID} .dpp-pet-sprite {
+    #${PET_HOST_ID} .dwplus-pet-motion,
+    #${PET_HOST_ID} .dwplus-pet-sprite {
       width: 100%;
       height: 100%;
     }
 
-    #${PET_HOST_ID} .dpp-pet-motion {
+    #${PET_HOST_ID} .dwplus-pet-motion {
       transform-origin: center bottom;
     }
 
-    #${PET_HOST_ID} .dpp-pet-sprite {
+    #${PET_HOST_ID} .dwplus-pet-sprite {
       background-image: url("${spriteUrl}");
       background-repeat: no-repeat;
       background-size: 400% 200%;
@@ -5096,105 +5046,105 @@ function injectPetStyles() {
       will-change: transform, background-position;
     }
 
-    #${PET_HOST_ID}[data-state='thinking'] .dpp-pet-sprite {
+    #${PET_HOST_ID}[data-state='thinking'] .dwplus-pet-sprite {
       background-position: 33.333333% 0%;
     }
 
-    #${PET_HOST_ID}[data-state='speaking'] .dpp-pet-sprite {
+    #${PET_HOST_ID}[data-state='speaking'] .dwplus-pet-sprite {
       background-position: 66.666667% 0%;
     }
 
-    #${PET_HOST_ID}[data-state='working'] .dpp-pet-sprite {
+    #${PET_HOST_ID}[data-state='working'] .dwplus-pet-sprite {
       background-position: 100% 0%;
     }
 
-    #${PET_HOST_ID}[data-state='confused'] .dpp-pet-sprite {
+    #${PET_HOST_ID}[data-state='confused'] .dwplus-pet-sprite {
       background-position: 0% 100%;
     }
 
-    #${PET_HOST_ID}[data-state='success'] .dpp-pet-sprite {
+    #${PET_HOST_ID}[data-state='success'] .dwplus-pet-sprite {
       background-position: 33.333333% 100%;
     }
 
-    #${PET_HOST_ID}[data-state='error'] .dpp-pet-sprite {
+    #${PET_HOST_ID}[data-state='error'] .dwplus-pet-sprite {
       background-position: 66.666667% 100%;
     }
 
-    #${PET_HOST_ID}[data-state='sleepy'] .dpp-pet-sprite {
+    #${PET_HOST_ID}[data-state='sleepy'] .dwplus-pet-sprite {
       background-position: 100% 100%;
     }
 
-    #${PET_HOST_ID}[data-motion='true'] .dpp-pet-motion {
-      animation: dpp-pet-float 4.8s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+    #${PET_HOST_ID}[data-motion='true'] .dwplus-pet-motion {
+      animation: dwplus-pet-float 4.8s cubic-bezier(0.45, 0, 0.2, 1) infinite;
     }
 
-    #${PET_HOST_ID}[data-motion='true'][data-state='thinking'] .dpp-pet-sprite {
-      animation: dpp-pet-think 2.2s ease-in-out infinite;
+    #${PET_HOST_ID}[data-motion='true'][data-state='thinking'] .dwplus-pet-sprite {
+      animation: dwplus-pet-think 2.2s ease-in-out infinite;
     }
 
-    #${PET_HOST_ID}[data-motion='true'][data-state='speaking'] .dpp-pet-sprite {
-      animation: dpp-pet-speak 0.72s ease-in-out infinite;
+    #${PET_HOST_ID}[data-motion='true'][data-state='speaking'] .dwplus-pet-sprite {
+      animation: dwplus-pet-speak 0.72s ease-in-out infinite;
     }
 
-    #${PET_HOST_ID}[data-motion='true'][data-state='working'] .dpp-pet-sprite {
-      animation: dpp-pet-work 1s ease-in-out infinite;
+    #${PET_HOST_ID}[data-motion='true'][data-state='working'] .dwplus-pet-sprite {
+      animation: dwplus-pet-work 1s ease-in-out infinite;
     }
 
-    #${PET_HOST_ID}[data-motion='true'][data-state='confused'] .dpp-pet-sprite {
-      animation: dpp-pet-confused 1.8s ease-in-out infinite;
+    #${PET_HOST_ID}[data-motion='true'][data-state='confused'] .dwplus-pet-sprite {
+      animation: dwplus-pet-confused 1.8s ease-in-out infinite;
     }
 
-    #${PET_HOST_ID}[data-motion='true'][data-state='success'] .dpp-pet-sprite {
-      animation: dpp-pet-success 1.1s ease-out 1;
+    #${PET_HOST_ID}[data-motion='true'][data-state='success'] .dwplus-pet-sprite {
+      animation: dwplus-pet-success 1.1s ease-out 1;
     }
 
-    #${PET_HOST_ID}[data-motion='true'][data-state='error'] .dpp-pet-sprite {
-      animation: dpp-pet-error 0.42s ease-in-out 2;
+    #${PET_HOST_ID}[data-motion='true'][data-state='error'] .dwplus-pet-sprite {
+      animation: dwplus-pet-error 0.42s ease-in-out 2;
     }
 
-    #${PET_HOST_ID}[data-motion='true'][data-state='sleepy'] .dpp-pet-motion {
+    #${PET_HOST_ID}[data-motion='true'][data-state='sleepy'] .dwplus-pet-motion {
       animation-duration: 7s;
     }
 
-    @keyframes dpp-pet-float {
+    @keyframes dwplus-pet-float {
       0%, 100% { transform: translateY(0) rotate(-1deg); }
       50% { transform: translateY(-7px) rotate(1deg); }
     }
 
-    @keyframes dpp-pet-think {
+    @keyframes dwplus-pet-think {
       0%, 100% { transform: translateX(0) rotate(0deg); }
       50% { transform: translateX(-3px) rotate(-1.5deg); }
     }
 
-    @keyframes dpp-pet-speak {
+    @keyframes dwplus-pet-speak {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.035); }
     }
 
-    @keyframes dpp-pet-work {
+    @keyframes dwplus-pet-work {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-4px); }
     }
 
-    @keyframes dpp-pet-confused {
+    @keyframes dwplus-pet-confused {
       0%, 100% { transform: translateY(0) rotate(0deg); }
       35% { transform: translateY(-4px) rotate(-3deg); }
       70% { transform: translateY(-2px) rotate(3deg); }
     }
 
-    @keyframes dpp-pet-success {
+    @keyframes dwplus-pet-success {
       0% { transform: scale(0.96) translateY(2px); }
       55% { transform: scale(1.08) translateY(-6px); }
       100% { transform: scale(1) translateY(0); }
     }
 
-    @keyframes dpp-pet-error {
+    @keyframes dwplus-pet-error {
       0%, 100% { transform: translateX(0); }
       25% { transform: translateX(-4px); }
       75% { transform: translateX(4px); }
     }
 
-    #${PET_HOST_ID} .dpp-pet-bubble {
+    #${PET_HOST_ID} .dwplus-pet-bubble {
       position: absolute;
       bottom: calc(100% - 24px);
       left: 50%;
@@ -5204,7 +5154,7 @@ function injectPetStyles() {
       max-width: 200px;
     }
 
-    #${PET_HOST_ID} .dpp-pet-bubble-text {
+    #${PET_HOST_ID} .dwplus-pet-bubble-text {
       display: inline-block;
       position: relative;
       max-width: 200px;
@@ -5231,7 +5181,7 @@ function injectPetStyles() {
       will-change: opacity, transform;
     }
 
-    #${PET_HOST_ID} .dpp-pet-bubble-text::after {
+    #${PET_HOST_ID} .dwplus-pet-bubble-text::after {
       content: '';
       position: absolute;
       top: 100%;
@@ -5242,29 +5192,29 @@ function injectPetStyles() {
       filter: drop-shadow(0 2px 1px rgba(39, 78, 180, 0.12));
     }
 
-    #${PET_HOST_ID} .dpp-pet-bubble[data-visible='true'] .dpp-pet-bubble-text {
+    #${PET_HOST_ID} .dwplus-pet-bubble[data-visible='true'] .dwplus-pet-bubble-text {
       opacity: 1;
       transform: translateY(0) scale(1);
     }
 
-    #${PET_HOST_ID}[data-motion='true'] .dpp-pet-bubble[data-visible='true'] .dpp-pet-bubble-text {
-      animation: dpp-pet-bubble-float 3.6s ease-in-out infinite;
+    #${PET_HOST_ID}[data-motion='true'] .dwplus-pet-bubble[data-visible='true'] .dwplus-pet-bubble-text {
+      animation: dwplus-pet-bubble-float 3.6s ease-in-out infinite;
     }
 
-    @keyframes dpp-pet-bubble-float {
+    @keyframes dwplus-pet-bubble-float {
       0%, 100% { transform: translateY(0) scale(1); }
       50% { transform: translateY(-2.5px) scale(1); }
     }
 
     @media (prefers-color-scheme: dark) {
-      #${PET_HOST_ID} .dpp-pet-bubble-text {
+      #${PET_HOST_ID} .dwplus-pet-bubble-text {
         border-color: rgba(120, 156, 255, 0.5);
         background: rgba(32, 38, 56, 0.92);
         color: #eef2ff;
         box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
       }
 
-      #${PET_HOST_ID} .dpp-pet-bubble-text::after {
+      #${PET_HOST_ID} .dwplus-pet-bubble-text::after {
         border-top-color: rgba(32, 38, 56, 0.92);
         filter: none;
       }
@@ -5279,11 +5229,25 @@ function injectPetStyles() {
 
     @media (prefers-reduced-motion: reduce) {
       #${PET_HOST_ID} *,
-      #${PET_HOST_ID} .dpp-pet-motion,
-      #${PET_HOST_ID} .dpp-pet-sprite {
+      #${PET_HOST_ID} .dwplus-pet-motion,
+      #${PET_HOST_ID} .dwplus-pet-sprite {
         animation: none !important;
         transition: none !important;
       }
+    }
+
+    /* Custom uploaded pet icon: render the single image centered instead of
+       stepping through the built-in sprite sheet. The higher-specificity
+       [data-state] selector resets background-position so per-state shifts
+       don't move the custom image. */
+    #${PET_HOST_ID}[data-pet-icon='custom'] .dwplus-pet-sprite {
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    #${PET_HOST_ID}[data-pet-icon='custom'][data-state] .dwplus-pet-sprite {
+      background-position: center;
     }
   `;
   document.head.appendChild(style);
@@ -5291,11 +5255,11 @@ function injectPetStyles() {
 
 function createPetMarkup(): string {
   return `
-    <div class="dpp-pet-bubble" data-visible="false">
-      <span class="dpp-pet-bubble-text"></span>
+    <div class="dwplus-pet-bubble" data-visible="false">
+      <span class="dwplus-pet-bubble-text"></span>
     </div>
-    <div class="dpp-pet-motion">
-      <div class="dpp-pet-sprite"></div>
+    <div class="dwplus-pet-motion">
+      <div class="dwplus-pet-sprite"></div>
     </div>
   `;
 }
@@ -5323,21 +5287,21 @@ function applyBackground(config: BackgroundConfig | null) {
     return;
   }
 
-  const existingBg = document.getElementById('dpp-bg');
-  const existingStyle = document.getElementById('dpp-bg-style');
+  const existingBg = document.getElementById('dwplus-bg');
+  const existingStyle = document.getElementById('dwplus-bg-style');
 
-  document.body.classList.add('dpp-bg-active');
+  document.body.classList.add('dwplus-bg-active');
 
   const overlayAlpha = (1 - normalizedConfig.opacity).toFixed(3);
   const blurPx = ((1 - normalizedConfig.opacity) * 8).toFixed(1);
-  document.body.style.setProperty('--dpp-overlay-light', `rgba(255, 255, 255, ${overlayAlpha})`);
-  document.body.style.setProperty('--dpp-overlay-dark', `rgba(30, 30, 30, ${overlayAlpha})`);
-  document.body.style.setProperty('--dpp-blur', `blur(${blurPx}px)`);
+  document.body.style.setProperty('--dwplus-overlay-light', `rgba(255, 255, 255, ${overlayAlpha})`);
+  document.body.style.setProperty('--dwplus-overlay-dark', `rgba(30, 30, 30, ${overlayAlpha})`);
+  document.body.style.setProperty('--dwplus-blur', `blur(${blurPx}px)`);
 
   const topOffset = getToolbarBottom();
 
   const bgDiv = existingBg || document.createElement('div');
-  bgDiv.id = 'dpp-bg';
+  bgDiv.id = 'dwplus-bg';
   Object.assign(bgDiv.style, {
     position: 'fixed',
     top: `${topOffset}px`,
@@ -5354,45 +5318,45 @@ function applyBackground(config: BackgroundConfig | null) {
   if (!existingBg) document.body.prepend(bgDiv);
 
   const styleEl = existingStyle || document.createElement('style');
-  styleEl.id = 'dpp-bg-style';
+  styleEl.id = 'dwplus-bg-style';
   styleEl.textContent = `
-    #dpp-bg::after {
+    #dwplus-bg::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: var(--dpp-overlay-light);
-      backdrop-filter: var(--dpp-blur);
-      -webkit-backdrop-filter: var(--dpp-blur);
+      background: var(--dwplus-overlay-light);
+      backdrop-filter: var(--dwplus-blur);
+      -webkit-backdrop-filter: var(--dwplus-blur);
       pointer-events: none;
     }
 
-    body.dpp-bg-active,
-    body.dpp-bg-active #root,
-    body.dpp-bg-active #__next {
+    body.dwplus-bg-active,
+    body.dwplus-bg-active #root,
+    body.dwplus-bg-active #__next {
       background: transparent !important;
     }
 
-    body.dpp-bg-active #root > div,
-    body.dpp-bg-active #__next > div {
+    body.dwplus-bg-active #root > div,
+    body.dwplus-bg-active #__next > div {
       background: transparent !important;
     }
 
-    body.dpp-bg-active #root > div > div,
-    body.dpp-bg-active #__next > div > div {
+    body.dwplus-bg-active #root > div > div,
+    body.dwplus-bg-active #__next > div > div {
       background: transparent !important;
     }
 
-    body.dpp-bg-active [data-dpp-transparent] {
+    body.dwplus-bg-active [data-dwplus-transparent] {
       background: transparent !important;
     }
 
-    body.dpp-theme-dark #dpp-bg::after {
-      background: var(--dpp-overlay-dark);
+    body.dwplus-theme-dark #dwplus-bg::after {
+      background: var(--dwplus-overlay-dark);
     }
 
     @media (prefers-color-scheme: dark) {
-      body:not(.dpp-theme-light) #dpp-bg::after {
-        background: var(--dpp-overlay-dark);
+      body:not(.dwplus-theme-light) #dwplus-bg::after {
+        background: var(--dwplus-overlay-dark);
       }
     }
   `;
@@ -5403,7 +5367,7 @@ function applyBackground(config: BackgroundConfig | null) {
   // Re-patch on DOM changes
   backgroundPatchObserver?.disconnect();
   backgroundPatchObserver = new MutationObserver(() => {
-    if (document.body.classList.contains('dpp-bg-active')) {
+    if (document.body.classList.contains('dwplus-bg-active')) {
       patchContainerBackgrounds();
     }
   });
@@ -5511,7 +5475,7 @@ function switchModelFromExpertToDefault(): boolean {
   }
 
   // Strategy 3: Search for SVG-based toggle icons near the input area
-  // DeepSeek often uses custom SVG toggles for model mode
+  // Some hosts use custom SVG toggles for model mode
   const svgToggles = document.querySelectorAll('textarea ~ *, textarea + *, [class*="model"], [class*="think"]');
   for (let i = 0; i < svgToggles.length; i++) {
     const el = svgToggles[i] as HTMLElement;
@@ -5529,7 +5493,7 @@ function switchModelFromExpertToDefault(): boolean {
 
 // ---------------------------------------------------------------------------
 // Page voice input
-// Inject a microphone button into the DeepSeek chat input area and use the
+// Inject a microphone button into the chat input area and use the
 // browser's built-in Web Speech API (SpeechRecognition) for speech-to-text.
 // The recognition engine runs in the MAIN world (injected <script>) because
 // SpeechRecognition is not available in the ISOLATED extension world.
@@ -5590,50 +5554,50 @@ function injectPageVoiceInput(): void {
       : '语音输入 / Voice input';
 
     if (isListening) {
-      micBtn.style.animation = 'dpp-mic-pulse 1.5s ease-in-out infinite';
+      micBtn.style.animation = 'dwplus-mic-pulse 1.5s ease-in-out infinite';
     } else {
       micBtn.style.animation = 'none';
     }
   }
 
   // Pulse animation
-  if (!document.getElementById('dpp-mic-pulse-style')) {
+  if (!document.getElementById('dwplus-mic-pulse-style')) {
     const style = document.createElement('style');
-    style.id = 'dpp-mic-pulse-style';
-    style.textContent = '@keyframes dpp-mic-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,62,62,0.4); } 50% { box-shadow: 0 0 0 8px rgba(245,62,62,0); } }';
+    style.id = 'dwplus-mic-pulse-style';
+    style.textContent = '@keyframes dwplus-mic-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,62,62,0.4); } 50% { box-shadow: 0 0 0 8px rgba(245,62,62,0); } }';
     document.head.appendChild(style);
   }
 
   // Step 3: Button click handler
   micBtn.addEventListener('click', () => {
     if (listening) {
-      window.dispatchEvent(new CustomEvent('dpp-speech-stop'));
+      window.dispatchEvent(new CustomEvent('dwplus-speech-stop'));
       setListeningState(false);
     } else {
-      window.dispatchEvent(new CustomEvent('dpp-speech-start'));
+      window.dispatchEvent(new CustomEvent('dwplus-speech-start'));
       setListeningState(true);
     }
   });
 
   // Step 4: Listen for recognition results from MAIN world
-  window.addEventListener('dpp-speech-interim', ((_e: Event) => {
+  window.addEventListener('dwplus-speech-interim', ((_e: Event) => {
     // Interim text shown via the pulse animation on the mic button
     // to indicate recognition is active. Full text is committed on final.
   }) as EventListener);
 
-  window.addEventListener('dpp-speech-final', ((e: Event) => {
+  window.addEventListener('dwplus-speech-final', ((e: Event) => {
     const detail = (e as CustomEvent<{ text: string }>).detail;
     insertVoiceTextIntoTextarea(detail.text);
     setListeningState(false);
   }) as EventListener);
 
-  window.addEventListener('dpp-speech-error', ((e: Event) => {
+  window.addEventListener('dwplus-speech-error', ((e: Event) => {
     const detail = (e as CustomEvent<{ error: string }>).detail;
     console.warn('[DPP] Speech recognition error:', detail.error);
     setListeningState(false);
   }) as EventListener);
 
-  window.addEventListener('dpp-speech-ended', () => {
+  window.addEventListener('dwplus-speech-ended', () => {
     setListeningState(false);
   });
 
@@ -5648,7 +5612,7 @@ function injectPageVoiceInput(): void {
     if (!container) return false;
 
     const wrapper = document.createElement('div');
-    wrapper.className = 'dpp-voice-input-wrapper';
+    wrapper.className = 'dwplus-voice-input-wrapper';
     Object.assign(wrapper.style, {
       display: 'inline-flex',
       alignItems: 'center',

@@ -2,7 +2,7 @@
 
 ## Analysis Baseline
 
-Direction: productize OfficeCLI inside DeepSeek++ through a built-in `/officecli` skill and controlled local Office document execution via MCP, stdio bridge, or browser Native Messaging.
+Direction: productize OfficeCLI inside doubao-wplus through a built-in `/officecli` skill and controlled local Office document execution via MCP, stdio bridge, or browser Native Messaging.
 
 Current usable foundation:
 

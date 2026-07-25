@@ -38,7 +38,7 @@ describe('conversation export request schema', () => {
   it('fails closed for invalid explicit modes and formats', () => {
     expect(() => normalizeConversationExportRequest({ mode: 'readable' }))
       .toThrow(ConversationExportValidationError);
-    expect(() => normalizeConversationExportRequest({ formats: ['json'] }))
+    expect(() => normalizeConversationExportRequest({ formats: ['docx'] }))
       .toThrow(ConversationExportValidationError);
     expect(() => normalizeConversationExportRequest({ formats: ['xml'] }))
       .toThrow(ConversationExportValidationError);
@@ -153,6 +153,46 @@ describe('DeepSeek conversation export adapter and service', () => {
       mimeType: 'text/html;charset=utf-8',
     });
     expect(artifacts.find((artifact) => artifact.format === 'image_manifest')?.content).toContain('0 image attachments');
+  });
+
+  it('exports JSON and TXT artifacts alongside the existing formats', async () => {
+    const transport = createDeepSeekConversationExportTransport({
+      baseUrl: 'https://chat.deepseek.com',
+      clientHeaders: { Authorization: 'Bearer synthetic' },
+      fetchImpl: createFixtureFetch(),
+    });
+
+    const exportData = await runConversationExport({
+      exportId: 'export-json-txt',
+      extensionVersion: '0.0.0-test',
+      baseUrl: 'https://chat.deepseek.com',
+      request: {
+        mode: 'sanitized',
+        formats: ['json', 'txt', 'markdown'],
+        includeAttachmentMetadata: true,
+        includeFileBodies: false,
+        pageSize: 1,
+      },
+      transport,
+    });
+
+    const artifacts = buildConversationExportArtifacts(exportData);
+    expect(artifacts.map((artifact) => artifact.format).sort()).toEqual(['json', 'markdown', 'txt']);
+
+    const jsonArtifact = artifacts.find((artifact) => artifact.format === 'json');
+    expect(jsonArtifact?.mimeType).toBe('application/json;charset=utf-8');
+    expect(jsonArtifact?.filename.endsWith('.json')).toBe(true);
+    const parsed = JSON.parse(jsonArtifact!.content);
+    expect(parsed.exportId).toBe('export-json-txt');
+    expect(parsed.sessions).toHaveLength(1);
+
+    const txtArtifact = artifacts.find((artifact) => artifact.format === 'txt');
+    expect(txtArtifact?.mimeType).toBe('text/plain;charset=utf-8');
+    expect(txtArtifact?.filename.endsWith('.txt')).toBe(true);
+    expect(txtArtifact?.content).toContain('Conversation Export');
+    expect(txtArtifact?.content).toContain('[USER]');
+    expect(txtArtifact?.content).toContain('[ASSISTANT]');
+    expect(txtArtifact?.content).toContain('Please summarize the attached memo.');
   });
 
   it('derives the official pagination cursor from the last session', async () => {

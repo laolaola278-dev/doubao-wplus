@@ -33,7 +33,7 @@ After source changes:
 
 ### MCP Setup Checklist
 
-1. Open the DeepSeek++ sidepanel.
+1. Open the doubao-wplus sidepanel.
 2. Go to `MCP`.
 3. Add a server and choose its transport.
 4. For HTTP/SSE/bridge transports, click `授权` and approve the browser host permission.

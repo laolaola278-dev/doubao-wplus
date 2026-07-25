@@ -14,7 +14,7 @@ flowchart LR
   CS --> DOM["DeepSeek prompt input box"]
 ```
 
-DeepSeek++ is a WXT MV3 browser extension. The response stream is intercepted in the main-world hook, then status is forwarded to the isolated content script through `window.postMessage`. Existing page decorations, such as tool blocks and background styling, are owned by `entrypoints/content.ts`.
+doubao-wplus is a WXT MV3 browser extension. The response stream is intercepted in the main-world hook, then status is forwarded to the isolated content script through `window.postMessage`. Existing page decorations, such as tool blocks and background styling, are owned by `entrypoints/content.ts`.
 
 ## Technology Stack
 

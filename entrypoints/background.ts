@@ -4,6 +4,7 @@ import {
   saveMemory,
   updateMemory,
   deleteMemory,
+  deleteMemories,
   deleteMemoriesForProject,
   touchMemories,
   replaceAllMemories,
@@ -136,11 +137,11 @@ import {
   type ChatLoopProvider,
 } from '../core/chat/active-loop';
 import {
-  clearDeepSeekApiKey,
-  DEEPSEEK_API_KEY_STORAGE_KEY,
-  getDeepSeekApiKey,
-  hasDeepSeekApiKey,
-  saveDeepSeekApiKey,
+  clearDoubaoApiKey,
+  DOUBAO_API_KEY_STORAGE_KEY,
+  getDoubaoApiKey,
+  hasDoubaoApiKey,
+  saveDoubaoApiKey,
 } from '../core/chat/api-key';
 import {
   getOfficialApiChatConfig,
@@ -148,6 +149,7 @@ import {
   saveOfficialApiChatConfig,
   type OfficialApiChatConfig,
 } from '../core/chat/official-api-config';
+import { estimateTokenUnits } from '../core/token/estimator';
 import {
   createAutomation,
   deleteAutomation,
@@ -173,8 +175,9 @@ import {
   loadClientHeadersFromStorage,
 } from '../core/deepseek/adapter';
 import {
-  submitOfficialDeepSeekStreaming,
-  type OfficialDeepSeekMessage,
+  submitOfficialDoubaoStreaming,
+  type OfficialDoubaoMessage,
+  type OfficialDoubaoTurn,
 } from '../core/deepseek/official-api';
 import { createDeepSeekConversationExportTransport } from '../core/deepseek/conversation-export';
 import {
@@ -185,6 +188,23 @@ import { normalizeConversationExportRequest } from '../core/export/schema';
 import { buildPromptAugmentation } from '../core/prompt';
 import { extractToolCalls } from '../core/interceptor/tool-parser';
 import { broadcastRuntimeUpdate } from '../core/messaging/broadcast';
+import {
+  deleteRule,
+  getRuleEngineConfig,
+  saveRuleEngineConfig,
+  setRuleEnabled,
+  upsertRule,
+} from '../core/rules/store';
+import {
+  appendRuleExecutionLog,
+  clearRuleExecutionLog,
+  getRuleExecutionLog,
+} from '../core/rules/execution-log';
+import {
+  clearInsights,
+  getInsightsState,
+  recordInsightPromptEvent,
+} from '../core/insights/store';
 import {
   createTranslator,
   DEFAULT_LOCALE,
@@ -204,10 +224,11 @@ import type { ConversationExportProgress, ConversationExportResult } from '../co
 
 const DEEPSEEK_HOME_URL = 'https://chat.deepseek.com/';
 const DEEPSEEK_TAB_URL_PATTERN = '*://chat.deepseek.com/*';
-const REFRESH_AUTH_MESSAGE = { type: 'REFRESH_DEEPSEEK_AUTH' } as const;
+const DEPRECATED_REFRESH_AUTH_VALUE = 'REFRESH_DEEPSEEK_AUTH';
+const REFRESH_AUTH_MESSAGE = { type: 'REFRESH_AUTH' } as const;
 let chatSessionId: string | null = null;
 let chatParentMessageId: number | null = null;
-let officialApiChatMessages: OfficialDeepSeekMessage[] = [];
+let officialApiChatMessages: OfficialDoubaoMessage[] = [];
 const conversationExportControllers = new Map<string, AbortController>();
 let currentBackgroundLocale: SupportedLocale = DEFAULT_LOCALE;
 let currentBackgroundTranslator = createTranslator(DEFAULT_LOCALE);
@@ -277,7 +298,7 @@ export default defineBackground(() => {
   });
 
   chrome.storage.onChanged.addListener((changes) => {
-    if ('deepseek_pp_chat_enabled' in changes || DEEPSEEK_API_KEY_STORAGE_KEY in changes) {
+    if ('deepseek_pp_chat_enabled' in changes || DOUBAO_API_KEY_STORAGE_KEY in changes) {
       createContextMenus().catch(() => {});
       broadcastChatAuthStatus().catch(() => {});
     }
@@ -339,7 +360,7 @@ async function createContextMenus() {
   try {
     await chrome.contextMenus.removeAll();
   } catch {}
-  const apiKeyConfigured = await hasDeepSeekApiKey();
+  const apiKeyConfigured = await hasDoubaoApiKey();
   const menuScope = apiKeyConfigured
     ? {}
     : { documentUrlPatterns: [DEEPSEEK_TAB_URL_PATTERN] };
@@ -431,7 +452,7 @@ async function ensureShellMcpPreset() {
 
 function reportBackgroundStartupError(code: string, error: unknown) {
   const detail = error instanceof Error ? error.message : String(error);
-  console.error(`[DeepSeek++] ${code}: ${detail}`, error);
+  console.error(`[WPlus] ${code}: ${detail}`, error);
 }
 
 function createBackgroundErrorResponse(
@@ -497,7 +518,8 @@ async function handleMessage(
       }
       const ids: number[] = [];
       for (const memory of validatedMemories) {
-        ids.push(await saveMemory(memory));
+        // Memory Studio 来源标记：批量导入（导入数据自带 source 时保留原值）
+        ids.push(await saveMemory({ source: 'import', ...memory }));
       }
       await broadcastStateUpdate(sender.tab?.id);
       return { ok: true, ids, count: ids.length };
@@ -515,6 +537,72 @@ async function handleMessage(
       await broadcastStateUpdate(sender.tab?.id);
       return { ok: true };
     }
+
+    case 'DELETE_MEMORIES': {
+      // Memory Studio 批量删除
+      const { ids } = message.payload as { ids: number[] };
+      if (!Array.isArray(ids)) return { ok: false, error: 'invalid_ids' };
+      const deleted = await deleteMemories(ids);
+      await broadcastStateUpdate(sender.tab?.id);
+      return { ok: true, deleted };
+    }
+
+    // ---- Rule Engine（声明式规则；配置校验在 store 层 fail-fast）----
+    case 'GET_RULE_ENGINE_CONFIG':
+      return getRuleEngineConfig();
+
+    case 'SAVE_RULE_ENGINE_CONFIG': {
+      const result = await saveRuleEngineConfig(message.payload as never);
+      if (result.ok) await broadcastRuleConfigUpdate(sender.tab?.id);
+      return result;
+    }
+
+    case 'UPSERT_RULE': {
+      const result = await upsertRule(message.payload as never);
+      if (result.ok) await broadcastRuleConfigUpdate(sender.tab?.id);
+      return result;
+    }
+
+    case 'DELETE_RULE': {
+      const { ruleId } = message.payload as { ruleId: string };
+      const result = await deleteRule(ruleId);
+      await broadcastRuleConfigUpdate(sender.tab?.id);
+      return result;
+    }
+
+    case 'SET_RULE_ENABLED': {
+      const { ruleId, enabled } = message.payload as { ruleId: string; enabled: boolean };
+      const result = await setRuleEnabled(ruleId, enabled);
+      await broadcastRuleConfigUpdate(sender.tab?.id);
+      return result;
+    }
+
+    case 'GET_RULE_EXECUTION_LOG':
+      return getRuleExecutionLog();
+
+    case 'APPEND_RULE_EXECUTION_LOG': {
+      appendRuleExecutionLog(message.payload as never);
+      return { ok: true };
+    }
+
+    case 'CLEAR_RULE_EXECUTION_LOG': {
+      clearRuleExecutionLog();
+      return { ok: true };
+    }
+
+    // ---- AI Insights（本地使用统计；只存行为标量，不含 prompt 文本）----
+    case 'INSIGHTS_RECORD_PROMPT':
+      return recordInsightPromptEvent(message.payload);
+
+    case 'GET_INSIGHTS_STATE':
+      return getInsightsState();
+
+    case 'CLEAR_INSIGHTS':
+      return clearInsights();
+
+    // ---- DWPlus Studio：宿主页诊断只读拉取（路由到活跃宿主 tab 的 content script）----
+    case 'GET_STUDIO_HOST_DIAGNOSTICS':
+      return getStudioHostDiagnostics();
 
     case 'TOUCH_MEMORIES': {
       const { ids } = message.payload as { ids: number[] };
@@ -955,6 +1043,7 @@ async function handleMessage(
     }
 
     case 'GET_CURRENT_DEEPSEEK_CONVERSATION':
+    case 'GET_CURRENT_CONVERSATION':
       return getCurrentDeepSeekConversation();
 
     case 'GET_PROJECT_CONTEXT_FOR_CONVERSATION': {
@@ -990,20 +1079,20 @@ async function handleMessage(
       return { ok: true };
     }
 
-    case 'GET_DEEPSEEK_API_KEY_STATUS':
-      return { ok: true, configured: await hasDeepSeekApiKey() };
+    case 'GET_DOUBAO_API_KEY_STATUS':
+      return { ok: true, configured: await hasDoubaoApiKey() };
 
-    case 'SAVE_DEEPSEEK_API_KEY': {
+    case 'SAVE_DOUBAO_API_KEY': {
       const { apiKey } = message.payload as { apiKey?: string };
-      await saveDeepSeekApiKey(apiKey ?? '');
+      await saveDoubaoApiKey(apiKey ?? '');
       officialApiChatMessages = [];
       await createContextMenus();
       await broadcastChatAuthStatus(sender.tab?.id);
       return { ok: true, configured: true };
     }
 
-    case 'CLEAR_DEEPSEEK_API_KEY':
-      await clearDeepSeekApiKey();
+    case 'CLEAR_DOUBAO_API_KEY':
+      await clearDoubaoApiKey();
       officialApiChatMessages = [];
       await createContextMenus();
       await broadcastChatAuthStatus(sender.tab?.id);
@@ -1012,7 +1101,8 @@ async function handleMessage(
     case 'GET_DEEPSEEK_THEME':
       return getDeepSeekTheme();
 
-    case 'SET_DEEPSEEK_THEME': {
+    case 'SET_DEEPSEEK_THEME':
+    case 'SET_CLIENT_THEME': {
       const { theme } = message.payload as { theme?: DeepSeekTheme };
       if (theme !== 'light' && theme !== 'dark') return { ok: false, error: 'invalid_theme' };
       const current = await getDeepSeekTheme();
@@ -1235,6 +1325,48 @@ async function handleMessage(
   }
 }
 
+// DWPlus Studio：把宿主页 content script 持有的诊断快照（Prompt Inspector 脱敏摘要
+// + 启动自检报告）汇总返回给 sidepanel。只读，不触发任何计算或采集。
+// 路由模式同 getCurrentDeepSeekConversation：优先当前窗口活跃宿主 tab，其次任一宿主 tab。
+const STUDIO_HOST_TAB_URL_PATTERNS = ['*://chat.deepseek.com/*', '*://*.doubao.com/*'];
+
+async function getStudioHostDiagnostics(): Promise<{
+  ok: boolean;
+  hostTabAvailable: boolean;
+  promptInspector: { enabled: boolean; summaries: unknown[] } | null;
+  selfCheck: unknown | null;
+}> {
+  const unavailable = { ok: true, hostTabAvailable: false, promptInspector: null, selfCheck: null };
+  let tabs: chrome.tabs.Tab[] = [];
+  try {
+    tabs = await chrome.tabs.query({ url: STUDIO_HOST_TAB_URL_PATTERNS });
+  } catch {
+    return unavailable;
+  }
+  // 活跃 tab 优先（诊断针对用户正在看的宿主页）
+  const ordered = [...tabs].sort((a, b) => Number(b.active) - Number(a.active));
+  for (const tab of ordered) {
+    if (!tab.id) continue;
+    try {
+      const [snapshotResponse, selfCheckResponse] = await Promise.all([
+        chrome.tabs.sendMessage(tab.id, { type: 'GET_PROMPT_SNAPSHOT_SUMMARIES' }),
+        chrome.tabs.sendMessage(tab.id, { type: 'GET_SELF_CHECK_REPORT' }),
+      ]);
+      return {
+        ok: true,
+        hostTabAvailable: true,
+        promptInspector: snapshotResponse?.ok
+          ? { enabled: snapshotResponse.enabled === true, summaries: snapshotResponse.summaries ?? [] }
+          : null,
+        selfCheck: selfCheckResponse?.ok ? (selfCheckResponse.report ?? null) : null,
+      };
+    } catch {
+      // content script 未注入（stale tab）—— 试下一个
+    }
+  }
+  return unavailable;
+}
+
 async function broadcastToTabs(payload: Record<string, unknown>, excludeTabId?: number) {
   await broadcastRuntimeUpdate(payload, excludeTabId, {
     tabUrlPattern: DEEPSEEK_TAB_URL_PATTERN,
@@ -1261,7 +1393,7 @@ async function refreshClientHeadersFromDeepSeekTabs(preferredTabId?: number): Pr
       const response = await chrome.tabs.sendMessage(tab.id, REFRESH_AUTH_MESSAGE);
       if (response?.hasToken === true) return true;
     } catch {
-      // Content scripts may be absent on stale or restricted tabs; try the next live DeepSeek tab.
+      // Content scripts may be absent on stale or restricted tabs; try the next live tab.
     }
   }
   return false;
@@ -1291,6 +1423,12 @@ async function broadcastStateUpdate(excludeTabId?: number) {
 
 async function broadcastBackgroundUpdate(config: BackgroundConfig | null) {
   await broadcastToTabs({ type: 'BACKGROUND_UPDATED', config });
+}
+
+/** 规则配置变更后推送给所有 content script（content 持有本地副本供热路径同步读取） */
+async function broadcastRuleConfigUpdate(excludeTabId?: number) {
+  const config = await getRuleEngineConfig();
+  await broadcastToTabs({ type: 'RULE_CONFIG_UPDATED', config }, excludeTabId);
 }
 
 async function broadcastPetUpdate(config: PetConfig) {
@@ -1372,7 +1510,7 @@ async function broadcastAutomationRunsUpdate(excludeTabId?: number) {
 }
 
 async function getChatAuthStatus(preferredTabId?: number) {
-  const hasApiKey = await hasDeepSeekApiKey();
+  const hasApiKey = await hasDoubaoApiKey();
   if (hasApiKey) {
     return {
       ok: true,
@@ -1387,7 +1525,7 @@ async function getChatAuthStatus(preferredTabId?: number) {
   return {
     ok: true,
     available: !!headers,
-    provider: headers ? 'deepseek-web' : null,
+    provider: headers ? 'doubao-web' : null,
     hasApiKey: false,
     hasToken: !!headers,
   };
@@ -1567,7 +1705,7 @@ async function handleConversationExport(
     return {
       ok: false,
       exportId,
-      error: backgroundT('background.auth.missingDeepSeek'),
+      error: backgroundT('background.auth.missingDoubao'),
     };
   }
 
@@ -1851,7 +1989,7 @@ async function handleChatSubmitPrompt(
   configInput?: Partial<OfficialApiChatConfig>,
   excludeTabId?: number,
 ) {
-  const apiKey = await getDeepSeekApiKey();
+  const apiKey = await getDoubaoApiKey();
   const provider: ChatLoopProvider = apiKey ? 'official-api' : 'web';
   await markChatLoopStarted(provider);
   try {
@@ -1872,7 +2010,7 @@ async function handleChatSubmitPrompt(
 async function handleWebChatSubmitPrompt(prompt: string, excludeTabId?: number) {
   const headers = await loadOrRefreshClientHeaders(excludeTabId);
   if (!headers) {
-    broadcastChatChunk({ text: '', done: true, error: backgroundT('background.auth.missingDeepSeek') }, excludeTabId);
+    broadcastChatChunk({ text: '', done: true, error: backgroundT('background.auth.missingDoubao') }, excludeTabId);
     return;
   }
 
@@ -1914,7 +2052,7 @@ async function handleOfficialApiChatSubmitPrompt(
   try {
     const promptContext = await buildSidepanelPrompt(prompt);
 
-    const initialMessages: OfficialDeepSeekMessage[] = [
+    const initialMessages: OfficialDoubaoMessage[] = [
       ...officialApiChatMessages,
       { role: 'user', content: promptContext.augmented },
     ];
@@ -1970,33 +2108,85 @@ async function runOfficialApiToolLoop(
   input: {
     apiKey: string;
     config: OfficialApiChatConfig;
-    messages: OfficialDeepSeekMessage[];
+    messages: OfficialDoubaoMessage[];
   },
   toolDescriptors: ToolDescriptor[],
   excludeTabId?: number,
-): Promise<OfficialDeepSeekMessage[]> {
+): Promise<OfficialDoubaoMessage[]> {
   const MAX_STEPS = 20;
   let currentMessages = [...input.messages];
 
   for (let step = 0; step < MAX_STEPS; step++) {
     let accumulated = '';
     let reasoningAccumulated = '';
-    const turn = await submitOfficialDeepSeekStreaming({
-      apiKey: input.apiKey,
-      config: input.config,
-      messages: currentMessages,
-    }, {
-      onTextChunk(newText: string, fullText: string) {
-        accumulated = fullText;
-        broadcastChatChunk({ text: newText, done: false, phase: 'answer' }, excludeTabId);
-      },
-      onReasoningChunk(newText: string, fullText: string) {
-        reasoningAccumulated = fullText;
-        broadcastChatChunk({ text: '', reasoningText: newText, done: false, phase: 'reasoning' }, excludeTabId);
-      },
-    });
+    // ---- 官方 API token 速度追踪 ----
+    const speedStartedAt = Date.now();
+    let speedFirstTokenAt: number | null = null;
+    let speedFirstChunkTokens = 0;
+    let speedTotalTokens = 0;
+    let speedTextLength = 0;
+    let speedTimer: ReturnType<typeof setInterval> | null = null;
+    const SPEED_EMIT_MS = 250;
 
-    const fullText = accumulated || turn.assistantText;
+    const emitSpeed = (active: boolean) => {
+      const elapsedMs = Date.now() - speedStartedAt;
+      const tokensPerSecond = speedFirstTokenAt !== null
+        ? Math.max(((speedTotalTokens - speedFirstChunkTokens) / Math.max(Date.now() - speedFirstTokenAt, 1)) * 1000, 0)
+        : 0;
+      broadcastTokenSpeed({
+        active,
+        estimatedTokens: Math.round(speedTotalTokens),
+        tokensPerSecond,
+        elapsedMs,
+        textLength: speedTextLength,
+      });
+    };
+
+    // 初始发射（显示空闲态）
+    emitSpeed(false);
+    speedTimer = setInterval(() => emitSpeed(true), SPEED_EMIT_MS);
+
+    let turn: OfficialDoubaoTurn | undefined;
+    try {
+      turn = await submitOfficialDoubaoStreaming({
+        apiKey: input.apiKey,
+        config: input.config,
+        messages: currentMessages,
+      }, {
+        onTextChunk(newText: string, fullText: string) {
+          accumulated = fullText;
+          const units = estimateTokenUnits(newText);
+          if (speedFirstTokenAt === null) {
+            speedFirstTokenAt = Date.now();
+            speedFirstChunkTokens = units;
+          }
+          speedTextLength += newText.length;
+          speedTotalTokens += units;
+          broadcastChatChunk({ text: newText, done: false, phase: 'answer' }, excludeTabId);
+        },
+        onReasoningChunk(newText: string, fullText: string) {
+          reasoningAccumulated = fullText;
+          const units = estimateTokenUnits(newText);
+          if (speedFirstTokenAt === null) {
+            speedFirstTokenAt = Date.now();
+            speedFirstChunkTokens = units;
+          }
+          speedTextLength += newText.length;
+          speedTotalTokens += units;
+          broadcastChatChunk({ text: '', reasoningText: newText, done: false, phase: 'reasoning' }, excludeTabId);
+        },
+      });
+
+      // 最终发射（空闲态 + 最终统计）
+      if (speedTimer) { clearInterval(speedTimer); speedTimer = null; }
+      emitSpeed(false);
+    } catch (streamErr) {
+      if (speedTimer) { clearInterval(speedTimer); speedTimer = null; }
+      emitSpeed(false);
+      throw streamErr;
+    }
+
+    const fullText = accumulated || turn!.assistantText;
 
     if (!fullText) {
       broadcastChatChunk({ text: '', done: true }, excludeTabId);
@@ -2142,6 +2332,16 @@ function broadcastChatChunk(
   excludeTabId?: number,
 ) {
   chrome.runtime.sendMessage({ type: 'CHAT_STREAM_CHUNK', ...chunk }).catch(() => {});
+}
+
+function broadcastTokenSpeed(payload: {
+  active: boolean;
+  estimatedTokens: number;
+  tokensPerSecond: number;
+  elapsedMs: number;
+  textLength: number;
+}) {
+  chrome.runtime.sendMessage({ type: 'RESPONSE_TOKEN_SPEED', payload }).catch(() => {});
 }
 
 // Called on every service-worker wake. If a chat tool loop was running when

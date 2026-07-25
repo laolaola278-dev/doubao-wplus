@@ -2,7 +2,7 @@
 // HostRegistry — 宿主注册表 + 自动检测
 // 业务模块只从这里获取当前宿主 adapter，不直接判断 doubao / deepseek
 
-import type { HostAdapter, HostId } from './types';
+import type { HostAdapter, HostFeatureFlags, HostId } from './types';
 import { DoubaoAdapter } from './doubao/adapter';
 import { DeepSeekAdapter } from './deepseek/adapter';
 
@@ -50,17 +50,27 @@ export function setActiveHostId(id: HostId): void {
 
 /** 获取当前激活的 adapter（fallback 到自动检测） */
 export function getActiveAdapter(url?: string): HostAdapter {
-  const active = adapters.get(activeHostId);
-  if (active && url && active.matchUrl(url)) return active;
-
-  // fallback: 自动检测
+  // 优先走 URL 匹配：保证从其他宿主页面跳转后能自动切换
   if (url) {
     const detected = detectHost(url);
     if (detected) return detected;
   }
 
-  // 最终 fallback: 默认 doubao
+  // 没有 URL 上下文时，返回当前手动设置的 active host
+  const active = adapters.get(activeHostId);
+  if (active) return active;
+
+  // 缺省：doubao
   return adapters.get('doubao')!;
+}
+
+/**
+ * 获取当前激活宿主的 feature flags。
+ * 业务层不需要直接调用 `getActiveAdapter().getFeatures()`，
+ * 在 server-side guard / feature module 启动点使用此函数。
+ */
+export function getActiveFeatures(url?: string): HostFeatureFlags {
+  return getActiveAdapter(url).getFeatures();
 }
 
 // 启动时自动注册

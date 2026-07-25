@@ -338,7 +338,7 @@ async function executeExtensionImplementedTool(
         summary: '下载网页附件失败',
         detail: 'download_attached_file requires a `file_id` argument. Pass one of the ref_file_ids the model saw on the request.',
         error: {
-          code: 'dpp_missing_file_id',
+          code: 'dwplus_missing_file_id',
           message: 'file_id argument is missing.',
           retryable: false,
         },
@@ -388,7 +388,7 @@ async function executeExtensionImplementedTool(
         summary: '上传文件到 DeepSeek 失败',
         detail: 'upload_attached_file requires a `local_path` argument pointing to a file on the local filesystem.',
         error: {
-          code: 'dpp_missing_local_path',
+          code: 'dwplus_missing_local_path',
           message: 'local_path argument is missing.',
           retryable: false,
         },
@@ -421,7 +421,7 @@ async function executeExtensionImplementedTool(
         summary: '上传文件到 DeepSeek 失败',
         detail: err instanceof Error ? err.message : String(err),
         error: {
-          code: 'dpp_read_local_file_failed',
+          code: 'dwplus_read_local_file_failed',
           message: err instanceof Error ? err.message : String(err),
           retryable: true,
         },
@@ -470,7 +470,7 @@ async function executeExtensionImplementedTool(
     summary: '工具未实现',
     detail: `Extension-implemented tool ${descriptor.name} has no executor wired up yet.`,
     error: {
-      code: 'dpp_extension_tool_not_implemented',
+      code: 'dwplus_extension_tool_not_implemented',
       message: `No extension-side executor for ${descriptor.name}.`,
       retryable: false,
     },
@@ -618,14 +618,14 @@ async function readLocalFileViaShell(
   if (!result.ok) {
     return {
       ok: false,
-      code: (result.error?.code as string) ?? 'dpp_read_local_file_failed',
+      code: (result.error?.code as string) ?? 'dwplus_read_local_file_failed',
       message: result.detail ?? result.error?.message ?? 'read_local_file failed',
     };
   }
   const data = (result.output as { data?: { contentBase64?: string; fileName?: string; sizeBytes?: number; mimeType?: string | null } } | undefined)?.data;
   const base64 = data?.contentBase64;
   if (typeof base64 !== 'string' || !base64) {
-    return { ok: false, code: 'dpp_read_local_file_empty', message: 'read_local_file returned no contentBase64' };
+    return { ok: false, code: 'dwplus_read_local_file_empty', message: 'read_local_file returned no contentBase64' };
   }
   // 浏览器环境用 atob 把 base64 还原成 binary string，再转 Uint8Array
   const binary = atob(base64);

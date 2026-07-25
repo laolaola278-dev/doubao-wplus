@@ -1,6 +1,6 @@
 # Module Inventory
 
-Preliminary direction: productize OfficeCLI inside DeepSeek++ with a built-in `/officecli` skill and a controlled local execution provider through MCP, stdio bridge, or Native Messaging.
+Preliminary direction: productize OfficeCLI inside doubao-wplus with a built-in `/officecli` skill and a controlled local execution provider through MCP, stdio bridge, or Native Messaging.
 
 Score legend: green = compliant, yellow = partial, red = violation.
 

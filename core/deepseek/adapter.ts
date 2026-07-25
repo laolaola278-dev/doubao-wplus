@@ -20,7 +20,7 @@ const DEFAULT_APP_VERSION = '2.0.0';
 const DEEPSEEK_CLIENT_PLATFORM = 'web';
 const USER_TOKEN_STORAGE_KEY = 'userToken';
 const SUPPORTED_MODEL_TYPES = new Set(['DEFAULT', 'default', 'expert', 'vision']);
-export const BYPASS_HOOK_HEADER = 'X-DPP-Bypass-Hook';
+export const BYPASS_HOOK_HEADER = 'X-DWPLUS-Bypass-Hook';
 
 let rememberedClientHeaders: Record<string, string> | null = null;
 

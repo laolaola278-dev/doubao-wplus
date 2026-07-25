@@ -1,6 +1,6 @@
-# Better DeepSeek Capability Adoption â€” Progress Tracker
+# Better DeepSeek Capability Adoption â€?Progress Tracker
 
-> **Task**: Incorporate high-value Better DeepSeek capabilities that DeepSeek++ does not currently support, with Android WebView support explicitly in scope.
+> **Task**: Incorporate high-value Better DeepSeek capabilities that doubao-wplus does not currently support, with Android WebView support explicitly in scope.
 > **Started**: 2026-06-11
 > **Last Updated**: 2026-06-11
 > **Mode**: GITHUB_STANDARD
@@ -92,12 +92,12 @@ gh issue list -R zhu1090093659/deepseek-pp \
 
 ## Phase Checklist
 
-- [x] Phase 1: Foundation Contracts and Seams (local P0 4/4 implemented; T1.5 remains P1) â€” [milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/31)
-- [x] Phase 2: P0 Project Context and Artifact Delivery (local 6/6 implemented) â€” [milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/32)
-- [x] Phase 3: Android WebView Baseline (local P0 4/4 implemented; APK validation blocked by missing JDK; T3.5 remains P1 docs/CI) â€” [milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/33)
-- [x] Phase 4: P1 Interactive Agent Tools (local 6/6 implemented; GitHub Issues remain open until commit/push reconciliation) â€” [milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/34)
-- [x] Phase 5: P2 Organization, Export, and Product Surfaces (local 5/5 implemented; GitHub Issues remain open until commit/push reconciliation) â€” [milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/35)
-- [x] Phase 6: Hardening, Documentation, and Release Readiness (local 3/3 implemented; GitHub Issues remain open until push reconciliation) â€” [milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/36)
+- [x] Phase 1: Foundation Contracts and Seams (local P0 4/4 implemented; T1.5 remains P1) â€?[milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/31)
+- [x] Phase 2: P0 Project Context and Artifact Delivery (local 6/6 implemented) â€?[milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/32)
+- [x] Phase 3: Android WebView Baseline (local P0 4/4 implemented; APK validation blocked by missing JDK; T3.5 remains P1 docs/CI) â€?[milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/33)
+- [x] Phase 4: P1 Interactive Agent Tools (local 6/6 implemented; GitHub Issues remain open until commit/push reconciliation) â€?[milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/34)
+- [x] Phase 5: P2 Organization, Export, and Product Surfaces (local 5/5 implemented; GitHub Issues remain open until commit/push reconciliation) â€?[milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/35)
+- [x] Phase 6: Hardening, Documentation, and Release Readiness (local 3/3 implemented; GitHub Issues remain open until push reconciliation) â€?[milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/36)
 
 ## Current Status
 
@@ -182,7 +182,7 @@ Per-task telemetry should be written to the corresponding GitHub Issue as commen
 ## Notes
 
 - Better DeepSeek reference snapshot: `EdgeTypE/better-deepseek` commit `450168e` from 2026-06-09.
-- Do not copy Better DeepSeek's BDS tag system wholesale. New capabilities should map to DeepSeek++ ToolDescriptor, prompt augmentation, platform, and renderer contracts.
+- Do not copy Better DeepSeek's BDS tag system wholesale. New capabilities should map to doubao-wplus ToolDescriptor, prompt augmentation, platform, and renderer contracts.
 - Android is in scope, but validation must be explicit: TypeScript tests, Gradle/Kotlin tests, APK build, and emulator/WebView smoke are separate evidence levels.
 - Previous active multilingual runtime support spec artifacts were complete and archived locally under `docs/archives/multilingual-english-runtime-support/`; milestones #26-#30 are closed.
 
@@ -196,7 +196,7 @@ Per-task telemetry should be written to the corresponding GitHub Issue as commen
 
 | Date | Session | Summary |
 |:--|:--|:--|
-| 2026-06-11 | Planning | Archived completed multilingual runtime support artifacts, analyzed DeepSeek++ and Better DeepSeek, wrote analysis and plan docs, created GitHub Milestones #31-#36 and Issues #152-#181, and initialized this progress tracker. |
+| 2026-06-11 | Planning | Archived completed multilingual runtime support artifacts, analyzed doubao-wplus and Better DeepSeek, wrote analysis and plan docs, created GitHub Milestones #31-#36 and Issues #152-#181, and initialized this progress tracker. |
 | 2026-06-11 | P0 implementation | Implemented platform contracts, bridge schemas, prompt project-context ordering, renderer registry, Project Context/RAG, artifact file/zip tools, Projects UI, Android WebView scaffold, Android asset staging scripts, and capability gating. Validation passed except Android APK build, which is blocked by missing local JDK. |
 | 2026-06-11 | P1 implementation | Implemented sandbox approval cards, browser/Python sandbox handoff, voice settings and sidepanel speech controls, Skill draft review cards, memory import preview with per-item rejection, saved snippets/bookmarks, prompt injection controls, saved-item sync boundaries, and P1 tests. TypeScript compile and all Vitest tests passed. |
 | 2026-06-11 | P2 implementation | Implemented DeepSeek history tags/search/filtering, message and saved-item exports, image manifest export format, gated developer API playground, code block downloads, reversible navigation patch, local what's-new panel, and custom CSS/theme policy decision. Full P2 validation matrix passed. |

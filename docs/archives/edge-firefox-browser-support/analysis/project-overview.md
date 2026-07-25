@@ -1,12 +1,12 @@
 ## Project Overview
 
-Task: add Edge and Firefox support to DeepSeek++ without forking the extension logic.
+Task: add Edge and Firefox support to doubao-wplus without forking the extension logic.
 
 Date: 2026-05-25
 
 ### Architecture
 
-DeepSeek++ is a WXT browser extension with three runtime entrypoints:
+doubao-wplus is a WXT browser extension with three runtime entrypoints:
 
 - `entrypoints/background.ts`: background orchestration, storage routing, alarms, tab orchestration, MCP runtime, and broadcasts.
 - `entrypoints/content.ts`: isolated content script for DOM integration, runtime messaging, result rendering, and bridge calls.

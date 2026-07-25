@@ -8,7 +8,7 @@ import type {
 import { McpTransportError, normalizeJsonRpcResponse } from './common';
 
 interface McpNativeEnvelope {
-  protocol: 'deepseek-pp-mcp-native';
+  protocol: 'dwplus-mcp-native';
   version: 1;
   server: {
     id: string;
@@ -152,7 +152,7 @@ function createNativeEnvelope(
   message: McpJsonRpcRequest<any> | McpJsonRpcNotification,
 ): McpNativeEnvelope {
   return {
-    protocol: 'deepseek-pp-mcp-native',
+    protocol: 'dwplus-mcp-native',
     version: 1,
     server: {
       id: server.id,

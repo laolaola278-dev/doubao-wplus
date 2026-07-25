@@ -1,0 +1,7 @@
+2026/07/19-10:27:43.847 4378 Reusing MANIFEST F:\xjx\MCP\doubao-wplus\.e2e-profile\Default\IndexedDB\https_www.doubao.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/07/19-10:27:43.848 4378 Recovering log #28
+2026/07/19-10:27:43.849 4378 Reusing old log F:\xjx\MCP\doubao-wplus\.e2e-profile\Default\IndexedDB\https_www.doubao.com_0.indexeddb.leveldb/000028.log 
+2026/07/19-10:28:05.597 4378 Compacting 1@1 + 1@2 files
+2026/07/19-10:28:05.666 4378 Generated table #31@1: 49 keys, 36125 bytes
+2026/07/19-10:28:05.666 4378 Compacted 1@1 + 1@2 files => 36125 bytes
+2026/07/19-10:28:05.723 4378 compacted to: files[ 0 0 1 0 0 0 0 ]

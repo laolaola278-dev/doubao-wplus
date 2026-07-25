@@ -1,0 +1,6 @@
+2026/07/19-10:07:44.096 4b28 Reusing MANIFEST F:\xjx\MCP\doubao-wplus\.e2e-profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/07/19-10:07:44.104 4b28 Recovering log #16
+2026/07/19-10:07:44.105 4b28 Reusing old log F:\xjx\MCP\doubao-wplus\.e2e-profile\Default\Local Storage\leveldb/000016.log 
+2026/07/19-10:09:45.517 79b4 Level-0 table #20: started
+2026/07/19-10:09:45.584 79b4 Level-0 table #20: 20032 bytes OK
+2026/07/19-10:09:45.614 79b4 Delete type=0 #16

@@ -1,9 +1,9 @@
 import type { ToolCall } from '../types';
 import { injectInjectedThemeStyles } from './injected-theme';
 
-export const TOOL_CARD_CLASS = 'dpp-tool-card';
-export const DSML_HIDDEN_CLASS = 'dpp-dsml-hidden';
-const STYLE_ID = 'dpp-tool-card-css';
+export const TOOL_CARD_CLASS = 'dwplus-tool-card';
+export const DSML_HIDDEN_CLASS = 'dwplus-dsml-hidden';
+const STYLE_ID = 'dwplus-tool-card-css';
 
 export interface ToolCardResult {
   ok: boolean;
@@ -32,38 +32,38 @@ export function createToolCard(call: ToolCall): HTMLElement {
   card.setAttribute('data-collapsed', 'false');
 
   card.innerHTML = `
-    <div class="dpp-tc-header" role="button" tabindex="0" aria-expanded="true">
-      <span class="dpp-tc-icon" aria-hidden="true">
+    <div class="dwplus-tc-header" role="button" tabindex="0" aria-expanded="true">
+      <span class="dwplus-tc-icon" aria-hidden="true">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
       </span>
-      <span class="dpp-tc-name"></span>
-      <span class="dpp-tc-status">
-        <span class="dpp-tc-spinner" aria-hidden="true"></span>
-        <span class="dpp-tc-status-text">执行中</span>
+      <span class="dwplus-tc-name"></span>
+      <span class="dwplus-tc-status">
+        <span class="dwplus-tc-spinner" aria-hidden="true"></span>
+        <span class="dwplus-tc-status-text">执行中</span>
       </span>
-      <span class="dpp-tc-chevron" aria-hidden="true">
+      <span class="dwplus-tc-chevron" aria-hidden="true">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </span>
     </div>
-    <div class="dpp-tc-body">
-      <div class="dpp-tc-section">
-        <div class="dpp-tc-label">参数</div>
-        <div class="dpp-tc-payload"></div>
+    <div class="dwplus-tc-body">
+      <div class="dwplus-tc-section">
+        <div class="dwplus-tc-label">参数</div>
+        <div class="dwplus-tc-payload"></div>
       </div>
-      <div class="dpp-tc-section dpp-tc-result-section" data-hidden="true">
-        <div class="dpp-tc-label">结果</div>
-        <div class="dpp-tc-result"></div>
+      <div class="dwplus-tc-section dwplus-tc-result-section" data-hidden="true">
+        <div class="dwplus-tc-label">结果</div>
+        <div class="dwplus-tc-result"></div>
       </div>
     </div>
   `;
 
-  const nameEl = card.querySelector('.dpp-tc-name') as HTMLElement;
+  const nameEl = card.querySelector('.dwplus-tc-name') as HTMLElement;
   nameEl.textContent = call.name;
 
-  const payloadEl = card.querySelector('.dpp-tc-payload') as HTMLElement;
+  const payloadEl = card.querySelector('.dwplus-tc-payload') as HTMLElement;
   renderPayload(payloadEl, call.payload);
 
-  const header = card.querySelector('.dpp-tc-header') as HTMLElement;
+  const header = card.querySelector('.dwplus-tc-header') as HTMLElement;
   header.addEventListener('click', () => toggleCollapse(card));
   header.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -78,15 +78,15 @@ export function createToolCard(call: ToolCall): HTMLElement {
 export function setToolCardResult(card: HTMLElement, result: ToolCardResult) {
   card.setAttribute('data-state', result.ok ? 'success' : 'error');
 
-  const statusText = card.querySelector('.dpp-tc-status-text');
+  const statusText = card.querySelector('.dwplus-tc-status-text');
   if (statusText) statusText.textContent = result.summary;
 
-  const spinner = card.querySelector('.dpp-tc-spinner');
+  const spinner = card.querySelector('.dwplus-tc-spinner');
   if (spinner) spinner.remove();
 
   if (result.detail) {
-    const resultSection = card.querySelector('.dpp-tc-result-section') as HTMLElement | null;
-    const resultEl = card.querySelector('.dpp-tc-result') as HTMLElement | null;
+    const resultSection = card.querySelector('.dwplus-tc-result-section') as HTMLElement | null;
+    const resultEl = card.querySelector('.dwplus-tc-result') as HTMLElement | null;
     if (resultSection && resultEl) {
       resultEl.textContent = result.detail;
       resultSection.removeAttribute('data-hidden');
@@ -121,7 +121,7 @@ function toggleCollapse(card: HTMLElement) {
 
 function setCollapsed(card: HTMLElement, collapsed: boolean) {
   card.setAttribute('data-collapsed', collapsed ? 'true' : 'false');
-  const header = card.querySelector('.dpp-tc-header');
+  const header = card.querySelector('.dwplus-tc-header');
   header?.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
 }
 
@@ -130,7 +130,7 @@ function renderPayload(target: HTMLElement, payload: Record<string, unknown>) {
   const entries = Object.entries(payload);
   if (entries.length === 0) {
     const empty = document.createElement('div');
-    empty.className = 'dpp-tc-payload-empty';
+    empty.className = 'dwplus-tc-payload-empty';
     empty.textContent = '（无参数）';
     target.appendChild(empty);
     return;
@@ -138,14 +138,14 @@ function renderPayload(target: HTMLElement, payload: Record<string, unknown>) {
 
   for (const [key, value] of entries) {
     const row = document.createElement('div');
-    row.className = 'dpp-tc-payload-row';
+    row.className = 'dwplus-tc-payload-row';
 
     const keyEl = document.createElement('span');
-    keyEl.className = 'dpp-tc-key';
+    keyEl.className = 'dwplus-tc-key';
     keyEl.textContent = key;
 
     const valEl = document.createElement('span');
-    valEl.className = 'dpp-tc-value';
+    valEl.className = 'dwplus-tc-value';
     valEl.textContent = formatValue(value);
 
     row.appendChild(keyEl);
@@ -166,158 +166,158 @@ function formatValue(value: unknown): string {
 }
 
 const TOOL_CARD_CSS = `
-.dpp-tool-card {
+.dwplus-tool-card {
   margin: 8px 0;
-  background: var(--dpp-ui-surface);
-  border: 1px solid var(--dpp-ui-border);
+  background: var(--dwplus-ui-surface);
+  border: 1px solid var(--dwplus-ui-border);
   border-radius: 12px;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', 'Segoe UI', sans-serif;
   font-size: 13px;
   overflow: hidden;
   transition: border-color 0.2s, box-shadow 0.2s;
-  animation: dpp-tc-in 0.2s ease;
-  box-shadow: var(--dpp-ui-shadow);
+  animation: dwplus-tc-in 0.2s ease;
+  box-shadow: var(--dwplus-ui-shadow);
 }
-.dpp-tool-card:hover {
-  border-color: var(--dpp-ui-border);
+.dwplus-tool-card:hover {
+  border-color: var(--dwplus-ui-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
-@keyframes dpp-tc-in {
+@keyframes dwplus-tc-in {
   from { opacity: 0; transform: translateY(-2px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.dpp-tool-card[data-state="success"] { border-color: #BBF7D0; }
-.dpp-tool-card[data-state="error"]   { border-color: #FECACA; }
+.dwplus-tool-card[data-state="success"] { border-color: #BBF7D0; }
+.dwplus-tool-card[data-state="error"]   { border-color: #FECACA; }
 
-.dpp-tc-header {
+.dwplus-tc-header {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
   cursor: pointer;
   user-select: none;
-  background: var(--dpp-ui-surface-muted);
+  background: var(--dwplus-ui-surface-muted);
   border-bottom: 1px solid transparent;
   transition: background 0.12s, border-color 0.2s;
 }
-.dpp-tool-card[data-collapsed="false"] .dpp-tc-header {
-  border-bottom-color: var(--dpp-ui-border-muted);
+.dwplus-tool-card[data-collapsed="false"] .dwplus-tc-header {
+  border-bottom-color: var(--dwplus-ui-border-muted);
 }
-.dpp-tc-header:hover { background: var(--dpp-ui-surface-hover); }
-.dpp-tc-header:focus { outline: none; box-shadow: inset 0 0 0 2px rgba(77, 107, 254, 0.2); }
+.dwplus-tc-header:hover { background: var(--dwplus-ui-surface-hover); }
+.dwplus-tc-header:focus { outline: none; box-shadow: inset 0 0 0 2px rgba(77, 107, 254, 0.2); }
 
-.dpp-tc-icon {
+.dwplus-tc-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  background: var(--dpp-ui-accent-soft);
-  color: var(--dpp-ui-accent);
+  background: var(--dwplus-ui-accent-soft);
+  color: var(--dwplus-ui-accent);
   flex-shrink: 0;
 }
-.dpp-tool-card[data-state="success"] .dpp-tc-icon { background: #ECFDF5; color: var(--dpp-ui-success); }
-.dpp-tool-card[data-state="error"]   .dpp-tc-icon { background: #FEF2F2; color: var(--dpp-ui-error); }
+.dwplus-tool-card[data-state="success"] .dwplus-tc-icon { background: #ECFDF5; color: var(--dwplus-ui-success); }
+.dwplus-tool-card[data-state="error"]   .dwplus-tc-icon { background: #FEF2F2; color: var(--dwplus-ui-error); }
 
-.dpp-tc-name {
+.dwplus-tc-name {
   font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
   font-size: 12px;
   font-weight: 600;
-  color: var(--dpp-ui-text);
+  color: var(--dwplus-ui-text);
   flex-shrink: 0;
 }
-.dpp-tc-status {
+.dwplus-tc-status {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--dpp-ui-text-muted);
+  color: var(--dwplus-ui-text-muted);
   flex: 1;
   min-width: 0;
 }
-.dpp-tc-status-text {
+.dwplus-tc-status-text {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.dpp-tool-card[data-state="success"] .dpp-tc-status-text { color: var(--dpp-ui-success); }
-.dpp-tool-card[data-state="error"]   .dpp-tc-status-text { color: var(--dpp-ui-error); }
+.dwplus-tool-card[data-state="success"] .dwplus-tc-status-text { color: var(--dwplus-ui-success); }
+.dwplus-tool-card[data-state="error"]   .dwplus-tc-status-text { color: var(--dwplus-ui-error); }
 
-.dpp-tc-spinner {
+.dwplus-tc-spinner {
   width: 11px;
   height: 11px;
-  border: 1.5px solid var(--dpp-ui-border);
-  border-top-color: var(--dpp-ui-accent);
+  border: 1.5px solid var(--dwplus-ui-border);
+  border-top-color: var(--dwplus-ui-accent);
   border-radius: 50%;
-  animation: dpp-tc-spin 0.8s linear infinite;
+  animation: dwplus-tc-spin 0.8s linear infinite;
   flex-shrink: 0;
 }
-@keyframes dpp-tc-spin {
+@keyframes dwplus-tc-spin {
   to { transform: rotate(360deg); }
 }
 
-.dpp-tc-chevron {
+.dwplus-tc-chevron {
   display: inline-flex;
-  color: var(--dpp-ui-text-subtle);
+  color: var(--dwplus-ui-text-subtle);
   transition: transform 0.22s ease;
   flex-shrink: 0;
 }
-.dpp-tool-card[data-collapsed="true"] .dpp-tc-chevron { transform: rotate(-90deg); }
+.dwplus-tool-card[data-collapsed="true"] .dwplus-tc-chevron { transform: rotate(-90deg); }
 
-.dpp-tc-body {
+.dwplus-tc-body {
   max-height: 2000px;
   overflow: hidden;
   transition: max-height 0.3s ease, opacity 0.2s ease;
   opacity: 1;
 }
-.dpp-tool-card[data-collapsed="true"] .dpp-tc-body {
+.dwplus-tool-card[data-collapsed="true"] .dwplus-tc-body {
   max-height: 0;
   opacity: 0;
 }
 
-.dpp-tc-section {
+.dwplus-tc-section {
   padding: 10px 12px;
 }
-.dpp-tc-section + .dpp-tc-section {
-  border-top: 1px dashed var(--dpp-ui-border-muted);
+.dwplus-tc-section + .dwplus-tc-section {
+  border-top: 1px dashed var(--dwplus-ui-border-muted);
 }
-.dpp-tc-section[data-hidden] { display: none; }
+.dwplus-tc-section[data-hidden] { display: none; }
 
-.dpp-tc-label {
+.dwplus-tc-label {
   font-size: 10px;
   font-weight: 600;
-  color: var(--dpp-ui-text-subtle);
+  color: var(--dwplus-ui-text-subtle);
   letter-spacing: 0.6px;
   text-transform: uppercase;
   margin-bottom: 6px;
 }
 
-.dpp-tc-payload {
+.dwplus-tc-payload {
   font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace;
   font-size: 12px;
   line-height: 1.65;
-  color: var(--dpp-ui-text);
+  color: var(--dwplus-ui-text);
   white-space: pre-wrap;
   word-break: break-word;
 }
-.dpp-tc-payload-row { display: block; }
-.dpp-tc-payload-empty { color: var(--dpp-ui-text-subtle); font-style: italic; }
+.dwplus-tc-payload-row { display: block; }
+.dwplus-tc-payload-empty { color: var(--dwplus-ui-text-subtle); font-style: italic; }
 
-.dpp-tc-key {
-  color: var(--dpp-ui-text-muted);
+.dwplus-tc-key {
+  color: var(--dwplus-ui-text-muted);
 }
-.dpp-tc-value {
-  color: var(--dpp-ui-text);
+.dwplus-tc-value {
+  color: var(--dwplus-ui-text);
 }
 
-.dpp-tc-result {
+.dwplus-tc-result {
   font-size: 12px;
-  color: var(--dpp-ui-text);
+  color: var(--dwplus-ui-text);
   line-height: 1.55;
   word-break: break-word;
   white-space: pre-wrap;
 }
 
-.dpp-dsml-hidden { display: none !important; }
+.dwplus-dsml-hidden { display: none !important; }
 `;

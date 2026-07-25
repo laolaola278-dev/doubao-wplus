@@ -1,11 +1,11 @@
 ---
 name: deepseek-automation
-description: Use when implementing, resuming, reviewing, or verifying the DeepSeek++ Codex-style automation feature in this repository. Covers reading docs/progress/MASTER.md, following GitHub Issues #1-#16, preserving the background scheduler plus DeepSeek main-world runner architecture, recording telemetry, and updating progress for the automation implementation plan.
+description: Use when implementing, resuming, reviewing, or verifying the doubao-wplus Codex-style automation feature in this repository. Covers reading docs/progress/MASTER.md, following GitHub Issues #1-#16, preserving the background scheduler plus DeepSeek main-world runner architecture, recording telemetry, and updating progress for the automation implementation plan.
 ---
 
 ## DeepSeek Automation
 
-Use this project-local skill for the DeepSeek++ automation implementation. The feature goal is: create Codex-style automations that can run immediately in a new DeepSeek chat session and then continue in that same automation session on a cron/RRULE-like schedule.
+Use this project-local skill for the doubao-wplus automation implementation. The feature goal is: create Codex-style automations that can run immediately in a new DeepSeek chat session and then continue in that same automation session on a cron/RRULE-like schedule.
 
 ### Start Every Session
 

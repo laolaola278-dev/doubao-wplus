@@ -21,7 +21,7 @@ async function startMock(): Promise<{ server: Server; baseUrl: string; record: {
       const body = Buffer.concat(chunks);
       const rawCt = req.headers['content-type'];
       const contentType = Array.isArray(rawCt) ? rawCt[0] : rawCt;
-      record.bypass = (Array.isArray(req.headers['x-dpp-bypass-hook']) ? req.headers['x-dpp-bypass-hook'][0] : req.headers['x-dpp-bypass-hook']) ?? null;
+      record.bypass = (Array.isArray(req.headers['x-dwplus-bypass-hook']) ? req.headers['x-dwplus-bypass-hook'][0] : req.headers['x-dwplus-bypass-hook']) ?? null;
       const boundaryMatch = /boundary=([^;]+)/.exec(contentType ?? '');
       const boundary = boundaryMatch ? boundaryMatch[1]?.trim().replace(/^"|"$/g, '') : null;
       record.boundary = boundary ?? null;
@@ -58,7 +58,7 @@ async function startMock(): Promise<{ server: Server; baseUrl: string; record: {
 
 async function main() {
   // 1) 造一个真实二进制（zip 头 + 假 docx 内容）
-  const localPath = join(tmpdir(), 'dpp-smoke-report.docx');
+  const localPath = join(tmpdir(), 'dwplus-smoke-report.docx');
   // 简单构造：PK\x03\x04 zip 头 + 一段正文
   const payload = Buffer.concat([
     Buffer.from([0x50, 0x4b, 0x03, 0x04]), // zip magic

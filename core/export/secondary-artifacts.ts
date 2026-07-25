@@ -37,7 +37,7 @@ export function createMessageMarkdownArtifact(message: Pick<ExportedMessage, 'id
 
 export function createSavedItemsMarkdownArtifact(items: readonly SavedItem[]): SecondaryExportArtifact {
   const lines = [
-    '# DeepSeek++ Saved Items',
+    '# WPlus Saved Items',
     '',
     `- Count: ${items.length}`,
     `- Exported: ${new Date().toISOString()}`,

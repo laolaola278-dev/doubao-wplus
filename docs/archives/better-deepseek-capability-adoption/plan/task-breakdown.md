@@ -2,7 +2,7 @@
 
 ## Overview
 
-- **Task definition**: Incorporate the high-value Better DeepSeek capabilities that DeepSeek++ does not currently support, with Android WebView support explicitly in scope.
+- **Task definition**: Incorporate the high-value Better DeepSeek capabilities that doubao-wplus does not currently support, with Android WebView support explicitly in scope.
 - **Total Phases**: 6
 - **Total Tasks**: 25
 - **Estimated Total Effort**: XL
@@ -75,7 +75,7 @@
 
 ## Phase 3: Android WebView Baseline
 
-**Goal**: Make DeepSeek++ run as an Android WebView app with explicit capability boundaries.
+**Goal**: Make doubao-wplus run as an Android WebView app with explicit capability boundaries.
 **Prerequisite**: Phase 1 platform ports complete. Phase 2 may run partly in parallel, but Android feature parity work depends on stable adapters.
 **S.U.P.E.R Focus**: E, P, R.
 

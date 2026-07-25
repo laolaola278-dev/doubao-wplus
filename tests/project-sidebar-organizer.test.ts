@@ -4,7 +4,7 @@ import {
   renderProjectSidebar,
   startDeepSeekProjectSidebarOrganizer,
   type ProjectSidebarOrganizerLabels,
-} from '../entrypoints/content/adapters/project-sidebar-organizer';
+} from '../entrypoints/content/features/deepseek/project-sidebar-organizer';
 
 const NOW = 1_700_000_000_000;
 
@@ -73,9 +73,9 @@ describe('DeepSeek project sidebar organizer', () => {
       expandedProjectIds: new Set(['project-deepseek']),
     }));
 
-    expect(section?.querySelector('.dpp-project-sidebar__section-title')?.textContent).toBe('项目');
-    expect(section?.querySelector('.dpp-project-sidebar__project-name')?.textContent).toBe('deepseek-pp');
-    expect(section?.querySelector('[data-dpp-project-conversation-id="session-one"]')?.textContent).toContain('发布 0.7.3 版本');
+    expect(section?.querySelector('.dwplus-project-sidebar__section-title')?.textContent).toBe('项目');
+    expect(section?.querySelector('.dwplus-project-sidebar__project-name')?.textContent).toBe('deepseek-pp');
+    expect(section?.querySelector('[data-dwplus-project-conversation-id="session-one"]')?.textContent).toContain('发布 0.7.3 版本');
     expect(document.querySelector<HTMLElement>('[data-testid="session-one-row"]')?.hidden).toBe(true);
     expect(document.querySelector<HTMLElement>('[data-testid="session-one-row"]')?.style.getPropertyValue('display')).toBe('none');
     expect(document.querySelector<HTMLElement>('[data-testid="session-two-row"]')?.hidden).toBe(false);
@@ -96,8 +96,8 @@ describe('DeepSeek project sidebar organizer', () => {
       expandedProjectIds,
     }));
 
-    expect(document.querySelectorAll('#dpp-project-sidebar')).toHaveLength(1);
-    expect(document.querySelectorAll('a[data-dpp-project-conversation-id="session-one"]')).toHaveLength(1);
+    expect(document.querySelectorAll('#dwplus-project-sidebar')).toHaveLength(1);
+    expect(document.querySelectorAll('a[data-dwplus-project-conversation-id="session-one"]')).toHaveLength(1);
   });
 
   it('moves the current conversation from the project sidebar action', async () => {
@@ -113,7 +113,7 @@ describe('DeepSeek project sidebar organizer', () => {
     const controller = startDeepSeekProjectSidebarOrganizer(() => labels);
     await flushProjectSidebar();
 
-    document.querySelector<HTMLButtonElement>('[data-dpp-project-action="move-current"]')?.click();
+    document.querySelector<HTMLButtonElement>('[data-dwplus-project-action="move-current"]')?.click();
     await Promise.resolve();
 
     expect(sendMessage).toHaveBeenCalledWith({
@@ -151,8 +151,8 @@ describe('DeepSeek project sidebar organizer', () => {
     `);
     await flushProjectSidebar();
 
-    expect(document.querySelector('[data-dpp-project-native-menu="true"]')?.textContent).toContain('加入项目');
-    document.querySelector<HTMLButtonElement>('[data-dpp-project-native-action="join"]')?.click();
+    expect(document.querySelector('[data-dwplus-project-native-menu="true"]')?.textContent).toContain('加入项目');
+    document.querySelector<HTMLButtonElement>('[data-dwplus-project-native-action="join"]')?.click();
     await Promise.resolve();
 
     expect(sendMessage).toHaveBeenCalledWith({
@@ -195,7 +195,7 @@ describe('DeepSeek project sidebar organizer', () => {
     };
     document.addEventListener('click', swallowHostClick, true);
     try {
-      const join = document.querySelector<HTMLButtonElement>('[data-dpp-project-native-action="join"]')!;
+      const join = document.querySelector<HTMLButtonElement>('[data-dwplus-project-native-action="join"]')!;
       join.dispatchEvent(new Event('pointerdown', { bubbles: true, cancelable: true }));
       join.click();
       await Promise.resolve();
@@ -225,11 +225,11 @@ describe('DeepSeek project sidebar organizer', () => {
     const controller = startDeepSeekProjectSidebarOrganizer(() => labels);
     await flushProjectSidebar();
 
-    document.querySelector<HTMLButtonElement>('[data-dpp-project-conversation-menu="true"]')?.click();
+    document.querySelector<HTMLButtonElement>('[data-dwplus-project-conversation-menu="true"]')?.click();
     await flushProjectSidebar();
-    expect(document.querySelector('.dpp-project-sidebar__conversation-menu')?.textContent).toContain('移除项目：deepseek-pp');
+    expect(document.querySelector('.dwplus-project-sidebar__conversation-menu')?.textContent).toContain('移除项目：deepseek-pp');
 
-    document.querySelector<HTMLButtonElement>('[data-dpp-project-remove-conversation="true"]')?.click();
+    document.querySelector<HTMLButtonElement>('[data-dwplus-project-remove-conversation="true"]')?.click();
     await Promise.resolve();
 
     expect(sendMessage).toHaveBeenCalledWith({
@@ -255,11 +255,11 @@ describe('DeepSeek project sidebar organizer', () => {
     };
     document.addEventListener('click', swallowHostClick, true);
     try {
-      const menuButton = document.querySelector<HTMLButtonElement>('[data-dpp-project-conversation-menu="true"]')!;
+      const menuButton = document.querySelector<HTMLButtonElement>('[data-dwplus-project-conversation-menu="true"]')!;
       menuButton.dispatchEvent(new Event('pointerdown', { bubbles: true, cancelable: true }));
       menuButton.click();
       await flushProjectSidebar();
-      expect(document.querySelector('.dpp-project-sidebar__conversation-menu')?.textContent).toContain('移除项目：deepseek-pp');
+      expect(document.querySelector('.dwplus-project-sidebar__conversation-menu')?.textContent).toContain('移除项目：deepseek-pp');
     } finally {
       document.removeEventListener('click', swallowHostClick, true);
       controller.stop();
@@ -273,12 +273,12 @@ describe('DeepSeek project sidebar organizer', () => {
 
     const controller = startDeepSeekProjectSidebarOrganizer(() => labels);
     await flushProjectSidebar();
-    expect(document.getElementById('dpp-project-sidebar')).not.toBeNull();
+    expect(document.getElementById('dwplus-project-sidebar')).not.toBeNull();
     expect(document.querySelector<HTMLElement>('[data-testid="session-one-row"]')?.hidden).toBe(true);
 
     controller.stop();
 
-    expect(document.getElementById('dpp-project-sidebar')).toBeNull();
+    expect(document.getElementById('dwplus-project-sidebar')).toBeNull();
     expect(document.querySelector<HTMLElement>('[data-testid="session-one-row"]')?.hidden).toBe(false);
     expect(document.querySelector<HTMLElement>('[data-testid="session-one-row"]')?.style.getPropertyValue('display')).toBe('');
   });
@@ -294,7 +294,7 @@ describe('DeepSeek project sidebar organizer', () => {
     const controller = startDeepSeekProjectSidebarOrganizer(() => labels);
     await flushProjectSidebar();
 
-    document.querySelector<HTMLButtonElement>('[data-dpp-project-action="toggle-pending"]')?.click();
+    document.querySelector<HTMLButtonElement>('[data-dwplus-project-action="toggle-pending"]')?.click();
     await Promise.resolve();
 
     expect(sendMessage).toHaveBeenCalledWith({
@@ -313,8 +313,8 @@ describe('DeepSeek project sidebar organizer', () => {
       expandedProjectIds: new Set(['project-deepseek']),
     }));
 
-    expect(section?.querySelector('.dpp-project-sidebar__pending')?.textContent).toBe('下一条新会话将使用此项目');
-    const toggleButton = section?.querySelector<HTMLButtonElement>('[data-dpp-project-action="toggle-pending"]');
+    expect(section?.querySelector('.dwplus-project-sidebar__pending')?.textContent).toBe('下一条新会话将使用此项目');
+    const toggleButton = section?.querySelector<HTMLButtonElement>('[data-dwplus-project-action="toggle-pending"]');
     expect(toggleButton?.dataset.active).toBe('true');
     expect(toggleButton?.getAttribute('aria-label')).toBe('取消下一条新会话使用 deepseek-pp');
   });
@@ -335,8 +335,8 @@ describe('DeepSeek project sidebar organizer', () => {
       state,
       expandedProjectIds: new Set(['project-deepseek']),
     }));
-    expect(collapsed?.querySelectorAll('.dpp-project-sidebar__conversation-row')).toHaveLength(5);
-    expect(collapsed?.querySelector('[data-dpp-project-show-all]')?.textContent).toBe('展开显示');
+    expect(collapsed?.querySelectorAll('.dwplus-project-sidebar__conversation-row')).toHaveLength(5);
+    expect(collapsed?.querySelector('[data-dwplus-project-show-all]')?.textContent).toBe('展开显示');
 
     const onToggleShowAll = vi.fn();
     const expanded = renderProjectSidebar(document, createRenderOptions({
@@ -345,10 +345,10 @@ describe('DeepSeek project sidebar organizer', () => {
       showAllProjectIds: new Set(['project-deepseek']),
       onToggleShowAll,
     }));
-    expect(expanded?.querySelectorAll('.dpp-project-sidebar__conversation-row')).toHaveLength(6);
-    expect(expanded?.querySelector('[data-dpp-project-show-all]')?.textContent).toBe('收起显示');
+    expect(expanded?.querySelectorAll('.dwplus-project-sidebar__conversation-row')).toHaveLength(6);
+    expect(expanded?.querySelector('[data-dwplus-project-show-all]')?.textContent).toBe('收起显示');
 
-    expanded?.querySelector<HTMLButtonElement>('[data-dpp-project-show-all]')?.click();
+    expanded?.querySelector<HTMLButtonElement>('[data-dwplus-project-show-all]')?.click();
     expect(onToggleShowAll).toHaveBeenCalledWith('project-deepseek');
   });
 });

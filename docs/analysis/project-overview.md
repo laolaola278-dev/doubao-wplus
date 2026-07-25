@@ -2,11 +2,11 @@
 
 ## Preliminary Direction
 
-Implement Gemini-Nexus parity browser control in DeepSeek++: a Chromium-owned CDP runtime with `chrome.debugger`, Accessibility Tree UID snapshots, controlled tab and tab group scope, browser action tools, sidepanel controls, permission governance, and verification. This is intentionally the full parity path, not a small MVP.
+Implement Gemini-Nexus parity browser control in doubao-wplus: a Chromium-owned CDP runtime with `chrome.debugger`, Accessibility Tree UID snapshots, controlled tab and tab group scope, browser action tools, sidepanel controls, permission governance, and verification. This is intentionally the full parity path, not a small MVP.
 
 ## Current Architecture
 
-DeepSeek++ is a WXT / Manifest V3 extension with four primary runtime surfaces:
+doubao-wplus is a WXT / Manifest V3 extension with four primary runtime surfaces:
 
 ```mermaid
 graph TD
@@ -32,7 +32,7 @@ The correct ownership boundary is background-owned browser control. `entrypoints
 | Language | TypeScript | TypeScript |
 | Extension Framework | WXT MV3 | WXT MV3, Chromium browser-control capability gated |
 | UI | React 19 + Tailwind | React sidepanel Browser Control surface |
-| Tool Protocol | DeepSeek++ direct XML tool tags via `ToolDescriptor` | Same protocol, with browser-control descriptors |
+| Tool Protocol | doubao-wplus direct XML tool tags via `ToolDescriptor` | Same protocol, with browser-control descriptors |
 | Browser Automation | None | `chrome.debugger` + CDP + `chrome.tabs` + `chrome.tabGroups` |
 | Page Observation | Existing DeepSeek page text/context only | CDP Accessibility Tree snapshot with stable UID mapping |
 | Storage | `chrome.storage.local`, Dexie-backed feature stores | Existing storage plus browser-control settings/state/history |

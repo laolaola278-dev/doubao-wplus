@@ -10,7 +10,7 @@
 
 ### deepseek-automation
 
-- Description: Browser-local Codex-style automations for DeepSeek++ with run-now sessions and scheduled continuation in the same automation chat.
+- Description: Browser-local Codex-style automations for doubao-wplus with run-now sessions and scheduled continuation in the same automation chat.
 - Date range: 2026-05-21 - 2026-05-21
 - Tracking mode: GITHUB_STANDARD
 - Archived progress: [MASTER.md](deepseek-automation/progress/MASTER.md)
@@ -26,7 +26,7 @@
 
 ### edge-firefox-browser-support
 
-- Description: Chrome, Edge, and Firefox MV3 packaging support for DeepSeek++ with browser-aware manifest generation, Firefox sidebar compatibility, and cross-browser build/zip commands.
+- Description: Chrome, Edge, and Firefox MV3 packaging support for doubao-wplus with browser-aware manifest generation, Firefox sidebar compatibility, and cross-browser build/zip commands.
 - Date range: 2026-05-25 - 2026-05-25
 - Tracking mode: LOCAL_ONLY
 - Archived progress: [MASTER.md](edge-firefox-browser-support/progress/MASTER.md)
@@ -60,7 +60,7 @@
 
 ### multilingual-english-runtime-support
 
-- Description: First-class multilingual support for DeepSeek++, covering English/Simplified Chinese UI, model-facing prompt behavior, manifest localization, persisted-data boundaries, and release-readiness validation.
+- Description: First-class multilingual support for doubao-wplus, covering English/Simplified Chinese UI, model-facing prompt behavior, manifest localization, persisted-data boundaries, and release-readiness validation.
 - Date range: 2026-06-10 - 2026-06-10
 - Tracking mode: GITHUB_STANDARD
 - Archived progress: [MASTER.md](multilingual-english-runtime-support/progress/MASTER.md)
@@ -70,7 +70,7 @@
 
 ### better-deepseek-capability-adoption
 
-- Description: Better DeepSeek capability adoption for DeepSeek++, covering project context, artifact delivery, Android WebView baseline, interactive agent tools, saved items, prompt controls, history organization, API playground, product polish, validation, and public docs.
+- Description: Better DeepSeek capability adoption for doubao-wplus, covering project context, artifact delivery, Android WebView baseline, interactive agent tools, saved items, prompt controls, history organization, API playground, product polish, validation, and public docs.
 - Date range: 2026-06-11 - 2026-06-11
 - Tracking mode: GITHUB_STANDARD
 - Archived progress: [MASTER.md](better-deepseek-capability-adoption/progress/MASTER.md)

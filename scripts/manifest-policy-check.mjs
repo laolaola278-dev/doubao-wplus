@@ -26,6 +26,9 @@ const targets = [
 ];
 
 const expectedHostPermissions = [
+  '*://www.doubao.com/*',
+  '*://*.doubao.com/*',
+  'https://*.volces.com/*',
   '*://chat.deepseek.com/*',
   'https://api.deepseek.com/*',
   '*://cn.bing.com/*',

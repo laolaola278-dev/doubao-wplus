@@ -35,7 +35,11 @@ export function segmentText(text: string): string[] {
   return words;
 }
 
-function keywordScore(promptWords: string[], memory: Memory): number {
+/**
+ * 关键词命中分（Memory Studio analyzer 复用同一实现解释命中原因 —— 保持打分一致性）。
+ * tag 命中 ×20，name 词命中 ×15，content 词命中 ×5。
+ */
+export function keywordScore(promptWords: string[], memory: Memory): number {
   const promptSet = new Set(promptWords);
 
   let tagHits = 0;
@@ -62,7 +66,8 @@ function keywordScore(promptWords: string[], memory: Memory): number {
   return tagHits * 20 + nameHits * 15 + contentHits * 5;
 }
 
-function decayScore(memory: Memory): number {
+/** 时间衰减分（analyzer 复用）：命中次数（封顶 20）+ 新鲜度 */
+export function decayScore(memory: Memory): number {
   const daysSinceAccess = (Date.now() - memory.lastAccessedAt) / 86_400_000;
   const freshness = Math.max(0, 10 - daysSinceAccess * 0.1);
   return Math.min(memory.accessCount, 20) + freshness;

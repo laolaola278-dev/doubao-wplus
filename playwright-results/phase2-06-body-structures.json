@@ -1,0 +1,939 @@
+{
+  "generatedAt": "2026-07-16T10:46:44.780Z",
+  "scenarios": [
+    {
+      "name": "S1-新会话首条",
+      "marker": "P6S1标记5065",
+      "sendVia": "button",
+      "error": null,
+      "completionCount": 1,
+      "requests": [
+        {
+          "url": "https://www.doubao.com/chat/completion?aid=497858&device_id=7663059206715885106&device_platform=web&doubao_device_platfo",
+          "status": 200,
+          "mimeType": "text/event-stream",
+          "bodyLength": 1748,
+          "promptPaths": [
+            {
+              "path": "messages[0].content_block[0].content.text_block.text",
+              "length": 30,
+              "exact": false
+            }
+          ],
+          "clientMeta": {
+            "local_conversation_id": "local_2531352232931912",
+            "conversation_id": "",
+            "bot_id": "7338286299411103781",
+            "last_section_id": "",
+            "last_message_index": null
+          },
+          "optionKeys": [
+            "send_message_scene",
+            "create_time_ms",
+            "collect_id",
+            "is_audio",
+            "answer_with_suggest",
+            "agent_mode",
+            "tts_switch",
+            "need_deep_think",
+            "click_clear_context",
+            "from_suggest",
+            "is_regen",
+            "is_replace",
+            "is_from_click_option",
+            "is_from_click_softlink",
+            "disable_sse_cache",
+            "select_text_action",
+            "is_select_text",
+            "resend_for_regen",
+            "scene_type",
+            "unique_key",
+            "start_seq",
+            "need_create_conversation",
+            "conversation_init_option",
+            "regen_query_id",
+            "edit_query_id",
+            "regen_instruction",
+            "no_replace_for_regen",
+            "message_from",
+            "shared_app_name",
+            "shared_app_id",
+            "sse_recv_event_options",
+            "is_ai_playground",
+            "is_old_user",
+            "recovery_option",
+            "message_storage_type"
+          ],
+          "optionSubset": {
+            "need_create_conversation": true,
+            "is_regen": false,
+            "need_deep_think": 0,
+            "agent_mode": 2
+          },
+          "messagesShape": [
+            {
+              "local_message_id": "string",
+              "content_block": [
+                {
+                  "block_type": "number",
+                  "content": {
+                    "text_block": {
+                      "text": "string",
+                      "icon_url": "string",
+                      "icon_url_dark": "string",
+                      "summary": "string"
+                    },
+                    "pc_event_block": "string"
+                  },
+                  "block_id": "string",
+                  "parent_id": "string",
+                  "meta_info": "[]",
+                  "append_fields": "[]"
+                },
+                "(len=1)"
+              ],
+              "message_status": "number"
+            },
+            "(len=1)"
+          ],
+          "fullSkeleton": {
+            "client_meta": {
+              "local_conversation_id": "string",
+              "conversation_id": "string",
+              "bot_id": "string",
+              "last_section_id": "string",
+              "last_message_index": "null"
+            },
+            "messages": [
+              {
+                "local_message_id": "string",
+                "content_block": [
+                  {
+                    "block_type": "number",
+                    "content": {
+                      "text_block": "{...}",
+                      "pc_event_block": "string"
+                    },
+                    "block_id": "string",
+                    "parent_id": "string",
+                    "meta_info": "[]",
+                    "append_fields": "[]"
+                  },
+                  "(len=1)"
+                ],
+                "message_status": "number"
+              },
+              "(len=1)"
+            ],
+            "option": {
+              "send_message_scene": "string",
+              "create_time_ms": "number",
+              "collect_id": "string",
+              "is_audio": "boolean",
+              "answer_with_suggest": "boolean",
+              "agent_mode": "number",
+              "tts_switch": "boolean",
+              "need_deep_think": "number",
+              "click_clear_context": "boolean",
+              "from_suggest": "boolean",
+              "is_regen": "boolean",
+              "is_replace": "boolean",
+              "is_from_click_option": "boolean",
+              "is_from_click_softlink": "boolean",
+              "disable_sse_cache": "boolean",
+              "select_text_action": "string",
+              "is_select_text": "boolean",
+              "resend_for_regen": "boolean",
+              "scene_type": "number",
+              "unique_key": "string",
+              "start_seq": "number",
+              "need_create_conversation": "boolean",
+              "conversation_init_option": {
+                "need_ack_conversation": "boolean"
+              },
+              "regen_query_id": "[]",
+              "edit_query_id": "[]",
+              "regen_instruction": "string",
+              "no_replace_for_regen": "boolean",
+              "message_from": "number",
+              "shared_app_name": "string",
+              "shared_app_id": "string",
+              "sse_recv_event_options": {
+                "support_chunk_delta": "boolean"
+              },
+              "is_ai_playground": "boolean",
+              "is_old_user": "boolean",
+              "recovery_option": {
+                "is_recovery": "boolean",
+                "req_create_time_sec": "number",
+                "append_sse_event_scene": "number"
+              },
+              "message_storage_type": "number"
+            },
+            "user_context": "[]",
+            "ext": {
+              "use_deep_think": "string",
+              "fp": "string",
+              "sub_conv_firstmet_type": "string",
+              "collection_id": "string",
+              "conversation_init_option": "string",
+              "commerce_credit_config_enable": "string"
+            }
+          },
+          "fullBody": "{\"client_meta\":{\"local_conversation_id\":\"local_2531352232931912\",\"conversation_id\":\"\",\"bot_id\":\"7338286299411103781\",\"last_section_id\":\"\",\"last_message_index\":null},\"messages\":[{\"local_message_id\":\"74c35780-8103-11f1-a435-45ed351c4ea6\",\"content_block\":[{\"block_type\":10000,\"content\":{\"text_block\":{\"text\":\"请只回答一个数字：P6S1标记5065 中的数字部分是多少？\",\"icon_url\":\"\",\"icon_url_dark\":\"\",\"summary\":\"\"},\"pc_event_block\":\"\"},\"block_id\":\"405df53a-b68d-4adb-947b-830075b55e64\",\"parent_id\":\"\",\"meta_info\":[],\"append_fields\":[]}],\"message_status\":0}],\"option\":{\"send_message_scene\":\"\",\"create_time_ms\":1784198726921,\"collect_id\":\"\",\"is_audio\":false,\"answer_with_suggest\":false,\"agent_mode\":2,\"tts_switch\":false,\"need_deep_think\":0,\"click_clear_context\":false,\"from_suggest\":false,\"is_regen\":false,\"is_replace\":false,\"is_from_click_option\":false,\"is_from_click_softlink\":false,\"disable_sse_cache\":false,\"select_text_action\":\"\",\"is_select_text\":false,\"resend_for_regen\":false,\"scene_type\":0,\"unique_key\":\"3f7131d6-febe-42c4-a471-56cc40e883cb\",\"start_seq\":0,\"need_create_conversation\":true,\"conversation_init_option\":{\"need_ack_conversation\":true},\"regen_query_id\":[],\"edit_query_id\":[],\"regen_instruction\":\"\",\"no_replace_for_regen\":false,\"message_from\":0,\"shared_app_name\":\"\",\"shared_app_id\":\"\",\"sse_recv_event_options\":{\"support_chunk_delta\":true},\"is_ai_playground\":false,\"is_old_user\":false,\"recovery_option\":{\"is_recovery\":false,\"req_create_time_sec\":1784198726,\"append_sse_event_scene\":0},\"message_storage_type\":0},\"user_context\":[],\"ext\":{\"use_deep_think\":\"0\",\"fp\":\"verify_mrnbq8im_GdAwnlrp_jLDK_4GLR_A52A_sX5OCzP3q2oU\",\"sub_conv_firstmet_type\":\"1\",\"collection_id\":\"\",\"conversation_init_option\":\"{\\\"need_ack_conversation\\\":true}\",\"commerce_credit_config_enable\":\"0\"}}"
+        }
+      ]
+    },
+    {
+      "name": "S2-多轮第2条",
+      "marker": "P6S2标记7596",
+      "sendVia": "button",
+      "error": null,
+      "completionCount": 1,
+      "requests": [
+        {
+          "url": "https://www.doubao.com/chat/completion?aid=497858&device_id=7663059206715885106&device_platform=web&doubao_device_platfo",
+          "status": 200,
+          "mimeType": "text/event-stream",
+          "bodyLength": 1746,
+          "promptPaths": [
+            {
+              "path": "messages[0].content_block[0].content.text_block.text",
+              "length": 29,
+              "exact": false
+            }
+          ],
+          "clientMeta": {
+            "local_conversation_id": "local_2372382172066837",
+            "conversation_id": "",
+            "bot_id": "7338286299411103781",
+            "last_section_id": "",
+            "last_message_index": null
+          },
+          "optionKeys": [
+            "send_message_scene",
+            "create_time_ms",
+            "collect_id",
+            "is_audio",
+            "answer_with_suggest",
+            "agent_mode",
+            "tts_switch",
+            "need_deep_think",
+            "click_clear_context",
+            "from_suggest",
+            "is_regen",
+            "is_replace",
+            "is_from_click_option",
+            "is_from_click_softlink",
+            "disable_sse_cache",
+            "select_text_action",
+            "is_select_text",
+            "resend_for_regen",
+            "scene_type",
+            "unique_key",
+            "start_seq",
+            "need_create_conversation",
+            "conversation_init_option",
+            "regen_query_id",
+            "edit_query_id",
+            "regen_instruction",
+            "no_replace_for_regen",
+            "message_from",
+            "shared_app_name",
+            "shared_app_id",
+            "sse_recv_event_options",
+            "is_ai_playground",
+            "is_old_user",
+            "recovery_option",
+            "message_storage_type"
+          ],
+          "optionSubset": {
+            "need_create_conversation": true,
+            "is_regen": false,
+            "need_deep_think": 0,
+            "agent_mode": 2
+          },
+          "messagesShape": [
+            {
+              "local_message_id": "string",
+              "content_block": [
+                {
+                  "block_type": "number",
+                  "content": {
+                    "text_block": {
+                      "text": "string",
+                      "icon_url": "string",
+                      "icon_url_dark": "string",
+                      "summary": "string"
+                    },
+                    "pc_event_block": "string"
+                  },
+                  "block_id": "string",
+                  "parent_id": "string",
+                  "meta_info": "[]",
+                  "append_fields": "[]"
+                },
+                "(len=1)"
+              ],
+              "message_status": "number"
+            },
+            "(len=1)"
+          ],
+          "fullSkeleton": {
+            "client_meta": {
+              "local_conversation_id": "string",
+              "conversation_id": "string",
+              "bot_id": "string",
+              "last_section_id": "string",
+              "last_message_index": "null"
+            },
+            "messages": [
+              {
+                "local_message_id": "string",
+                "content_block": [
+                  {
+                    "block_type": "number",
+                    "content": {
+                      "text_block": "{...}",
+                      "pc_event_block": "string"
+                    },
+                    "block_id": "string",
+                    "parent_id": "string",
+                    "meta_info": "[]",
+                    "append_fields": "[]"
+                  },
+                  "(len=1)"
+                ],
+                "message_status": "number"
+              },
+              "(len=1)"
+            ],
+            "option": {
+              "send_message_scene": "string",
+              "create_time_ms": "number",
+              "collect_id": "string",
+              "is_audio": "boolean",
+              "answer_with_suggest": "boolean",
+              "agent_mode": "number",
+              "tts_switch": "boolean",
+              "need_deep_think": "number",
+              "click_clear_context": "boolean",
+              "from_suggest": "boolean",
+              "is_regen": "boolean",
+              "is_replace": "boolean",
+              "is_from_click_option": "boolean",
+              "is_from_click_softlink": "boolean",
+              "disable_sse_cache": "boolean",
+              "select_text_action": "string",
+              "is_select_text": "boolean",
+              "resend_for_regen": "boolean",
+              "scene_type": "number",
+              "unique_key": "string",
+              "start_seq": "number",
+              "need_create_conversation": "boolean",
+              "conversation_init_option": {
+                "need_ack_conversation": "boolean"
+              },
+              "regen_query_id": "[]",
+              "edit_query_id": "[]",
+              "regen_instruction": "string",
+              "no_replace_for_regen": "boolean",
+              "message_from": "number",
+              "shared_app_name": "string",
+              "shared_app_id": "string",
+              "sse_recv_event_options": {
+                "support_chunk_delta": "boolean"
+              },
+              "is_ai_playground": "boolean",
+              "is_old_user": "boolean",
+              "recovery_option": {
+                "is_recovery": "boolean",
+                "req_create_time_sec": "number",
+                "append_sse_event_scene": "number"
+              },
+              "message_storage_type": "number"
+            },
+            "user_context": "[]",
+            "ext": {
+              "use_deep_think": "string",
+              "fp": "string",
+              "sub_conv_firstmet_type": "string",
+              "collection_id": "string",
+              "conversation_init_option": "string",
+              "commerce_credit_config_enable": "string"
+            }
+          },
+          "fullBody": "{\"client_meta\":{\"local_conversation_id\":\"local_2372382172066837\",\"conversation_id\":\"\",\"bot_id\":\"7338286299411103781\",\"last_section_id\":\"\",\"last_message_index\":null},\"messages\":[{\"local_message_id\":\"81375c50-8103-11f1-b497-a57008bd8224\",\"content_block\":[{\"block_type\":10000,\"content\":{\"text_block\":{\"text\":\"继续：P6S2标记7596 的数字加一是多少？只回答数字。\",\"icon_url\":\"\",\"icon_url_dark\":\"\",\"summary\":\"\"},\"pc_event_block\":\"\"},\"block_id\":\"a052a4c4-a6b6-45e4-bd31-d29325bee885\",\"parent_id\":\"\",\"meta_info\":[],\"append_fields\":[]}],\"message_status\":0}],\"option\":{\"send_message_scene\":\"\",\"create_time_ms\":1784198748011,\"collect_id\":\"\",\"is_audio\":false,\"answer_with_suggest\":false,\"agent_mode\":2,\"tts_switch\":false,\"need_deep_think\":0,\"click_clear_context\":false,\"from_suggest\":false,\"is_regen\":false,\"is_replace\":false,\"is_from_click_option\":false,\"is_from_click_softlink\":false,\"disable_sse_cache\":false,\"select_text_action\":\"\",\"is_select_text\":false,\"resend_for_regen\":false,\"scene_type\":0,\"unique_key\":\"e0a7d155-e90c-4576-ae4f-d7b418a94ab8\",\"start_seq\":0,\"need_create_conversation\":true,\"conversation_init_option\":{\"need_ack_conversation\":true},\"regen_query_id\":[],\"edit_query_id\":[],\"regen_instruction\":\"\",\"no_replace_for_regen\":false,\"message_from\":0,\"shared_app_name\":\"\",\"shared_app_id\":\"\",\"sse_recv_event_options\":{\"support_chunk_delta\":true},\"is_ai_playground\":false,\"is_old_user\":true,\"recovery_option\":{\"is_recovery\":false,\"req_create_time_sec\":1784198748,\"append_sse_event_scene\":0},\"message_storage_type\":0},\"user_context\":[],\"ext\":{\"use_deep_think\":\"0\",\"fp\":\"verify_mrnbq8im_GdAwnlrp_jLDK_4GLR_A52A_sX5OCzP3q2oU\",\"sub_conv_firstmet_type\":\"1\",\"collection_id\":\"\",\"conversation_init_option\":\"{\\\"need_ack_conversation\\\":true}\",\"commerce_credit_config_enable\":\"0\"}}"
+        }
+      ]
+    },
+    {
+      "name": "S2-多轮第3条",
+      "marker": "P6S2b标记9137",
+      "sendVia": "button",
+      "error": null,
+      "completionCount": 1,
+      "requests": [
+        {
+          "url": "https://www.doubao.com/chat/completion?aid=497858&device_id=7663059206715885106&device_platform=web&doubao_device_platfo",
+          "status": 200,
+          "mimeType": "text/event-stream",
+          "bodyLength": 1582,
+          "promptPaths": [
+            {
+              "path": "messages[0].content_block[0].content.text_block.text",
+              "length": 31,
+              "exact": false
+            }
+          ],
+          "clientMeta": {
+            "conversation_id": "38435134359944194",
+            "bot_id": "7338286299411103781",
+            "last_section_id": "38435134359944450",
+            "last_message_index": 5
+          },
+          "optionKeys": [
+            "send_message_scene",
+            "create_time_ms",
+            "collect_id",
+            "is_audio",
+            "answer_with_suggest",
+            "agent_mode",
+            "tts_switch",
+            "need_deep_think",
+            "click_clear_context",
+            "from_suggest",
+            "is_regen",
+            "is_replace",
+            "is_from_click_option",
+            "is_from_click_softlink",
+            "disable_sse_cache",
+            "select_text_action",
+            "is_select_text",
+            "resend_for_regen",
+            "scene_type",
+            "unique_key",
+            "start_seq",
+            "need_create_conversation",
+            "regen_query_id",
+            "edit_query_id",
+            "regen_instruction",
+            "no_replace_for_regen",
+            "message_from",
+            "shared_app_name",
+            "shared_app_id",
+            "sse_recv_event_options",
+            "is_ai_playground",
+            "is_old_user",
+            "recovery_option",
+            "message_storage_type"
+          ],
+          "optionSubset": {
+            "need_create_conversation": false,
+            "is_regen": false,
+            "need_deep_think": 0,
+            "agent_mode": 2
+          },
+          "messagesShape": [
+            {
+              "local_message_id": "string",
+              "content_block": [
+                {
+                  "block_type": "number",
+                  "content": {
+                    "text_block": {
+                      "text": "string",
+                      "icon_url": "string",
+                      "icon_url_dark": "string",
+                      "summary": "string"
+                    },
+                    "pc_event_block": "string"
+                  },
+                  "block_id": "string",
+                  "parent_id": "string",
+                  "meta_info": "[]",
+                  "append_fields": "[]"
+                },
+                "(len=1)"
+              ],
+              "message_status": "number"
+            },
+            "(len=1)"
+          ],
+          "fullSkeleton": {
+            "client_meta": {
+              "conversation_id": "string",
+              "bot_id": "string",
+              "last_section_id": "string",
+              "last_message_index": "number"
+            },
+            "messages": [
+              {
+                "local_message_id": "string",
+                "content_block": [
+                  {
+                    "block_type": "number",
+                    "content": {
+                      "text_block": "{...}",
+                      "pc_event_block": "string"
+                    },
+                    "block_id": "string",
+                    "parent_id": "string",
+                    "meta_info": "[]",
+                    "append_fields": "[]"
+                  },
+                  "(len=1)"
+                ],
+                "message_status": "number"
+              },
+              "(len=1)"
+            ],
+            "option": {
+              "send_message_scene": "string",
+              "create_time_ms": "number",
+              "collect_id": "string",
+              "is_audio": "boolean",
+              "answer_with_suggest": "boolean",
+              "agent_mode": "number",
+              "tts_switch": "boolean",
+              "need_deep_think": "number",
+              "click_clear_context": "boolean",
+              "from_suggest": "boolean",
+              "is_regen": "boolean",
+              "is_replace": "boolean",
+              "is_from_click_option": "boolean",
+              "is_from_click_softlink": "boolean",
+              "disable_sse_cache": "boolean",
+              "select_text_action": "string",
+              "is_select_text": "boolean",
+              "resend_for_regen": "boolean",
+              "scene_type": "number",
+              "unique_key": "string",
+              "start_seq": "number",
+              "need_create_conversation": "boolean",
+              "regen_query_id": "[]",
+              "edit_query_id": "[]",
+              "regen_instruction": "string",
+              "no_replace_for_regen": "boolean",
+              "message_from": "number",
+              "shared_app_name": "string",
+              "shared_app_id": "string",
+              "sse_recv_event_options": {
+                "support_chunk_delta": "boolean"
+              },
+              "is_ai_playground": "boolean",
+              "is_old_user": "boolean",
+              "recovery_option": {
+                "is_recovery": "boolean",
+                "req_create_time_sec": "number",
+                "append_sse_event_scene": "number"
+              },
+              "message_storage_type": "number"
+            },
+            "user_context": "[]",
+            "ext": {
+              "use_deep_think": "string",
+              "fp": "string",
+              "collection_id": "string",
+              "commerce_credit_config_enable": "string"
+            }
+          },
+          "fullBody": "{\"client_meta\":{\"conversation_id\":\"38435134359944194\",\"bot_id\":\"7338286299411103781\",\"last_section_id\":\"38435134359944450\",\"last_message_index\":5},\"messages\":[{\"local_message_id\":\"81c173e0-8103-11f1-b497-a57008bd8224\",\"content_block\":[{\"block_type\":10000,\"content\":{\"text_block\":{\"text\":\"再继续：P6S2b标记9137 的数字减一是多少？只回答数字。\",\"icon_url\":\"\",\"icon_url_dark\":\"\",\"summary\":\"\"},\"pc_event_block\":\"\"},\"block_id\":\"406b61a1-b45b-4879-939d-cf8d8acee4a5\",\"parent_id\":\"\",\"meta_info\":[],\"append_fields\":[]}],\"message_status\":0}],\"option\":{\"send_message_scene\":\"\",\"create_time_ms\":1784198758203,\"collect_id\":\"\",\"is_audio\":false,\"answer_with_suggest\":false,\"agent_mode\":2,\"tts_switch\":false,\"need_deep_think\":0,\"click_clear_context\":false,\"from_suggest\":false,\"is_regen\":false,\"is_replace\":false,\"is_from_click_option\":false,\"is_from_click_softlink\":false,\"disable_sse_cache\":false,\"select_text_action\":\"\",\"is_select_text\":false,\"resend_for_regen\":false,\"scene_type\":0,\"unique_key\":\"6eabba3f-d9bd-4a40-9b13-6354cb3ed801\",\"start_seq\":0,\"need_create_conversation\":false,\"regen_query_id\":[],\"edit_query_id\":[],\"regen_instruction\":\"\",\"no_replace_for_regen\":false,\"message_from\":0,\"shared_app_name\":\"\",\"shared_app_id\":\"\",\"sse_recv_event_options\":{\"support_chunk_delta\":true},\"is_ai_playground\":false,\"is_old_user\":true,\"recovery_option\":{\"is_recovery\":false,\"req_create_time_sec\":1784198758,\"append_sse_event_scene\":0},\"message_storage_type\":0},\"user_context\":[],\"ext\":{\"use_deep_think\":\"0\",\"fp\":\"verify_mrnbq8im_GdAwnlrp_jLDK_4GLR_A52A_sX5OCzP3q2oU\",\"collection_id\":\"\",\"commerce_credit_config_enable\":\"0\"}}"
+        }
+      ]
+    },
+    {
+      "name": "S3-Skill命令",
+      "marker": "P6S3",
+      "sendVia": "button",
+      "error": null,
+      "completionCount": 1,
+      "requests": [
+        {
+          "url": "https://www.doubao.com/chat/completion?aid=497858&device_id=7663059206715885106&device_platform=web&doubao_device_platfo",
+          "status": 200,
+          "mimeType": "text/event-stream",
+          "bodyLength": 1568,
+          "promptPaths": [
+            {
+              "path": "messages[0].content_block[0].content.text_block.text",
+              "length": 17,
+              "exact": false
+            }
+          ],
+          "clientMeta": {
+            "conversation_id": "38435134359944194",
+            "bot_id": "7338286299411103781",
+            "last_section_id": "38435134359944450",
+            "last_message_index": 7
+          },
+          "optionKeys": [
+            "send_message_scene",
+            "create_time_ms",
+            "collect_id",
+            "is_audio",
+            "answer_with_suggest",
+            "agent_mode",
+            "tts_switch",
+            "need_deep_think",
+            "click_clear_context",
+            "from_suggest",
+            "is_regen",
+            "is_replace",
+            "is_from_click_option",
+            "is_from_click_softlink",
+            "disable_sse_cache",
+            "select_text_action",
+            "is_select_text",
+            "resend_for_regen",
+            "scene_type",
+            "unique_key",
+            "start_seq",
+            "need_create_conversation",
+            "regen_query_id",
+            "edit_query_id",
+            "regen_instruction",
+            "no_replace_for_regen",
+            "message_from",
+            "shared_app_name",
+            "shared_app_id",
+            "sse_recv_event_options",
+            "is_ai_playground",
+            "is_old_user",
+            "recovery_option",
+            "message_storage_type"
+          ],
+          "optionSubset": {
+            "need_create_conversation": false,
+            "is_regen": false,
+            "need_deep_think": 0,
+            "agent_mode": 2
+          },
+          "messagesShape": [
+            {
+              "local_message_id": "string",
+              "content_block": [
+                {
+                  "block_type": "number",
+                  "content": {
+                    "text_block": {
+                      "text": "string",
+                      "icon_url": "string",
+                      "icon_url_dark": "string",
+                      "summary": "string"
+                    },
+                    "pc_event_block": "string"
+                  },
+                  "block_id": "string",
+                  "parent_id": "string",
+                  "meta_info": "[]",
+                  "append_fields": "[]"
+                },
+                "(len=1)"
+              ],
+              "message_status": "number"
+            },
+            "(len=1)"
+          ],
+          "fullSkeleton": {
+            "client_meta": {
+              "conversation_id": "string",
+              "bot_id": "string",
+              "last_section_id": "string",
+              "last_message_index": "number"
+            },
+            "messages": [
+              {
+                "local_message_id": "string",
+                "content_block": [
+                  {
+                    "block_type": "number",
+                    "content": {
+                      "text_block": "{...}",
+                      "pc_event_block": "string"
+                    },
+                    "block_id": "string",
+                    "parent_id": "string",
+                    "meta_info": "[]",
+                    "append_fields": "[]"
+                  },
+                  "(len=1)"
+                ],
+                "message_status": "number"
+              },
+              "(len=1)"
+            ],
+            "option": {
+              "send_message_scene": "string",
+              "create_time_ms": "number",
+              "collect_id": "string",
+              "is_audio": "boolean",
+              "answer_with_suggest": "boolean",
+              "agent_mode": "number",
+              "tts_switch": "boolean",
+              "need_deep_think": "number",
+              "click_clear_context": "boolean",
+              "from_suggest": "boolean",
+              "is_regen": "boolean",
+              "is_replace": "boolean",
+              "is_from_click_option": "boolean",
+              "is_from_click_softlink": "boolean",
+              "disable_sse_cache": "boolean",
+              "select_text_action": "string",
+              "is_select_text": "boolean",
+              "resend_for_regen": "boolean",
+              "scene_type": "number",
+              "unique_key": "string",
+              "start_seq": "number",
+              "need_create_conversation": "boolean",
+              "regen_query_id": "[]",
+              "edit_query_id": "[]",
+              "regen_instruction": "string",
+              "no_replace_for_regen": "boolean",
+              "message_from": "number",
+              "shared_app_name": "string",
+              "shared_app_id": "string",
+              "sse_recv_event_options": {
+                "support_chunk_delta": "boolean"
+              },
+              "is_ai_playground": "boolean",
+              "is_old_user": "boolean",
+              "recovery_option": {
+                "is_recovery": "boolean",
+                "req_create_time_sec": "number",
+                "append_sse_event_scene": "number"
+              },
+              "message_storage_type": "number"
+            },
+            "user_context": "[]",
+            "ext": {
+              "use_deep_think": "string",
+              "fp": "string",
+              "collection_id": "string",
+              "commerce_credit_config_enable": "string"
+            }
+          },
+          "fullBody": "{\"client_meta\":{\"conversation_id\":\"38435134359944194\",\"bot_id\":\"7338286299411103781\",\"last_section_id\":\"38435134359944450\",\"last_message_index\":7},\"messages\":[{\"local_message_id\":\"876d0570-8103-11f1-b497-a57008bd8224\",\"content_block\":[{\"block_type\":10000,\"content\":{\"text_block\":{\"text\":\"/shell 列出当前目录P6S3\",\"icon_url\":\"\",\"icon_url_dark\":\"\",\"summary\":\"\"},\"pc_event_block\":\"\"},\"block_id\":\"9046a4ad-3b20-4d95-b8e7-b93bff5c81c5\",\"parent_id\":\"\",\"meta_info\":[],\"append_fields\":[]}],\"message_status\":0}],\"option\":{\"send_message_scene\":\"\",\"create_time_ms\":1784198767483,\"collect_id\":\"\",\"is_audio\":false,\"answer_with_suggest\":false,\"agent_mode\":2,\"tts_switch\":false,\"need_deep_think\":0,\"click_clear_context\":false,\"from_suggest\":false,\"is_regen\":false,\"is_replace\":false,\"is_from_click_option\":false,\"is_from_click_softlink\":false,\"disable_sse_cache\":false,\"select_text_action\":\"\",\"is_select_text\":false,\"resend_for_regen\":false,\"scene_type\":0,\"unique_key\":\"362c8cd1-f165-4cec-b171-3933829950d9\",\"start_seq\":0,\"need_create_conversation\":false,\"regen_query_id\":[],\"edit_query_id\":[],\"regen_instruction\":\"\",\"no_replace_for_regen\":false,\"message_from\":0,\"shared_app_name\":\"\",\"shared_app_id\":\"\",\"sse_recv_event_options\":{\"support_chunk_delta\":true},\"is_ai_playground\":false,\"is_old_user\":true,\"recovery_option\":{\"is_recovery\":false,\"req_create_time_sec\":1784198767,\"append_sse_event_scene\":0},\"message_storage_type\":0},\"user_context\":[],\"ext\":{\"use_deep_think\":\"0\",\"fp\":\"verify_mrnbq8im_GdAwnlrp_jLDK_4GLR_A52A_sX5OCzP3q2oU\",\"collection_id\":\"\",\"commerce_credit_config_enable\":\"0\"}}"
+        }
+      ]
+    },
+    {
+      "name": "S4-长文本",
+      "marker": "P6S4标记4361",
+      "sendVia": null,
+      "error": "locator.pressSequentially: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('textarea').first()\u001b[22m\n\u001b[2m    - locator resolved to <textarea rows=\"1\" dir=\"ltr\" cols=\"20\" autocomplete=\"off\" placeholder=\"发消息...\" class=\"semi-input-textarea semi-input-textarea-autosize\"></textarea>\u001b[22m\n\u001b",
+      "completionCount": 0,
+      "requests": []
+    },
+    {
+      "name": "S5-深度思考",
+      "marker": "P6S5标记223",
+      "sendVia": null,
+      "error": "深度思考开关未找到（跳过场景，不算失败）",
+      "completionCount": 0,
+      "requests": []
+    }
+  ],
+  "dwplusLogs": [
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] main-world: installContentBridge() called, starting BRIDGE_REQUEST interval",
+      "ts": 1784198718493
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] installBridge() called, listening for main-world BRIDGE_REQUEST",
+      "ts": 1784198718531
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS] loadAndSyncRuntimeState: memories=0, skills=9, toolDescriptors=9. Sending SYNC_HOOK_STATE to main world.",
+      "ts": 1784198718541
+    },
+    {
+      "type": "debug",
+      "text": "[DWPLUS-BRIDGE] Queuing message (port=false, ready=false): SYNC_HOOK_STATE",
+      "ts": 1784198718542
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] Received BRIDGE_REQUEST from main world, connecting port...",
+      "ts": 1784198718542
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] Sending BRIDGE_INIT to main world with MessageChannel port",
+      "ts": 1784198718543
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] main-world: Received BRIDGE_INIT from content, sending BRIDGE_READY",
+      "ts": 1784198718543
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] Bridge READY! Flushing 1 pending messages",
+      "ts": 1784198718544
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] Flushing queued message: SYNC_HOOK_STATE",
+      "ts": 1784198718544
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-SKILLPOPUP] initSkillPopup: 9 skills registered, watching for textarea",
+      "ts": 1784198718546
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-SKILLPOPUP] Attached to textarea, /command interception active",
+      "ts": 1784198719077
+    },
+    {
+      "type": "warning",
+      "text": "[DWPLUS] 豆包选择器健康检查 status=fallback，缺失关键元素: sendButton。插件将降级为基础模式（仅记忆/Skill 注入，不接管 DOM）。页面: https://www.doubao.com/chat/",
+      "ts": 1784198720974
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS] selector health: status=fallback missingCritical=[sendButton] missingEssential=[userMessage,assistantMessage,stopButton,mainContainer,conversationList,currentConversation]",
+      "ts": 1784198720974
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS] 豆包选择器健康检查 status=partial，缺失辅助元素: userMessage, assistantMessage, stopButton, mainContainer, conversationList, currentConversation。核心路径可用，部分增强降级。页面: https://www.doubao.com/chat/",
+      "ts": 1784198725983
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS] selector health: status=partial missingCritical=[] missingEssential=[userMessage,assistantMessage,stopButton,mainContainer,conversationList,currentConversation]",
+      "ts": 1784198725983
+    },
+    {
+      "type": "warning",
+      "text": "[DWPLUS-FETCH] Skipped non-chat-stream POST to /chat/completion (body looks like chat!) — isChatStreamUrl=false",
+      "ts": 1784198726963
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-SKILLPOPUP] Attached to textarea, /command interception active",
+      "ts": 1784198727101
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-SKILLPOPUP] Attached to textarea, /command interception active",
+      "ts": 1784198727282
+    },
+    {
+      "type": "warning",
+      "text": "[DWPLUS] 豆包选择器健康检查 status=fallback，缺失关键元素: sendButton。插件将降级为基础模式（仅记忆/Skill 注入，不接管 DOM）。页面: https://www.doubao.com/chat",
+      "ts": 1784198730999
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS] selector health: status=fallback missingCritical=[sendButton] missingEssential=[userMessage,assistantMessage,stopButton,mainContainer,conversationList,currentConversation]",
+      "ts": 1784198730999
+    },
+    {
+      "type": "warning",
+      "text": "[DWPLUS] 豆包选择器健康检查 status=fallback，缺失关键元素: sendButton。插件将降级为基础模式（仅记忆/Skill 注入，不接管 DOM）。页面: https://www.doubao.com/chat",
+      "ts": 1784198736019
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS] selector health: status=fallback missingCritical=[sendButton] missingEssential=[userMessage,assistantMessage,stopButton,mainContainer,conversationList,currentConversation]",
+      "ts": 1784198736019
+    },
+    {
+      "type": "warning",
+      "text": "[DWPLUS] 豆包选择器健康检查 status=fallback，缺失关键元素: sendButton。插件将降级为基础模式（仅记忆/Skill 注入，不接管 DOM）。页面: https://www.doubao.com/chat",
+      "ts": 1784198741027
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS] selector health: status=fallback missingCritical=[sendButton] missingEssential=[userMessage,assistantMessage,stopButton,mainContainer,conversationList,currentConversation]",
+      "ts": 1784198741027
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] main-world: installContentBridge() called, starting BRIDGE_REQUEST interval",
+      "ts": 1784198745451
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] installBridge() called, listening for main-world BRIDGE_REQUEST",
+      "ts": 1784198745458
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS] loadAndSyncRuntimeState: memories=0, skills=9, toolDescriptors=9. Sending SYNC_HOOK_STATE to main world.",
+      "ts": 1784198745544
+    },
+    {
+      "type": "debug",
+      "text": "[DWPLUS-BRIDGE] Queuing message (port=false, ready=false): SYNC_HOOK_STATE",
+      "ts": 1784198745544
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] Received BRIDGE_REQUEST from main world, connecting port...",
+      "ts": 1784198745560
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] Sending BRIDGE_INIT to main world with MessageChannel port",
+      "ts": 1784198745560
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] main-world: Received BRIDGE_INIT from content, sending BRIDGE_READY",
+      "ts": 1784198745625
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] Bridge READY! Flushing 1 pending messages",
+      "ts": 1784198745636
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-BRIDGE] Flushing queued message: SYNC_HOOK_STATE",
+      "ts": 1784198745636
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-SKILLPOPUP] initSkillPopup: 9 skills registered, watching for textarea",
+      "ts": 1784198745645
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-SKILLPOPUP] Attached to textarea, /command interception active",
+      "ts": 1784198745901
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS] 豆包选择器健康检查 status=partial，缺失辅助元素: userMessage, assistantMessage, stopButton, mainContainer, conversationList, currentConversation。核心路径可用，部分增强降级。页面: https://www.doubao.com/chat/?from_login=1",
+      "ts": 1784198747627
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS] selector health: status=partial missingCritical=[] missingEssential=[userMessage,assistantMessage,stopButton,mainContainer,conversationList,currentConversation]",
+      "ts": 1784198747627
+    },
+    {
+      "type": "warning",
+      "text": "[DWPLUS-FETCH] Skipped non-chat-stream POST to /chat/completion (body looks like chat!) — isChatStreamUrl=false",
+      "ts": 1784198748047
+    },
+    {
+      "type": "info",
+      "text": "[DWPLUS-SKILLPOPUP] Attached to textarea, /command interception active",
+      "ts": 1784198748302
+    },
+    {
+      "type": "warning",
+      "text": "[DWPLUS] 豆包选择器健康检查 status=fallback，缺失关键元素: sendButton。插件将降级为基础模式（仅记忆/Skill 注入，不接管 DOM）。页面: https://www.doubao.com/chat/38435134359944194",
+      "ts": 1784198752636
+    }
+  ]
+}

@@ -140,7 +140,7 @@ export class BrowserControlService {
       if (!settings.enabled && name !== 'browser_list_tabs') {
         throw new BrowserControlError(
           'browser_control_disabled',
-          'Browser control is disabled. Enable it in the DeepSeek++ side panel before using browser tools.',
+          'Browser control is disabled. Enable it in the WPlus side panel before using browser tools.',
         );
       }
 

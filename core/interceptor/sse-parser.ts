@@ -93,6 +93,8 @@ export function extractTextFromParsed(parsed: any): string | null {
       .join('');
     return text.length > 0 ? text : null;
   }
+  const doubaoText = extractDoubaoStreamText(parsed);
+  if (doubaoText !== null) return doubaoText;
   return null;
 }
 
@@ -120,7 +122,31 @@ export function extractResponseTextFromParsed(parsed: any): string | null {
       .join('');
     return text.length > 0 ? text : null;
   }
+  const doubaoText = extractDoubaoStreamText(parsed);
+  if (doubaoText !== null) return doubaoText;
   return null;
+}
+
+function extractDoubaoStreamText(parsed: any): string | null {
+  if (typeof parsed?.text === 'string') return parsed.text;
+  const parts: string[] = [];
+  const initialBlocks = parsed?.content?.content_block;
+  if (Array.isArray(initialBlocks)) {
+    for (const block of initialBlocks) {
+      const text = block?.content?.text_block?.text;
+      if (typeof text === 'string') parts.push(text);
+    }
+  }
+  if (!Array.isArray(parsed?.patch_op)) return parts.length > 0 ? parts.join('') : null;
+  for (const operation of parsed.patch_op) {
+    const blocks = operation?.patch_value?.content_block;
+    if (!Array.isArray(blocks)) continue;
+    for (const block of blocks) {
+      const text = block?.content?.text_block?.text;
+      if (typeof text === 'string') parts.push(text);
+    }
+  }
+  return parts.length > 0 ? parts.join('') : null;
 }
 
 function isFragmentsAppendPatch(parsed: any): boolean {

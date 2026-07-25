@@ -1,6 +1,6 @@
 # DeepSeek Official Conversation Export - Progress Tracker
 
-> **Task**: Export all official DeepSeek web conversations from DeepSeek++ with JSON/Markdown defaults, raw and readable modes, and metadata-first attachments.
+> **Task**: Export all official DeepSeek web conversations from doubao-wplus with JSON/Markdown defaults, raw and readable modes, and metadata-first attachments.
 > **Started**: 2026-06-06
 > **Last Updated**: 2026-06-06
 > **Mode**: GITHUB_STANDARD

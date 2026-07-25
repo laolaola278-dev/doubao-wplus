@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "TestExtension",
+  "version": "0.0.1",
+  "background": { "service_worker": "sw.js" },
+  "content_scripts": [{
+    "matches": ["*://*/*"],
+    "js": ["content.js"],
+    "run_at": "document_start"
+  }],
+  "host_permissions": ["*://*/*"]
+}

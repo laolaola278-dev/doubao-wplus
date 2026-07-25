@@ -1,6 +1,6 @@
-# Browser Control Parity â€” Progress Tracker
+# Browser Control Parity â€?Progress Tracker
 
-> **Task**: Implement Gemini-Nexus parity browser control in DeepSeek++ with Chromium CDP, Accessibility Tree UID snapshots, controlled tabs/groups, browser action tools, sidepanel controls, and validation.
+> **Task**: Implement Gemini-Nexus parity browser control in doubao-wplus with Chromium CDP, Accessibility Tree UID snapshots, controlled tabs/groups, browser action tools, sidepanel controls, and validation.
 > **Started**: 2026-06-14
 > **Last Updated**: 2026-06-14
 > **Mode**: GITHUB_STANDARD
@@ -78,17 +78,17 @@ gh issue list -R zhu1090093659/deepseek-pp \
 
 ## Phase Checklist
 
-- [x] Phase 1: Contracts, Capabilities, and Permissions (3/3 tasks locally complete) â€” [milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/37)
-- [x] Phase 2: Background Browser-Control Runtime (3/3 tasks locally complete) â€” [milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/38)
-- [x] Phase 3: Browser Action Tools (4/4 tasks locally complete) â€” [milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/39)
-- [x] Phase 4: Tool-Loop and Result Integration (3/3 tasks locally complete) â€” [milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/40)
-- [x] Phase 5: Sidepanel Browser Control UI (3/3 tasks locally complete) â€” [milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/41)
-- [ ] Phase 6: Verification, Documentation, and Release Readiness (2/3 tasks locally complete; live Chrome smoke pending) â€” [milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/42)
+- [x] Phase 1: Contracts, Capabilities, and Permissions (3/3 tasks locally complete) â€?[milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/37)
+- [x] Phase 2: Background Browser-Control Runtime (3/3 tasks locally complete) â€?[milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/38)
+- [x] Phase 3: Browser Action Tools (4/4 tasks locally complete) â€?[milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/39)
+- [x] Phase 4: Tool-Loop and Result Integration (3/3 tasks locally complete) â€?[milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/40)
+- [x] Phase 5: Sidepanel Browser Control UI (3/3 tasks locally complete) â€?[milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/41)
+- [ ] Phase 6: Verification, Documentation, and Release Readiness (2/3 tasks locally complete; live Chrome smoke pending) â€?[milestone](https://github.com/zhu1090093659/deepseek-pp/milestone/42)
 
 ## Current Status
 
-**Active Phase**: Phase 6 â€” Verification, Documentation, and Release Readiness.
-**Active Task**: T6.1 / #205 â€” live Chrome smoke.
+**Active Phase**: Phase 6 â€?Verification, Documentation, and Release Readiness.
+**Active Task**: T6.1 / #205 â€?live Chrome smoke.
 **Blockers**: No automated live Chrome extension smoke was run in this session because it would require loading/reloading the unpacked extension in the user's Chrome profile.
 
 ## Governance Status
@@ -106,7 +106,7 @@ Per-task telemetry should be written to the corresponding GitHub Issue as commen
 ## Notes
 
 - The old active Better DeepSeek capability spec was replaced in `docs/analysis`, `docs/plan`, and `docs/progress`; archived copy remains at `docs/archives/better-deepseek-capability-adoption/`.
-- Browser-control tools should be implemented as local DeepSeek++ `ToolDescriptor`s with `browser_*` invocation names, not as external MCP tools.
+- Browser-control tools should be implemented as local doubao-wplus `ToolDescriptor`s with `browser_*` invocation names, not as external MCP tools.
 - Chromium/Edge are the active target platforms. Firefox and Android must show explicit unsupported state and must not expose executable browser-control tools.
 - Raw full Accessibility Tree snapshots must be budgeted and should not be stored directly in normal tool history.
 

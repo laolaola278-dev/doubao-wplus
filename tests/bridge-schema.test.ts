@@ -22,6 +22,6 @@ describe('bridge message schema', () => {
 
   it('throws a clear error for required bridge messages', () => {
     expect(() => requireBridgeMessage({ source: 'deepseek-pp-main', type: 'NOPE' }))
-      .toThrow('Invalid DeepSeek++ bridge message.');
+      .toThrow('Invalid doubao-wplus bridge message.');
   });
 });

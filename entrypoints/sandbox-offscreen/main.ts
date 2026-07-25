@@ -32,13 +32,13 @@ chrome.runtime.onConnect.addListener((port) => {
 });
 
 window.addEventListener('message', (event) => {
-  const frame = document.querySelector<HTMLIFrameElement>('iframe[data-dpp-sandbox-frame="true"]');
+  const frame = document.querySelector<HTMLIFrameElement>('iframe[data-dwplus-sandbox-frame="true"]');
   if (!frame || event.source !== frame.contentWindow) return;
 
   const value = event.data && typeof event.data === 'object'
     ? event.data as { type?: unknown; requestId?: unknown; result?: unknown }
     : {};
-  if (value.type !== 'DPP_SANDBOX_RESULT' || typeof value.requestId !== 'string') return;
+  if (value.type !== 'DWPLUS_SANDBOX_RESULT' || typeof value.requestId !== 'string') return;
 
   const pending = pendingRuns.get(value.requestId);
   if (!pending) return;
@@ -64,7 +64,7 @@ async function runSandboxInFrame(payload: unknown): Promise<SandboxExecutionResu
 
     pendingRuns.set(requestId, { resolve, timeout });
     contentWindow.postMessage({
-      type: 'DPP_SANDBOX_RUN',
+      type: 'DWPLUS_SANDBOX_RUN',
       requestId,
       payload: {
         ...request,
@@ -78,14 +78,14 @@ function ensureSandboxFrame(): Promise<HTMLIFrameElement> {
   if (framePromise) return framePromise;
 
   framePromise = new Promise((resolve, reject) => {
-    const existing = document.querySelector<HTMLIFrameElement>('iframe[data-dpp-sandbox-frame="true"]');
+    const existing = document.querySelector<HTMLIFrameElement>('iframe[data-dwplus-sandbox-frame="true"]');
     if (existing?.contentWindow) {
       resolve(existing);
       return;
     }
 
     const frame = document.createElement('iframe');
-    frame.dataset.dppSandboxFrame = 'true';
+    frame.dataset.dwplusSandboxFrame = 'true';
     frame.src = SANDBOX_FRAME_URL;
     frame.style.display = 'none';
 

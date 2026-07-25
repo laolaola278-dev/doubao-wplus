@@ -8,6 +8,11 @@ export type BridgeMessageType =
   | 'RESPONSE_TOKEN_SPEED'
   | 'MEMORIES_USED'
   | 'HEADERS_CAPTURED'
+  // dev-only：content world 跑完启动自检后，把报告转发给 main world 写入 __DWPLUS_DIAG__
+  | 'SELF_CHECK_REPORT'
+  // dev-only：Prompt Inspector 快照的脱敏摘要（无 prompt 全文），同上转发写入 __DWPLUS_DIAG__
+  | 'PROMPT_SNAPSHOT_SUMMARY'
+  | 'DWPLUS_BRIDGE_READY'
   | 'DPP_BRIDGE_READY';
 
 export interface ValidatedBridgeMessage {
@@ -30,6 +35,9 @@ const BRIDGE_TYPES = new Set<string>([
   'RESPONSE_TOKEN_SPEED',
   'MEMORIES_USED',
   'HEADERS_CAPTURED',
+  'SELF_CHECK_REPORT',
+  'PROMPT_SNAPSHOT_SUMMARY',
+  'DWPLUS_BRIDGE_READY',
   'DPP_BRIDGE_READY',
 ]);
 
@@ -57,7 +65,7 @@ export function requireBridgeMessage(
 ): ValidatedBridgeMessage {
   const message = validateBridgeMessage(value, expectedSource);
   if (!message) {
-    throw new Error('Invalid DeepSeek++ bridge message.');
+    throw new Error('Invalid doubao-wplus bridge message.');
   }
   return message;
 }

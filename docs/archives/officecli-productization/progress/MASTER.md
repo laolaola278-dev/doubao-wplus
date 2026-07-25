@@ -1,6 +1,6 @@
-# OfficeCLI Productization â€” Progress Tracker
+# OfficeCLI Productization â€?Progress Tracker
 
-> **Task**: Productize OfficeCLI in DeepSeek++ with a built-in `/officecli` skill and controlled local execution through MCP, stdio bridge, or Native Messaging.
+> **Task**: Productize OfficeCLI in doubao-wplus with a built-in `/officecli` skill and controlled local execution through MCP, stdio bridge, or Native Messaging.
 > **Started**: 2026-05-27
 > **Last Updated**: 2026-05-27
 > **Mode**: GITHUB_STANDARD
@@ -27,7 +27,7 @@
 |:--|:--|:--|--:|--:|--:|
 | 1 | OfficeCLI Skill And Contracts | https://github.com/zhu1090093659/deepseek-pp/milestone/11 | 0 | 3 | 3 |
 | 2 | Local OfficeCLI MCP Provider | https://github.com/zhu1090093659/deepseek-pp/milestone/12 | 0 | 4 | 4 |
-| 3 | DeepSeek++ OfficeCLI Onboarding | https://github.com/zhu1090093659/deepseek-pp/milestone/13 | 0 | 3 | 3 |
+| 3 | doubao-wplus OfficeCLI Onboarding | https://github.com/zhu1090093659/deepseek-pp/milestone/13 | 0 | 3 | 3 |
 | 4 | Verification And Documentation | https://github.com/zhu1090093659/deepseek-pp/milestone/14 | 0 | 3 | 3 |
 
 ## Issue Mapping
@@ -66,7 +66,7 @@ gh issue list -R zhu1090093659/deepseek-pp --milestone "Phase 1: OfficeCLI Skill
 
 - [x] Phase 1: OfficeCLI Skill And Contracts (3/3 tasks) - https://github.com/zhu1090093659/deepseek-pp/milestone/11
 - [x] Phase 2: Local OfficeCLI MCP Provider (4/4 tasks) - https://github.com/zhu1090093659/deepseek-pp/milestone/12
-- [x] Phase 3: DeepSeek++ OfficeCLI Onboarding (3/3 tasks) - https://github.com/zhu1090093659/deepseek-pp/milestone/13
+- [x] Phase 3: doubao-wplus OfficeCLI Onboarding (3/3 tasks) - https://github.com/zhu1090093659/deepseek-pp/milestone/13
 - [x] Phase 4: Verification And Documentation (3/3 tasks) - https://github.com/zhu1090093659/deepseek-pp/milestone/14
 
 ## Execution Telemetry
@@ -77,7 +77,7 @@ gh issue list -R zhu1090093659/deepseek-pp --milestone "Phase 1: OfficeCLI Skill
 
 ## Current Status
 
-**Active Phase**: Complete â€” archived after execution
+**Active Phase**: Complete â€?archived after execution
 
 **Active Task**: None
 

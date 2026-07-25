@@ -6,7 +6,7 @@ export function renderInlineMarkdown(text: string): string {
     let html = escapeHtml(text);
 
     html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_match, _lang, code) => {
-      const token = `@@DPP_CODE_BLOCK_${codeBlocks.length}@@`;
+      const token = `@@DWPLUS_CODE_BLOCK_${codeBlocks.length}@@`;
       codeBlocks.push(`<pre><code>${code}</code></pre>`);
       return token;
     });
@@ -25,7 +25,7 @@ export function renderInlineMarkdown(text: string): string {
     html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
     html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
     html = html.replace(/\n/g, '<br>');
-    html = html.replace(/@@DPP_CODE_BLOCK_(\d+)@@/g, (_match, index) => codeBlocks[Number(index)] ?? '');
+    html = html.replace(/@@DWPLUS_CODE_BLOCK_(\d+)@@/g, (_match, index) => codeBlocks[Number(index)] ?? '');
 
     return html;
   } catch {

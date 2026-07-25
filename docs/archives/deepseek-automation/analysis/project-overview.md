@@ -2,7 +2,7 @@
 
 ### Preliminary Direction
 
-Implement Codex-style DeepSeek automations in DeepSeek++: users can click to start an automation in a new DeepSeek chat session, then attach a cron/RRULE-like frequency so future runs continue in that automation session.
+Implement Codex-style DeepSeek automations in doubao-wplus: users can click to start an automation in a new DeepSeek chat session, then attach a cron/RRULE-like frequency so future runs continue in that automation session.
 
 ### Current Architecture
 

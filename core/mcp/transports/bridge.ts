@@ -13,7 +13,7 @@ import {
 } from './common';
 
 interface McpBridgeEnvelope {
-  protocol: 'deepseek-pp-mcp-bridge';
+  protocol: 'dwplus-mcp-bridge';
   version: 1;
   server: {
     id: string;
@@ -65,7 +65,7 @@ function createBridgeEnvelope(
   message: McpJsonRpcRequest<any> | McpJsonRpcNotification,
 ): McpBridgeEnvelope {
   return {
-    protocol: 'deepseek-pp-mcp-bridge',
+    protocol: 'dwplus-mcp-bridge',
     version: 1,
     server: {
       id: server.id,

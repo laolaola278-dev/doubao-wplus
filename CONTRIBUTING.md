@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to DeepSeek++.
+Thanks for contributing to doubao-wplus.
 
 All pull requests must follow these rules before they can be reviewed or merged.
 

@@ -1,5 +1,3 @@
-import { loadPyodide } from 'pyodide';
-
 type PythonWorkerRequest = {
   code?: unknown;
   input?: unknown;
@@ -7,8 +5,10 @@ type PythonWorkerRequest = {
   pyodideBaseUrl?: unknown;
 };
 
-type PyodideRuntime = Awaited<ReturnType<typeof loadPyodide>>;
+type PyodideRuntime = Awaited<ReturnType<typeof import('pyodide')['loadPyodide']>>;
+type PyodideModule = typeof import('pyodide');
 
+let pyodideModulePromise: Promise<PyodideModule> | null = null;
 let pyodidePromise: Promise<PyodideRuntime> | null = null;
 
 self.onmessage = async (event: MessageEvent<PythonWorkerRequest>) => {
@@ -61,12 +61,21 @@ self.onmessage = async (event: MessageEvent<PythonWorkerRequest>) => {
   }
 };
 
+function getPyodideModule(): Promise<PyodideModule> {
+  if (!pyodideModulePromise) {
+    pyodideModulePromise = import('pyodide');
+  }
+  return pyodideModulePromise;
+}
+
 function getPyodide(pyodideBaseUrl: string): Promise<PyodideRuntime> {
   if (!pyodidePromise) {
-    pyodidePromise = loadPyodide({
-      indexURL: pyodideBaseUrl,
-      packageBaseUrl: pyodideBaseUrl,
-    });
+    pyodidePromise = getPyodideModule().then((mod) =>
+      mod.loadPyodide({
+        indexURL: pyodideBaseUrl,
+        packageBaseUrl: pyodideBaseUrl,
+      }),
+    );
   }
   return pyodidePromise;
 }

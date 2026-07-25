@@ -3,22 +3,16 @@ import {
   DEFAULT_OFFICIAL_API_CHAT_CONFIG,
   normalizeOfficialApiChatConfig,
   type OfficialApiChatConfig,
-  type OfficialDeepSeekModel,
-  type OfficialDeepSeekReasoningEffort,
-  type OfficialDeepSeekThinkingMode,
+  type OfficialDoubaoModel,
+  type OfficialDoubaoReasoningEffort,
+  type OfficialDoubaoThinkingMode,
 } from '../../../core/chat/official-api-config';
-import {
-  DEFAULT_VOICE_SETTINGS,
-  detectVoiceCapabilities,
-  normalizeVoiceSettings,
-  type VoiceSettings,
-} from '../../../core/voice/settings';
 import type { ChatMessage as ChatMessageType } from '../../../core/types';
 import ChatMessage from '../components/ChatMessage';
 import { consumePendingText, onPendingText } from '../pending-text';
 import { useI18n } from '../i18n';
 
-type ChatProvider = 'official-api' | 'deepseek-web' | null;
+type ChatProvider = 'official-api' | 'doubao-web' | null;
 
 interface ChatAuthStatus {
   available?: boolean;
@@ -31,18 +25,24 @@ interface ChatStreamMessage extends ChatAuthStatus {
   type: string;
   text?: string;
   reasoningText?: string;
-  voiceSettings?: VoiceSettings;
   phase?: 'reasoning' | 'answer';
   done?: boolean;
   error?: string;
+  payload?: {
+    active: boolean;
+    estimatedTokens: number;
+    tokensPerSecond: number;
+    elapsedMs: number;
+    textLength: number;
+  };
 }
 
-const MODEL_OPTIONS: Array<{ value: OfficialDeepSeekModel; labelKey: 'sidepanel.chatPage.modelFlash' | 'sidepanel.chatPage.modelPro' }> = [
-  { value: 'deepseek-v4-flash', labelKey: 'sidepanel.chatPage.modelFlash' },
-  { value: 'deepseek-v4-pro', labelKey: 'sidepanel.chatPage.modelPro' },
+const MODEL_OPTIONS: Array<{ value: OfficialDoubaoModel; labelKey: 'sidepanel.chatPage.modelFlash' | 'sidepanel.chatPage.modelPro' }> = [
+  { value: 'doubao-lite-32k', labelKey: 'sidepanel.chatPage.modelFlash' },
+  { value: 'doubao-pro-32k', labelKey: 'sidepanel.chatPage.modelPro' },
 ];
 
-const EFFORT_OPTIONS: Array<{ value: OfficialDeepSeekReasoningEffort; labelKey: 'sidepanel.chatPage.effortHigh' | 'sidepanel.chatPage.effortMax' }> = [
+const EFFORT_OPTIONS: Array<{ value: OfficialDoubaoReasoningEffort; labelKey: 'sidepanel.chatPage.effortHigh' | 'sidepanel.chatPage.effortMax' }> = [
   { value: 'high', labelKey: 'sidepanel.chatPage.effortHigh' },
   { value: 'max', labelKey: 'sidepanel.chatPage.effortMax' },
 ];
@@ -55,14 +55,12 @@ export default function ChatPage() {
   const [authStatus, setAuthStatus] = useState<ChatAuthStatus | null>(null);
   const [chatConfig, setChatConfig] = useState<OfficialApiChatConfig>(DEFAULT_OFFICIAL_API_CHAT_CONFIG);
   const [error, setError] = useState<string | null>(null);
-  const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>(DEFAULT_VOICE_SETTINGS);
-  const [isListening, setIsListening] = useState(false);
+  const [tokenSpeed, setTokenSpeed] = useState(0);
+  const [tokenSpeedActive, setTokenSpeedActive] = useState(false);
+  const [estimatedTokens, setEstimatedTokens] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesRef = useRef<ChatMessageType[]>([]);
-  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
-  const voiceSettingsRef = useRef<VoiceSettings>(DEFAULT_VOICE_SETTINGS);
-  const voiceCapabilities = detectVoiceCapabilities(window);
 
   const apiControlsEnabled = authStatus?.provider === 'official-api';
 
@@ -111,10 +109,6 @@ export default function ChatPage() {
   }, [messages]);
 
   useEffect(() => {
-    voiceSettingsRef.current = voiceSettings;
-  }, [voiceSettings]);
-
-  useEffect(() => {
     chrome.runtime.sendMessage({ type: 'GET_AUTH_STATUS' })
       .then((resp: ChatAuthStatus | undefined) => {
         setAuthStatus(normalizeAuthStatus(resp));
@@ -124,10 +118,6 @@ export default function ChatPage() {
     chrome.runtime.sendMessage({ type: 'GET_OFFICIAL_API_CHAT_CONFIG' })
       .then((result) => setChatConfig(normalizeOfficialApiChatConfig(result)))
       .catch(() => setChatConfig(DEFAULT_OFFICIAL_API_CHAT_CONFIG));
-
-    chrome.runtime.sendMessage({ type: 'GET_VOICE_SETTINGS' })
-      .then((result) => setVoiceSettings(normalizeVoiceSettings(result)))
-      .catch(() => setVoiceSettings(DEFAULT_VOICE_SETTINGS));
   }, []);
 
   useEffect(() => {
@@ -143,8 +133,11 @@ export default function ChatPage() {
         return;
       }
 
-      if (msg.type === 'VOICE_SETTINGS_UPDATED') {
-        setVoiceSettings(normalizeVoiceSettings(msg.voiceSettings));
+      if (msg.type === 'RESPONSE_TOKEN_SPEED' && msg.payload) {
+        const p = msg.payload as { active: boolean; estimatedTokens: number; tokensPerSecond: number };
+        setTokenSpeedActive(p.active);
+        setTokenSpeed(p.tokensPerSecond);
+        setEstimatedTokens(p.estimatedTokens);
         return;
       }
 
@@ -158,10 +151,6 @@ export default function ChatPage() {
 
       if (msg.done) {
         setIsStreaming(false);
-        const currentVoiceSettings = voiceSettingsRef.current;
-        if (currentVoiceSettings.readAloudEnabled && voiceCapabilities.speechSynthesis) {
-          setTimeout(() => speakLatestAssistant(messagesRef.current, currentVoiceSettings), 0);
-        }
         return;
       }
 
@@ -226,57 +215,22 @@ export default function ChatPage() {
     setMessages([]);
     setError(null);
     setIsStreaming(false);
-    stopVoiceInput();
     inputRef.current?.focus();
   };
 
-  const handleModelChange = (model: OfficialDeepSeekModel) => {
+  const handleModelChange = (model: OfficialDoubaoModel) => {
     if (!apiControlsEnabled || isStreaming) return;
     void saveChatConfig({ model });
   };
 
-  const handleThinkingChange = (thinking: OfficialDeepSeekThinkingMode) => {
+  const handleThinkingChange = (thinking: OfficialDoubaoThinkingMode) => {
     if (!apiControlsEnabled || isStreaming) return;
     void saveChatConfig({ thinking });
   };
 
-  const handleEffortChange = (reasoningEffort: OfficialDeepSeekReasoningEffort) => {
+  const handleEffortChange = (reasoningEffort: OfficialDoubaoReasoningEffort) => {
     if (!apiControlsEnabled || isStreaming || chatConfig.thinking !== 'enabled') return;
     void saveChatConfig({ reasoningEffort });
-  };
-
-  const startVoiceInput = () => {
-    const Recognition = getSpeechRecognitionConstructor();
-    if (!Recognition || isListening) return;
-
-    const recognition = new Recognition();
-    recognition.lang = navigator.language || 'zh-CN';
-    recognition.interimResults = true;
-    recognition.continuous = false;
-    recognition.onresult = (event) => {
-      const transcript = Array.from(event.results as ArrayLike<SpeechRecognitionResultLike>)
-        .map((result) => result[0]?.transcript ?? '')
-        .join('')
-        .trim();
-      if (transcript) setInputText(transcript);
-    };
-    recognition.onend = () => {
-      recognitionRef.current = null;
-      setIsListening(false);
-    };
-    recognition.onerror = () => {
-      recognitionRef.current = null;
-      setIsListening(false);
-    };
-    recognitionRef.current = recognition;
-    setIsListening(true);
-    recognition.start();
-  };
-
-  const stopVoiceInput = () => {
-    recognitionRef.current?.stop();
-    recognitionRef.current = null;
-    setIsListening(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -318,16 +272,6 @@ export default function ChatPage() {
           </div>
 
           <div className="ds-chat-header-actions">
-            {voiceSettings.readAloudEnabled && voiceCapabilities.speechSynthesis && (
-              <button
-                type="button"
-                onClick={() => speakLatestAssistant(messagesRef.current, voiceSettings)}
-                className="ds-chat-text-button"
-                title={t('sidepanel.chatPage.readLatest')}
-              >
-                {t('sidepanel.chatPage.read')}
-              </button>
-            )}
             <button
               type="button"
               onClick={newSession}
@@ -381,7 +325,7 @@ export default function ChatPage() {
               <select
                 value={chatConfig.reasoningEffort}
                 disabled={isStreaming || chatConfig.thinking !== 'enabled'}
-                onChange={(e) => handleEffortChange(e.target.value as OfficialDeepSeekReasoningEffort)}
+                onChange={(e) => handleEffortChange(e.target.value as OfficialDoubaoReasoningEffort)}
                 className="ds-chat-effort-select"
                 title={t('sidepanel.chatPage.effortLabel')}
                 aria-label={t('sidepanel.chatPage.effortLabel')}
@@ -440,21 +384,19 @@ export default function ChatPage() {
                 ? getConfigLabel(chatConfig, t)
                 : t('sidepanel.chatPage.webProvider')}
             </span>
+            {apiControlsEnabled && (tokenSpeed > 0 || tokenSpeedActive) && (
+              <span
+                className={`ds-chat-token-speed${tokenSpeedActive ? '' : ' ds-chat-token-speed-idle'}`}
+                title={t('sidepanel.chatPage.tokenSpeedTitle', {
+                  speed: tokenSpeed >= 100 ? Math.round(tokenSpeed) : tokenSpeed.toFixed(1),
+                  tokens: estimatedTokens,
+                  idle: tokenSpeedActive ? '' : t('sidepanel.chatPage.tokenSpeedIdle'),
+                })}
+              >
+                {tokenSpeed >= 100 ? `${Math.round(tokenSpeed)} tok/s` : `${tokenSpeed.toFixed(1)} tok/s`}
+              </span>
+            )}
             <div className="ds-chat-composer-buttons">
-              {voiceSettings.inputEnabled && voiceCapabilities.speechRecognition && (
-                <button
-                  type="button"
-                  onClick={isListening ? stopVoiceInput : startVoiceInput}
-                  className={`ds-chat-mic-button${isListening ? ' ds-chat-mic-button-active' : ''}`}
-                  title={isListening ? t('sidepanel.chatPage.stopListening') : t('sidepanel.chatPage.voiceInput')}
-                  aria-label={isListening ? t('sidepanel.chatPage.stopListening') : t('sidepanel.chatPage.voiceInput')}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4a3 3 0 00-3 3v5a3 3 0 006 0V7a3 3 0 00-3-3z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 11a7 7 0 0014 0M12 18v3m-4 0h8" />
-                  </svg>
-                </button>
-              )}
               <button
                 type="button"
                 onClick={sendMessage}
@@ -482,7 +424,7 @@ export default function ChatPage() {
 function normalizeAuthStatus(resp: ChatAuthStatus | undefined): ChatAuthStatus {
   return {
     available: resp?.available ?? resp?.hasToken ?? false,
-    provider: resp?.provider ?? (resp?.hasToken ? 'deepseek-web' : null),
+    provider: resp?.provider ?? (resp?.hasToken ? 'doubao-web' : null),
     hasApiKey: resp?.hasApiKey ?? false,
     hasToken: resp?.hasToken ?? false,
   };
@@ -501,7 +443,7 @@ function getConfigLabel(
   config: OfficialApiChatConfig,
   t: ReturnType<typeof useI18n>['t'],
 ): string {
-  const model = config.model === 'deepseek-v4-pro'
+  const model = config.model === 'doubao-pro-32k'
     ? t('sidepanel.chatPage.modelPro')
     : t('sidepanel.chatPage.modelFlash');
   if (config.thinking !== 'enabled') {
@@ -511,44 +453,4 @@ function getConfigLabel(
     ? t('sidepanel.chatPage.effortMax')
     : t('sidepanel.chatPage.effortHigh');
   return `${model} · ${t('sidepanel.chatPage.thinkingOn')} · ${effort}`;
-}
-
-type SpeechRecognitionResultLike = {
-  readonly 0: { transcript?: string };
-};
-
-type SpeechRecognitionEventLike = {
-  results: Iterable<SpeechRecognitionResultLike> | ArrayLike<SpeechRecognitionResultLike>;
-};
-
-type SpeechRecognitionLike = {
-  lang: string;
-  interimResults: boolean;
-  continuous: boolean;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onend: (() => void) | null;
-  onerror: (() => void) | null;
-  start(): void;
-  stop(): void;
-};
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
-
-function getSpeechRecognitionConstructor(): SpeechRecognitionConstructor | null {
-  const value = window as unknown as {
-    SpeechRecognition?: SpeechRecognitionConstructor;
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
-  };
-  return value.SpeechRecognition ?? value.webkitSpeechRecognition ?? null;
-}
-
-function speakLatestAssistant(messages: ChatMessageType[], settings: VoiceSettings) {
-  if (!('speechSynthesis' in window)) return;
-  const text = [...messages].reverse().find((message) => message.role === 'assistant')?.text.trim();
-  if (!text) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = settings.rate;
-  utterance.pitch = settings.pitch;
-  window.speechSynthesis.speak(utterance);
 }

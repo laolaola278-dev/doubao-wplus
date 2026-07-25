@@ -43,6 +43,7 @@ const userBinDirs = platform() === 'win32'
       '/usr/bin',
       '/bin',
     ];
+const POWERSHELL_EXE = resolvePowerShellExe();
 const managedPathDirs = new Set([nodeBinDir, ...localBinDirs, ...userBinDirs]);
 const existingPathDirs = splitPath(currentPath).filter(d => !managedPathDirs.has(d));
 const hostPath = dedupePathDirs([
@@ -72,7 +73,18 @@ const MAX_LOCAL_TOTAL_CONTENT_BYTES = 420_000;
 const MAX_READ_LOCAL_FILE_BYTES = 16 * 1024 * 1024; // 16 MB；与扩展侧 upload 上限（64 MB）保持安全差
 const LOCAL_TEXT_RESOURCE_EXTENSIONS = new Set(['.md', '.txt', '.yaml', '.yml', '.json', '.tex']);
 const LOCAL_SCRIPT_EXTENSIONS = new Set(['.py', '.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx', '.sh', '.bash', '.zsh', '.ps1', '.rb', '.pl', '.php', '.lua', '.r']);
-const DEFAULT_SHELL = platform() === 'win32' ? 'powershell.exe' : process.env.SHELL || '/bin/sh';
+function resolvePowerShellExe() {
+  if (platform() !== 'win32') return 'powershell.exe';
+  const systemRoot = process.env.SystemRoot || process.env.windir || 'C:\\Windows';
+  const psPath = join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+  if (existsSync(psPath)) return psPath;
+  const programFiles = process.env['ProgramFiles'] || 'C:\\Program Files';
+  const pwshPath = join(programFiles, 'PowerShell', '7', 'pwsh.exe');
+  if (existsSync(pwshPath)) return pwshPath;
+  return 'powershell.exe';
+}
+
+const DEFAULT_SHELL = platform() === 'win32' ? POWERSHELL_EXE : process.env.SHELL || '/bin/sh';
 const WINDOWS_POWERSHELL_UTF8_PREAMBLE = [
   '[Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)',
   '[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)',
@@ -280,7 +292,7 @@ function handleInitialize(id) {
   return jsonRpcResult(id, {
     protocolVersion: MCP_PROTOCOL_VERSION,
     capabilities: { tools: {} },
-    serverInfo: { name: 'deepseek-pp-shell', version: '1.0.0' },
+    serverInfo: { name: 'dwplus-shell', version: '1.0.0' },
     instructions: 'General-purpose shell execution host. Use shell_exec for local commands and python_exec only for short computation or validation snippets.',
   });
 }
@@ -511,7 +523,7 @@ function pickLocalFolderOnWindows(title, defaultPath) {
     '  [Environment]::Exit(2)',
     '}',
   ].join('; ');
-  return execFileSync('powershell.exe', ['-NoProfile', '-STA', '-Command', script, title, defaultPath || ''], {
+  return execFileSync(POWERSHELL_EXE, ['-NoProfile', '-STA', '-Command', script, title, defaultPath || ''], {
     encoding: 'utf8',
     timeout: DEFAULT_TIMEOUT_MS,
     windowsHide: false,
@@ -1411,7 +1423,7 @@ function readWindowsUserMachinePathDirs() {
     "$paths | Where-Object { $_ } | ForEach-Object { [Environment]::ExpandEnvironmentVariables($_) }",
   ].join('; ');
   try {
-    const out = execFileSync('powershell.exe', [
+    const out = execFileSync(POWERSHELL_EXE, [
       '-NoLogo',
       '-NoProfile',
       '-NonInteractive',
@@ -1463,8 +1475,8 @@ function formatPythonExecSummary(result) {
 // --- Message dispatch ---
 
 async function handleMessage(envelope) {
-  if (envelope.protocol !== 'deepseek-pp-mcp-native' || envelope.version !== 1) {
-    await writeNativeMessage(jsonRpcError(null, -32600, 'Invalid envelope: expected deepseek-pp-mcp-native v1'));
+  if (envelope.protocol !== 'dwplus-mcp-native' || envelope.version !== 1) {
+    await writeNativeMessage(jsonRpcError(null, -32600, 'Invalid envelope: expected dwplus-mcp-native v1'));
     return;
   }
 

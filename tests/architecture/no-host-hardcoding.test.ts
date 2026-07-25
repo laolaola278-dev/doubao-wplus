@@ -7,18 +7,25 @@
 //   - core/hosts/shared/**
 //   - core/hosts/types.ts
 //   - core/hosts/registry.ts
+//   - entrypoints/content/features/shared/**   (host-agnostic content feature)
 //
 // 允许保留宿主硬编码的目录：
-//   - core/hosts/deepseek/**   (DeepSeek 专属 adapter)
-//   - core/hosts/doubao/**     (豆包专属 adapter)
-//   - core/deepseek/**          (DeepSeek 业务功能模块：PoW / official API / file_id 解析)
-//   - core/automation/**        (DeepSeek automation runner：login token 消息)
-//   - tests/fixtures/**         (测试 fixture)
-//   - docs/**                   (历史文档)
+//   - core/hosts/deepseek/**                   (DeepSeek 专属 adapter)
+//   - core/hosts/doubao/**                     (豆包专属 adapter)
+//   - core/deepseek/**                         (DeepSeek 业务功能模块：PoW / official API / file_id 解析)
+//   - core/automation/**                       (DeepSeek automation runner：login token 消息)
+//   - entrypoints/content/features/deepseek/** (声明的 DeepSeek-only content feature modules：history-organizer / project-sidebar-organizer)
+//   - entrypoints/content/features/doubao/**   (声明的 doubao-only content feature modules；当前为占位)
+//   - tests/fixtures/**                        (测试 fixture)
+//   - docs/**                                  (历史文档)
 //
 // 例外（即使是 shared content layer 也允许）：
 //   - WXT `matches:` 数组配置（构建时需列出所有宿主域名，与架构无关）
 //   - 注释行（// / /* */）—— 仅作提醒，命中仍记录但不阻塞构建
+//
+// 决策原则（2026-06-29 Batch 3-A）：
+//   通用业务层不直接 import 任何具体 host feature module。
+//   启用与否由 host adapter 提供的 feature flag 决定。
 
 import { readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
@@ -54,6 +61,11 @@ const ALLOWED_DIRS = [
   'core/hosts/doubao',
   'core/deepseek',
   'core/automation',
+  // 声明的宿主专属 feature module（按设计依赖宿主业务能力）
+  'entrypoints/content/features/deepseek',
+  'entrypoints/content/features/doubao',
+  // 共享 feature module（应保持 host-agnostic，列出仅作为默认安全路径）
+  'entrypoints/content/features/shared',
   'tests/fixtures',
   'docs',
   'public',

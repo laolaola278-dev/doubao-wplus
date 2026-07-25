@@ -2,7 +2,7 @@
 
 ## Confirmed Task Definition
 
-Build MCP support into DeepSeek++ with the broadest practical transport coverage: direct browser HTTP/SSE/Streamable HTTP MCP endpoints plus local stdio support through a bridge or Chrome native messaging adapter. MCP tools should execute automatically by default, and both manual DeepSeek chats and scheduled automations must share the same MCP tool discovery, prompt injection, execution, and result-continuation pipeline.
+Build MCP support into doubao-wplus with the broadest practical transport coverage: direct browser HTTP/SSE/Streamable HTTP MCP endpoints plus local stdio support through a bridge or Chrome native messaging adapter. MCP tools should execute automatically by default, and both manual DeepSeek chats and scheduled automations must share the same MCP tool discovery, prompt injection, execution, and result-continuation pipeline.
 
 ## Overview
 

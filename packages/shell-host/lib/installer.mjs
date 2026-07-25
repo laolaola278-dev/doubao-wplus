@@ -190,16 +190,88 @@ function createWrapper(hostPath) {
   const nodePath = process.execPath;
 
   if (platform() === 'win32') {
-    const wrapperPath = resolve(installDir, 'shell-mcp-host.bat');
-    const content = `@echo off\r\n"${nodePath}" "${hostPath}" %*\r\n`;
-    writeFileSync(wrapperPath, content);
-    return wrapperPath;
+    return createWindowsExecutableWrapper(installDir, nodePath, hostPath);
   }
 
   const wrapperPath = resolve(installDir, 'shell-mcp-host');
   const content = `#!/bin/sh\nexec "${nodePath}" "${hostPath}" "$@"\n`;
   writeFileSync(wrapperPath, content, { mode: 0o755 });
   return wrapperPath;
+}
+
+function createWindowsExecutableWrapper(installDir, nodePath, hostPath) {
+  const wrapperPath = resolve(installDir, 'shell-mcp-host.exe');
+  const sourcePath = resolve(installDir, 'shell-mcp-host-launcher.cs');
+  const frameworkRoot = resolve(process.env.WINDIR || 'C:\\Windows', 'Microsoft.NET');
+  const compilerCandidates = [
+    resolve(frameworkRoot, 'Framework64', 'v4.0.30319', 'csc.exe'),
+    resolve(frameworkRoot, 'Framework', 'v4.0.30319', 'csc.exe'),
+  ];
+  const compiler = compilerCandidates.find(existsSync);
+  if (!compiler) {
+    throw new Error('Windows C# compiler was not found; cannot create the Native Messaging executable launcher.');
+  }
+
+  const source = `using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading;
+
+public static class ShellMcpHostLauncher {
+  private static void Copy(Stream input, Stream output) {
+    byte[] buffer = new byte[8192];
+    int read;
+    while ((read = input.Read(buffer, 0, buffer.Length)) > 0) {
+      output.Write(buffer, 0, read);
+      output.Flush();
+    }
+  }
+
+  public static int Main() {
+    var start = new ProcessStartInfo();
+    start.FileName = "${escapeCSharpString(nodePath)}";
+    start.Arguments = "\\\"${escapeCSharpString(hostPath)}\\\"";
+    start.UseShellExecute = false;
+    start.CreateNoWindow = true;
+    start.RedirectStandardInput = true;
+    start.RedirectStandardOutput = true;
+    start.RedirectStandardError = true;
+
+    using (var child = Process.Start(start)) {
+      var inputThread = new Thread(delegate() {
+        try { Copy(Console.OpenStandardInput(), child.StandardInput.BaseStream); }
+        finally { try { child.StandardInput.Close(); } catch {} }
+      });
+      var outputThread = new Thread(delegate() { Copy(child.StandardOutput.BaseStream, Console.OpenStandardOutput()); });
+      var errorThread = new Thread(delegate() { Copy(child.StandardError.BaseStream, Console.OpenStandardError()); });
+      inputThread.IsBackground = true;
+      outputThread.IsBackground = true;
+      errorThread.IsBackground = true;
+      inputThread.Start();
+      outputThread.Start();
+      errorThread.Start();
+      child.WaitForExit();
+      outputThread.Join(1000);
+      errorThread.Join(1000);
+      return child.ExitCode;
+    }
+  }
+}
+`;
+
+  writeFileSync(sourcePath, source);
+  try {
+    execFileSync(compiler, ['/nologo', '/target:exe', `/out:${wrapperPath}`, sourcePath], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } finally {
+    rmSync(sourcePath, { force: true });
+  }
+  return wrapperPath;
+}
+
+function escapeCSharpString(value) {
+  return value.replaceAll('\\', '\\\\').replaceAll('"', '\\"');
 }
 
 function writeWindowsRegistry(browser, manifestPath) {
@@ -480,7 +552,7 @@ function install(args) {
 function status(args) {
   const installDir = getHostInstallDir();
   const hostPath = resolve(installDir, 'shell-mcp-host.mjs');
-  const wrapperPath = resolve(installDir, platform() === 'win32' ? 'shell-mcp-host.bat' : 'shell-mcp-host');
+  const wrapperPath = resolve(installDir, platform() === 'win32' ? 'shell-mcp-host.exe' : 'shell-mcp-host');
   const manifestPath = getManifestPath(args.browser);
   const manifest = readManifest(manifestPath);
   const officeCli = findCompatibleOfficeCli();

@@ -35,10 +35,10 @@ describe('tool result renderer registry', () => {
     });
 
     expect(rendered).toBe(true);
-    expect(target.querySelector('.dpp-artifact-result')).not.toBeNull();
+    expect(target.querySelector('.dwplus-artifact-result')).not.toBeNull();
     expect(target.textContent).toContain('report.md');
     expect(target.textContent).toContain('Download');
-    expect(document.getElementById('dpp-injected-theme-css')).not.toBeNull();
+    expect(document.getElementById('dwplus-injected-theme-css')).not.toBeNull();
   });
 
   it('uses the shared injected theme variables for result text contrast', () => {
@@ -64,10 +64,10 @@ describe('tool result renderer registry', () => {
       sendMessage: vi.fn(),
     })).toBe(true);
 
-    const style = document.getElementById('dpp-artifact-result-css');
-    expect(style?.textContent).toContain('color: var(--dpp-ui-text);');
-    expect(style?.textContent).toContain('color: var(--dpp-ui-text-muted);');
-    expect(style?.textContent).not.toContain('body.dpp-theme-dark .dpp-result-text');
+    const style = document.getElementById('dwplus-artifact-result-css');
+    expect(style?.textContent).toContain('color: var(--dwplus-ui-text);');
+    expect(style?.textContent).toContain('color: var(--dwplus-ui-text-muted);');
+    expect(style?.textContent).not.toContain('body.dwplus-theme-dark .dwplus-result-text');
   });
 
   it('opens HTML artifacts in a native-like right-side preview panel only after user action', async () => {
@@ -104,21 +104,21 @@ describe('tool result renderer registry', () => {
     });
 
     expect(rendered).toBe(true);
-    expect(target.querySelector('.dpp-artifact-preview-result')).toBeNull();
-    expect(target.querySelector('.dpp-artifact-preview')).not.toBeNull();
-    expect(document.body.querySelector('.dpp-artifact-preview-panel')).toBeNull();
+    expect(target.querySelector('.dwplus-artifact-preview-result')).toBeNull();
+    expect(target.querySelector('.dwplus-artifact-preview')).not.toBeNull();
+    expect(document.body.querySelector('.dwplus-artifact-preview-panel')).toBeNull();
     expect(sendMessageMock).not.toHaveBeenCalled();
 
-    target.querySelector<HTMLButtonElement>('.dpp-artifact-preview')?.click();
+    target.querySelector<HTMLButtonElement>('.dwplus-artifact-preview')?.click();
     await Promise.resolve();
     await Promise.resolve();
 
-    const panel = document.body.querySelector<HTMLElement>('.dpp-artifact-preview-panel');
-    const frame = document.body.querySelector<HTMLIFrameElement>('.dpp-artifact-preview-panel-frame');
+    const panel = document.body.querySelector<HTMLElement>('.dwplus-artifact-preview-panel');
+    const frame = document.body.querySelector<HTMLIFrameElement>('.dwplus-artifact-preview-panel-frame');
     expect(panel).not.toBeNull();
-    expect(panel?.querySelector('.dpp-artifact-preview-panel-header')).not.toBeNull();
-    expect(panel?.querySelector('.dpp-artifact-preview-panel-stage')).not.toBeNull();
-    expect(document.body.classList.contains('dpp-artifact-preview-panel-open')).toBe(true);
+    expect(panel?.querySelector('.dwplus-artifact-preview-panel-header')).not.toBeNull();
+    expect(panel?.querySelector('.dwplus-artifact-preview-panel-stage')).not.toBeNull();
+    expect(document.body.classList.contains('dwplus-artifact-preview-panel-open')).toBe(true);
     expect(target.textContent).toContain('demo.html');
     expect(target.textContent).not.toContain('html-ok');
     expect(frame).not.toBeNull();
@@ -153,11 +153,11 @@ describe('tool result renderer registry', () => {
     });
 
     expect(rendered).toBe(true);
-    target.querySelector<HTMLButtonElement>('.dpp-artifact-preview')?.click();
+    target.querySelector<HTMLButtonElement>('.dwplus-artifact-preview')?.click();
     await Promise.resolve();
     await Promise.resolve();
 
-    const frame = document.body.querySelector<HTMLIFrameElement>('.dpp-artifact-preview-panel-frame');
+    const frame = document.body.querySelector<HTMLIFrameElement>('.dwplus-artifact-preview-panel-frame');
     expect(sendMessageMock).not.toHaveBeenCalled();
     expect(frame?.srcdoc).toContain('<h1>restored-ok</h1>');
   });
@@ -196,16 +196,16 @@ describe('tool result renderer registry', () => {
       sendMessage,
     });
 
-    target.querySelector<HTMLButtonElement>('.dpp-artifact-preview')?.click();
+    target.querySelector<HTMLButtonElement>('.dwplus-artifact-preview')?.click();
     await Promise.resolve();
     await Promise.resolve();
-    expect(document.body.querySelector('.dpp-artifact-preview-panel')).not.toBeNull();
+    expect(document.body.querySelector('.dwplus-artifact-preview-panel')).not.toBeNull();
 
     window.history.pushState({}, '', '/a/chat/s/another-session');
     vi.advanceTimersByTime(250);
 
-    expect(document.body.querySelector('.dpp-artifact-preview-panel')).toBeNull();
-    expect(document.body.classList.contains('dpp-artifact-preview-panel-open')).toBe(false);
+    expect(document.body.querySelector('.dwplus-artifact-preview-panel')).toBeNull();
+    expect(document.body.classList.contains('dwplus-artifact-preview-panel-open')).toBe(false);
   });
 
   // B-08: download_attached_file 渲染器要展示 localPath 并提供"打开文件夹 / 复制路径"按钮。
@@ -228,7 +228,7 @@ describe('tool result renderer registry', () => {
 
     const rendered = renderToolResultWithRegistry({ target, result, sendMessage });
     expect(rendered).toBe(true);
-    expect(target.querySelector('.dpp-download-attached-file-result')).not.toBeNull();
+    expect(target.querySelector('.dwplus-download-attached-file-result')).not.toBeNull();
     expect(target.textContent).toContain('report.docx');
     expect(target.textContent).toContain('12.1 KB');
     expect(target.textContent).toContain('C:\\Users\\me\\Downloads\\deepseek-pp\\report.docx');
@@ -317,7 +317,7 @@ describe('tool result renderer registry', () => {
       result,
       sendMessage,
     });
-    const button = target.querySelector<HTMLButtonElement>('.dpp-artifact-run');
+    const button = target.querySelector<HTMLButtonElement>('.dwplus-artifact-run');
     button?.click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -331,8 +331,8 @@ describe('tool result renderer registry', () => {
         timeoutMs: 15000,
       },
     });
-    expect(target.querySelector('.dpp-artifact-run-output')?.textContent).toContain('Code executed');
-    expect(target.querySelector('.dpp-artifact-run-output')?.textContent).toContain('stdout:\n42');
+    expect(target.querySelector('.dwplus-artifact-run-output')?.textContent).toContain('Code executed');
+    expect(target.querySelector('.dwplus-artifact-run-output')?.textContent).toContain('stdout:\n42');
   });
 
 });
