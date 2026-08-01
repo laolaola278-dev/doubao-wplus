@@ -5,11 +5,11 @@ Last updated: 2026-06-17
 ## Package
 
 - Current version: `0.7.5`
-- Upload package: `dist/deepseek-plus-plus-0.7.5-chrome.zip`
+- Upload package: `dist/doubao-wplus-0.7.5-chrome.zip`
 - Category: Productivity
 - Default language: English (United States)
-- Homepage URL: `https://github.com/zhu1090093659/deepseek-pp`
-- Support URL: `https://github.com/zhu1090093659/deepseek-pp/issues`
+- Homepage URL: `https://github.com/laolaola278-dev/doubao-wplus`
+- Support URL: `https://github.com/laolaola278-dev/doubao-wplus/issues`
 - Privacy policy URL: publish `docs/chrome-web-store/privacy-policy.md` and use its public URL.
 
 ## Store Listing

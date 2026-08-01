@@ -1,10 +1,17 @@
 import type { GitHubSkillSource, LocalSkillSource, Skill, SkillImportSource } from '../types';
 import { DEFAULT_LOCALE, type SupportedLocale } from '../i18n';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
 import { BUILTIN_SKILLS, getLocalizedBuiltinSkills } from './builtin';
 
-const STORAGE_KEY = 'deepseek_pp_skills';
-const SOURCES_STORAGE_KEY = 'deepseek_pp_skill_sources';
-const BUNDLED_ENABLED_STORAGE_KEY = 'deepseek_pp_bundled_skill_enabled';
+const STORAGE_KEY = 'doubao_wplus_skills';
+const SOURCES_STORAGE_KEY = 'doubao_wplus_skill_sources';
+const BUNDLED_ENABLED_STORAGE_KEY = 'doubao_wplus_bundled_skill_enabled';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_skills';
+// backward compat: old brand
+const DEPRECATED_SOURCES_STORAGE_KEY = 'deepseek_pp_skill_sources';
+// backward compat: old brand
+const DEPRECATED_BUNDLED_ENABLED_STORAGE_KEY = 'deepseek_pp_bundled_skill_enabled';
 
 const USER_SKILL_SOURCES = new Set(['custom', 'remote']);
 const TOGGLEABLE_BUNDLED_SKILL_SOURCES = new Set(['third-party', 'official']);
@@ -32,8 +39,11 @@ export async function getSkillLibrary(locale: SupportedLocale = DEFAULT_LOCALE):
 }
 
 export async function getUserSkills(): Promise<Skill[]> {
-  const data = await chrome.storage.local.get(STORAGE_KEY) as Record<string, unknown>;
-  const storedSkills = data[STORAGE_KEY];
+  const storedSkills = await readStorageValueWithMigration<unknown>(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  );
   return normalizeStoredSkills(storedSkills);
 }
 
@@ -108,8 +118,11 @@ export async function setSkillEnabled(name: string, enabled: boolean): Promise<v
 }
 
 export async function getAllSkillSources(): Promise<SkillImportSource[]> {
-  const data = await chrome.storage.local.get(SOURCES_STORAGE_KEY) as Record<string, unknown>;
-  const storedSources = data[SOURCES_STORAGE_KEY];
+  const storedSources = await readStorageValueWithMigration<unknown>(
+    chrome.storage.local,
+    SOURCES_STORAGE_KEY,
+    DEPRECATED_SOURCES_STORAGE_KEY,
+  );
   if (!Array.isArray(storedSources)) return [];
   return storedSources.filter(isSkillImportSource);
 }
@@ -243,8 +256,11 @@ function normalizeStoredSkills(value: unknown): Skill[] {
 }
 
 async function getBundledSkillEnabledOverrides(): Promise<Record<string, boolean>> {
-  const data = await chrome.storage.local.get(BUNDLED_ENABLED_STORAGE_KEY) as Record<string, unknown>;
-  const value = data[BUNDLED_ENABLED_STORAGE_KEY];
+  const value = await readStorageValueWithMigration<unknown>(
+    chrome.storage.local,
+    BUNDLED_ENABLED_STORAGE_KEY,
+    DEPRECATED_BUNDLED_ENABLED_STORAGE_KEY,
+  );
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
 
   return Object.fromEntries(

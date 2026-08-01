@@ -11,7 +11,7 @@ npm run build:android
 npm run android:assemble:debug
 ```
 
-`npm run build:android` builds the Chrome MV3 bundle and stages it under `android/app/src/main/assets/dpp/`. The Gradle task writes the debug APK under `android/app/build/outputs/apk/debug/`.
+`npm run build:android` builds the Chrome MV3 bundle and stages it under `android/app/src/main/assets/dwplus/`. The Gradle task writes the debug APK under `android/app/build/outputs/apk/debug/`.
 
 ## Developer Scope
 

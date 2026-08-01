@@ -102,7 +102,7 @@ describe('XmlToolStreamFilter', () => {
           user_type: 1,
           content: JSON.stringify([{
             block_type: 10000,
-            content: { text_block: { text: '## Role\ninternal instructions\n<!-- deepseek-pp-visible-user-prompt:start -->\n请生成 test.md\n<!-- deepseek-pp-visible-user-prompt:end -->' } },
+            content: { text_block: { text: '## Role\ninternal instructions\n<!-- doubao-wplus-visible-user-prompt:start -->\n请生成 test.md\n<!-- doubao-wplus-visible-user-prompt:end -->' } },
           }]),
         },
       })}\n\n`,

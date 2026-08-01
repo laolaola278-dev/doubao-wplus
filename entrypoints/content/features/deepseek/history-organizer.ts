@@ -26,7 +26,9 @@ export interface HistoryOrganizerLabels {
   storageError: (action: 'load' | 'save', message: string) => string;
 }
 
-const STORAGE_KEY = 'deepseek_pp_history_organizer';
+const STORAGE_KEY = 'doubao_wplus_deepseek_history_organizer';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_history_organizer';
 const STYLE_ID = 'dwplus-history-organizer-css';
 const ENHANCER_ID = 'dwplus-history-search-enhancer';
 const HISTORY_LINK_SELECTOR = [
@@ -163,9 +165,13 @@ export function startDeepSeekHistoryOrganizer(
     }, 200);
   };
 
-  chrome.storage.local.get(STORAGE_KEY)
-    .then((data) => {
-      state = normalizeHistoryOrganizerState(data[STORAGE_KEY]);
+  readStorageValueWithMigration(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  )
+    .then((value) => {
+      state = normalizeHistoryOrganizerState(value);
       refresh();
     })
     .catch((error) => {
@@ -472,7 +478,7 @@ function reportStorageError(
 ): void {
   const message = error instanceof Error ? error.message : String(error);
   if (status) status.textContent = getLabels().storageError(action, message);
-  console.error(`DeepSeek++ failed to ${action} history tags`, error);
+  console.error(`Doubao WPlus failed to ${action} history tags`, error);
 }
 
 function normalizeTags(value: unknown): string[] {
@@ -488,3 +494,4 @@ function normalizeTags(value: unknown): string[] {
 function getCurrentSessionId(): string | null {
   return parseSessionId(location.href);
 }
+import { readStorageValueWithMigration } from '../../../../core/platform/storage-migration';

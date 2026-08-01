@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  DEPRECATED_SHELL_MCP_NATIVE_HOST,
   SHELL_MCP_NATIVE_HOST,
   SHELL_MCP_SERVER_NAME,
   createShellMcpPresetInput,
@@ -298,9 +299,8 @@ export default function ToolsPage() {
       }
       await chrome.runtime.sendMessage({
         type: 'CREATE_MCP_SERVER',
-        // B-13 fix: respect the user-configured native host name (so
-        // unpacked builds can use a different host name from the Web
-        // Store build's `com.deepseek_pp.shell`).
+        // Respect the user-configured native host name so unpacked builds
+        // can use a separate manifest from the published extension.
         payload: createShellMcpPresetInput({ nativeHost: await getShellNativeHostName() }),
       });
       setPythonMessage(t('sidepanel.toolsPage.shellCreated'));
@@ -588,7 +588,9 @@ export default function ToolsPage() {
 }
 
 function isShellServer(server: McpServerConfig): boolean {
-  return server.displayName === SHELL_MCP_SERVER_NAME || server.transport.nativeHost === SHELL_MCP_NATIVE_HOST;
+  return server.displayName === SHELL_MCP_SERVER_NAME ||
+    server.transport.nativeHost === SHELL_MCP_NATIVE_HOST ||
+    server.transport.nativeHost === DEPRECATED_SHELL_MCP_NATIVE_HOST;
 }
 
 function isMcpToolEnabled(server: McpServerConfig, tool: ToolDescriptor): boolean {

@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/zhu1090093659/deepseek-pp/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/zhu1090093659/deepseek-pp?style=flat-square"></a>
-  <a href="https://github.com/zhu1090093659/deepseek-pp/watchers"><img alt="Watchers" src="https://img.shields.io/github/watchers/zhu1090093659/deepseek-pp?style=flat-square"></a>
-  <a href="https://github.com/zhu1090093659/deepseek-pp/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/zhu1090093659/deepseek-pp?style=flat-square"></a>
-  <a href="https://github.com/zhu1090093659/deepseek-pp/issues"><img alt="Issues" src="https://img.shields.io/github/issues/zhu1090093659/deepseek-pp?style=flat-square"></a>
+  <a href="https://github.com/laolaola278-dev/doubao-wplus/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/laolaola278-dev/doubao-wplus?style=flat-square"></a>
+  <a href="https://github.com/laolaola278-dev/doubao-wplus/watchers"><img alt="Watchers" src="https://img.shields.io/github/watchers/laolaola278-dev/doubao-wplus?style=flat-square"></a>
+  <a href="https://github.com/laolaola278-dev/doubao-wplus/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/laolaola278-dev/doubao-wplus?style=flat-square"></a>
+  <a href="https://github.com/laolaola278-dev/doubao-wplus/issues"><img alt="Issues" src="https://img.shields.io/github/issues/laolaola278-dev/doubao-wplus?style=flat-square"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/zhu1090093659/deepseek-pp/releases"><img alt="Release" src="https://img.shields.io/github/v/release/zhu1090093659/deepseek-pp?style=flat-square&label=release"></a>
+  <a href="https://github.com/laolaola278-dev/doubao-wplus/releases"><img alt="Release" src="https://img.shields.io/github/v/release/laolaola278-dev/doubao-wplus?style=flat-square&label=release"></a>
   <a href="https://chromewebstore.google.com/detail/doubao-wplus/kdmpkkahkhdmdhfkdihkopikgcocbpbf?hl=zh-CN"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome%20Web%20Store-available-16a34a?style=flat-square"></a>
   <a href="#license"><img alt="License" src="https://img.shields.io/badge/license-MIT-2563eb?style=flat-square"></a>
   <a href="https://chat.deepseek.com"><img alt="DeepSeek" src="https://img.shields.io/badge/DeepSeek-web-4f46e5?style=flat-square"></a>
@@ -208,7 +208,7 @@ Language can follow the browser or be set to English or Simplified Chinese. doub
 - **Third-party Skill library** - Includes OfficeCLI Skills for DOCX, XLSX, PPTX, Pitch Deck, Academic Paper, Financial Model, Dashboard, Morph PPT, and more.
 - **Third-party style library** - Includes the OfficeCLI PPT styles index and style descriptions, with chainable loading such as `/officecli-pptx /officecli-styles ...`.
 - **Runs through Shell MCP** - After creating the Shell preset in the side panel, the model can call command-based OfficeCLI through `shell_exec`.
-- **Automatic command-line installation** - `deepseek-pp-shell-host` installs the command-based OfficeCLI binary from iOfficeAI/OfficeCLI release assets according to your OS and processor type.
+- **Automatic command-line installation** - `doubao-wplus-shell-host` installs the command-based OfficeCLI binary from iOfficeAI/OfficeCLI release assets according to your OS and processor type.
 - **Command mode first** - The Skill checks that `officecli --help` exposes scriptable commands such as `view`, `get`, `set`, and `batch`.
 - **Rejects hosted quota generation paths** - If the current binary only exposes hosted generation commands such as `new --prompt`, the Skill stops and asks you to switch to the command-based OfficeCLI binary.
 - **Real local paths** - Document paths come from the user or from Shell MCP queries. The workflow does not guess placeholder directories.
@@ -216,10 +216,11 @@ Language can follow the browser or be set to English or Simplified Chinese. doub
 Install the Shell Native Host:
 
 ```bash
-npx deepseek-pp-shell-host install --browser chrome --extension-id <extension-id>
+npx doubao-wplus-shell-host install --browser chrome --extension-id <extension-id>
 ```
 
-The side-panel MCP page automatically fills in the current extension ID. This command installs both the Shell Native Host and command-based OfficeCLI. The Shell MCP enables local command execution. After installation, restart the browser, open the MCP page in the side panel, create the Shell preset, then test and refresh tools. Command-based OfficeCLI can continue using scriptable commands such as `create`, `get`, `set`, `view`, `batch`, and `validate` without using hosted `new --prompt` quota.
+<!-- backward compat: old brand — deprecated npm package name -->
+The former `deepseek-pp-shell-host` package name is deprecated; migrate to `doubao-wplus-shell-host`. The side-panel MCP page automatically fills in the current extension ID. This command installs both the Shell Native Host and command-based OfficeCLI. The Shell MCP enables local command execution. After installation, restart the browser, open the MCP page in the side panel, create the Shell preset, then test and refresh tools. Command-based OfficeCLI can continue using scriptable commands such as `create`, `get`, `set`, `view`, `batch`, and `validate` without using hosted `new --prompt` quota.
 
 When developing from source, you can also use:
 
@@ -536,7 +537,7 @@ Thanks to this release's contributors: [@todayzhou](https://github.com/todayzhou
 
 | Area | Main changes |
 |------|--------------|
-| Shell MCP installation | Adds the `deepseek-pp-shell-host` npm installer so users can install the Shell Native Host with `npx deepseek-pp-shell-host install ...`. |
+| Shell MCP installation | Adds the `doubao-wplus-shell-host` npm installer so users can install the Shell Native Host with `npx doubao-wplus-shell-host install ...`. |
 | Store-user path | The Shell Host installs into the user profile directory instead of relying on the extension source directory. Chrome, Edge, Chromium, and Firefox all have matching installation commands. |
 | Side-panel guidance | The MCP page automatically fills in the current extension ID and gives clear guidance when the Native Host is installed but the extension ID is not authorized. |
 | Docs and release | README, Chrome Web Store copy, and MCP instructions are aligned to the user install path, while the source install command remains available for developers. |
@@ -663,8 +664,8 @@ If you need Shell MCP or local file tools, follow the Shell Native Host instruct
 ### Build from Source
 
 ```bash
-git clone https://github.com/zhu1090093659/deepseek-pp.git
-cd deepseek-pp
+git clone https://github.com/laolaola278-dev/doubao-wplus.git
+cd doubao-wplus
 npm install
 npm run build
 ```

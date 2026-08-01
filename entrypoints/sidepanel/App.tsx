@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type { LocaleMessageKey } from '../../core/i18n';
-import { getChatEnabled } from '../../core/chat/store';
+import { CHAT_ENABLED_STORAGE_KEY, getChatEnabled } from '../../core/chat/store';
 import WhatsNewPanel from './components/WhatsNewPanel';
 import { useI18n } from './i18n';
 import { setPendingText } from './pending-text';
@@ -31,8 +31,8 @@ export default function App() {
   useEffect(() => {
     getChatEnabled().then(setChatEnabledState);
     const handler = (changes: Record<string, chrome.storage.StorageChange>) => {
-      if ('deepseek_pp_chat_enabled' in changes) {
-        setChatEnabledState(changes.deepseek_pp_chat_enabled.newValue === true);
+      if (CHAT_ENABLED_STORAGE_KEY in changes) {
+        setChatEnabledState(changes[CHAT_ENABLED_STORAGE_KEY].newValue === true);
       }
     };
     chrome.storage.onChanged.addListener(handler);

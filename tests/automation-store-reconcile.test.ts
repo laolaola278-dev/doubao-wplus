@@ -7,7 +7,7 @@ import {
 } from '../core/automation/store';
 import type { AutomationRun } from '../core/automation/types';
 
-const STORAGE_KEY = 'deepseek_pp_automations';
+const STORAGE_KEY = 'doubao_wplus_automations';
 
 function createChromeStub() {
   const storage = new Map<string, unknown>();

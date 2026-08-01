@@ -74,7 +74,7 @@ describe('DeepSeek project sidebar organizer', () => {
     }));
 
     expect(section?.querySelector('.dwplus-project-sidebar__section-title')?.textContent).toBe('项目');
-    expect(section?.querySelector('.dwplus-project-sidebar__project-name')?.textContent).toBe('deepseek-pp');
+    expect(section?.querySelector('.dwplus-project-sidebar__project-name')?.textContent).toBe('doubao-wplus');
     expect(section?.querySelector('[data-dwplus-project-conversation-id="session-one"]')?.textContent).toContain('发布 0.7.3 版本');
     expect(document.querySelector<HTMLElement>('[data-testid="session-one-row"]')?.hidden).toBe(true);
     expect(document.querySelector<HTMLElement>('[data-testid="session-one-row"]')?.style.getPropertyValue('display')).toBe('none');
@@ -227,7 +227,7 @@ describe('DeepSeek project sidebar organizer', () => {
 
     document.querySelector<HTMLButtonElement>('[data-dwplus-project-conversation-menu="true"]')?.click();
     await flushProjectSidebar();
-    expect(document.querySelector('.dwplus-project-sidebar__conversation-menu')?.textContent).toContain('移除项目：deepseek-pp');
+    expect(document.querySelector('.dwplus-project-sidebar__conversation-menu')?.textContent).toContain('移除项目：doubao-wplus');
 
     document.querySelector<HTMLButtonElement>('[data-dwplus-project-remove-conversation="true"]')?.click();
     await Promise.resolve();
@@ -259,7 +259,7 @@ describe('DeepSeek project sidebar organizer', () => {
       menuButton.dispatchEvent(new Event('pointerdown', { bubbles: true, cancelable: true }));
       menuButton.click();
       await flushProjectSidebar();
-      expect(document.querySelector('.dwplus-project-sidebar__conversation-menu')?.textContent).toContain('移除项目：deepseek-pp');
+      expect(document.querySelector('.dwplus-project-sidebar__conversation-menu')?.textContent).toContain('移除项目：doubao-wplus');
     } finally {
       document.removeEventListener('click', swallowHostClick, true);
       controller.stop();
@@ -316,7 +316,7 @@ describe('DeepSeek project sidebar organizer', () => {
     expect(section?.querySelector('.dwplus-project-sidebar__pending')?.textContent).toBe('下一条新会话将使用此项目');
     const toggleButton = section?.querySelector<HTMLButtonElement>('[data-dwplus-project-action="toggle-pending"]');
     expect(toggleButton?.dataset.active).toBe('true');
-    expect(toggleButton?.getAttribute('aria-label')).toBe('取消下一条新会话使用 deepseek-pp');
+    expect(toggleButton?.getAttribute('aria-label')).toBe('取消下一条新会话使用 doubao-wplus');
   });
 
   it('shows a toggle to expand conversations beyond the project limit', () => {
@@ -389,7 +389,7 @@ function createProjectState(overrides: Partial<ProjectContextState> = {}): Proje
     schemaVersion: 2,
     projects: [{
       id: 'project-deepseek',
-      name: 'deepseek-pp',
+      name: 'doubao-wplus',
       description: '',
       instructions: 'Keep release context.',
       createdAt: NOW - 100_000,

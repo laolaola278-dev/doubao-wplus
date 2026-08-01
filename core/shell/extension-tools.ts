@@ -4,12 +4,22 @@
 // 这些工具调用需要用户的浏览器 session，native host 跑在浏览器外部拿不到，
 // 所以在扩展里执行更合理。
 
-import { SHELL_MCP_NATIVE_HOST, SHELL_MCP_SERVER_NAME, SHELL_TOOL_SPECS, type ShellToolSpec } from './contracts';
+import {
+  DEPRECATED_SHELL_MCP_NATIVE_HOST,
+  SHELL_MCP_NATIVE_HOST,
+  SHELL_MCP_SERVER_NAME,
+  SHELL_TOOL_SPECS,
+  type ShellToolSpec,
+} from './contracts';
 import type { McpServerConfig, McpToolDefinition } from '../mcp/types';
 
 export function isShellMcpServer(server: Pick<McpServerConfig, 'displayName' | 'transport'>): boolean {
   if (server.displayName === SHELL_MCP_SERVER_NAME) return true;
-  if (server.transport.kind === 'native_messaging' && server.transport.nativeHost === SHELL_MCP_NATIVE_HOST) {
+  if (
+    server.transport.kind === 'native_messaging' &&
+    (server.transport.nativeHost === SHELL_MCP_NATIVE_HOST ||
+      server.transport.nativeHost === DEPRECATED_SHELL_MCP_NATIVE_HOST)
+  ) {
     return true;
   }
   return false;

@@ -9,12 +9,12 @@ const DEEPSEEK_HOST_NAME = 'DeepSeek';
 
 /**
  * Adapter 元数据 — 维护与兼容性跟踪。
- * DeepSeek 契约继承自 deepseek-pp 项目（0.7.5 前长期生产验证），
+ * DeepSeek 契约继承自上游生产基线（0.7.5 前长期生产验证），
  * 点分路径重构后由单元契约测试锁定平面字段行为不变。
  */
 const DEEPSEEK_ADAPTER_META: HostAdapterMeta = {
   hostName: DEEPSEEK_HOST_NAME,
-  // 1.0.0: 提取为 HostAdapter；映射值继承 deepseek-pp 生产版本
+  // 1.0.0: 提取为 HostAdapter；映射值继承上游生产版本
   adapterVersion: '1.0.0',
   lastVerifiedAt: '2026-07-16',
   verifiedPages: [
@@ -29,7 +29,7 @@ const DEEPSEEK_ADAPTER_META: HostAdapterMeta = {
   evidence: [
     'tests/body-fields.test.ts（adapter mapping contract）',
     'tests/request-augmentation.test.ts（平面 body 用例）',
-    'docs/releases/0.7.5.md（deepseek-pp 生产基线）',
+    'docs/releases/0.7.5.md（上游生产基线）',
   ],
 };
 
@@ -38,7 +38,7 @@ const DEEPSEEK_MATCH_PATTERNS = [
 ];
 
 // ============================================================
-// 选择器（基于原 deepseek-pp 项目）
+// 选择器（基于上游生产版本）
 // ============================================================
 
 const DEEPSEEK_SELECTORS: HostSelectors = {

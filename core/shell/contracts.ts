@@ -1,12 +1,14 @@
 import type { ToolRiskLevel } from '../tool/types';
 
 export const SHELL_MCP_SERVER_NAME = 'Shell Local';
-// B-13 fix: keep the historical default for users who installed the shell
-// host against the published Chrome Web Store extension. Local unpacked
-// builds (different extension ID) must override this in Settings — see
-// `core/storage/shell-host-name-store.ts` and the SettingsPage UI.
-export const SHELL_MCP_NATIVE_HOST = 'com.deepseek_pp.shell';
-export const SHELL_MCP_NATIVE_HOST_SETTING_KEY = 'dpp.shell.nativeHostName';
+// New builds and the published installer use the Doubao WPlus host name.
+// Local unpacked builds may override it in Settings when using a separate manifest.
+export const SHELL_MCP_NATIVE_HOST = 'com.doubao_wplus.shell';
+// backward compat: old brand — read by host-name-store only when migrating saved settings.
+export const DEPRECATED_SHELL_MCP_NATIVE_HOST = 'com.deepseek_pp.shell';
+export const SHELL_MCP_NATIVE_HOST_SETTING_KEY = 'dwplus.shell.nativeHostName';
+// backward compat: old brand — historical storage key for user-configured host names.
+export const DEPRECATED_SHELL_MCP_NATIVE_HOST_SETTING_KEY = 'dpp.shell.nativeHostName';
 
 export const OFFICECLI_BIN_PATH = 'officecli';
 
@@ -85,7 +87,7 @@ export const SHELL_TOOL_SPECS: readonly ShellToolSpec[] = [
   {
     name: 'download_attached_file',
     title: '下载网页附件',
-    description: '把 DeepSeek 网页上传的文件（ref_file_id）下载到本机下载目录的 deepseek-pp 子目录，返回本地绝对路径与文件名，供 officecli 等命令读取。',
+    description: '把 DeepSeek 网页上传的文件（ref_file_id）下载到本机下载目录的 doubao-wplus 子目录，返回本地绝对路径与文件名，供 officecli 等命令读取。',
     risk: 'medium',
     extensionImplemented: true,
     inputSchema: {

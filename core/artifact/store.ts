@@ -1,6 +1,9 @@
 import type { ArtifactFile, ArtifactRecord, ArtifactView } from './types';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
 
-const STORAGE_KEY = 'deepseek_pp_artifacts';
+const STORAGE_KEY = 'doubao_wplus_artifacts';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_artifacts';
 const MAX_ARTIFACTS = 50;
 
 export async function saveArtifact(input: {
@@ -34,8 +37,11 @@ export async function getArtifact(id: string): Promise<ArtifactRecord | null> {
 }
 
 export async function getArtifacts(): Promise<ArtifactRecord[]> {
-  const data = await chrome.storage.local.get(STORAGE_KEY) as Record<string, unknown>;
-  const value = data[STORAGE_KEY];
+  const value = await readStorageValueWithMigration<unknown>(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  );
   if (!Array.isArray(value)) return [];
   return value.filter(isArtifactRecord);
 }

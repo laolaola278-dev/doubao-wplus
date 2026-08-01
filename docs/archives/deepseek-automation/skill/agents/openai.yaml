@@ -1,4 +1,0 @@
-interface:
-  display_name: "DeepSeek Automation"
-  short_description: "Implement DeepSeek automation tasks"
-  default_prompt: "Read docs/progress/MASTER.md, pick the next open automation Issue, implement it narrowly, verify it, and update progress."

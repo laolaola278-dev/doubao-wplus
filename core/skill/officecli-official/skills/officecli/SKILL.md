@@ -425,17 +425,17 @@ When this Skill is loaded inside doubao-wplus (the browser extension), uploaded 
    <download_attached_file>{"file_id": "file_xxx"}</download_attached_file>
    ```
 3. **B-08 implementation note**: `download_attached_file` is **not** a native host tool. It is executed by the extension itself (background service worker via `chrome.downloads.download`) because the native host runs outside the browser and cannot carry the user's `chat.deepseek.com` session cookie. The call will be short-circuited inside `core/mcp/discovery.ts` before the native host transport is even constructed.
-4. The downloader writes the file to the user's OS `Downloads` directory, under a `deepseek-pp/` subfolder, and returns:
+4. The downloader writes the file to the user's OS `Downloads` directory, under a `doubao-wplus/` subfolder, and returns:
    ```json
-   {"ok": true, "localPath": "/Users/me/Downloads/deepseek-pp/report.docx", "fileName": "report.docx", "sizeBytes": 12345, "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
+   {"ok": true, "localPath": "/Users/me/Downloads/doubao-wplus/report.docx", "fileName": "report.docx", "sizeBytes": 12345, "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
    ```
-   - macOS / Linux: `~/Downloads/deepseek-pp/...`
-   - Windows: `C:\Users\<you>\Downloads\deepseek-pp\...`
-   - Filename is sanitized (Windows-forbidden characters and `..` traversal are replaced with `_`); the same name in `deepseek-pp/` is uniquified by `chrome.downloads` automatically.
+   - macOS / Linux: `~/Downloads/doubao-wplus/...`
+   - Windows: `C:\Users\<you>\Downloads\doubao-wplus\...`
+   - Filename is sanitized (Windows-forbidden characters and `..` traversal are replaced with `_`); the same name in `doubao-wplus/` is uniquified by `chrome.downloads` automatically.
    - Safety cap: files larger than **64 MB** are refused (`dwplus_file_too_large`). For larger files the user should download them manually and tell the model the local path.
 5. **Use the returned `localPath` with every subsequent `shell_exec` / `officecli` call**:
    ```bash
-   <shell_exec>{"command": "officecli view '/Users/me/Downloads/deepseek-pp/report.docx' outline", "timeoutMs": 60000}</shell_exec>
+   <shell_exec>{"command": "officecli view '/Users/me/Downloads/doubao-wplus/report.docx' outline", "timeoutMs": 60000}</shell_exec>
    ```
 
 **Do not** try to call `officecli` with the `ref_file_id` directly â€?it has no meaning to the local binary. **Do not** ask the user to re-pick the file; the extension already has their upload.
@@ -447,7 +447,7 @@ If `download_attached_file` returns an error (`{"ok": false, "error": "..."}`), 
 When you finish producing an output file (a summary `.docx`, a converted PDF, an extracted CSV, etc.) via `officecli` or `shell_exec`, the user needs the file to land in their chat on `chat.deepseek.com`. **Do not** ask the user to dig it out of the local Downloads directory. Use `upload_attached_file`:
 
 ```bash
-<upload_attached_file>{"local_path": "/Users/me/Downloads/deepseek-pp/summary.docx"}</upload_attached_file>
+<upload_attached_file>{"local_path": "/Users/me/Downloads/doubao-wplus/summary.docx"}</upload_attached_file>
 ```
 
 The extension (B-08 implementation, same reasoning as `download_attached_file`) reads the local file, posts it as `multipart/form-data` to DeepSeek, and returns:

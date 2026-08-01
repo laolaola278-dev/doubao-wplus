@@ -4,12 +4,18 @@ import {
   type SavedItemInput,
   type SavedItemsState,
 } from './types';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
 
-const STORAGE_KEY = 'deepseek_pp_saved_items';
+const STORAGE_KEY = 'doubao_wplus_saved_items';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_saved_items';
 
 export async function getSavedItemsState(): Promise<SavedItemsState> {
-  const data = await chrome.storage.local.get(STORAGE_KEY) as Record<string, unknown>;
-  return normalizeSavedItemsState(data[STORAGE_KEY]);
+  return normalizeSavedItemsState(await readStorageValueWithMigration(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  ));
 }
 
 export async function getAllSavedItems(): Promise<SavedItem[]> {

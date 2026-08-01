@@ -1,7 +1,9 @@
 import {
   BROWSER_CONTROL_STORAGE_KEY,
+  DEPRECATED_BROWSER_CONTROL_STORAGE_KEY,
   type BrowserControlSettings,
 } from './types';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
 
 export const DEFAULT_BROWSER_CONTROL_SETTINGS: BrowserControlSettings = {
   enabled: false,
@@ -44,8 +46,11 @@ export function normalizeBrowserControlSettings(input: unknown): BrowserControlS
 }
 
 export async function getBrowserControlSettings(): Promise<BrowserControlSettings> {
-  const data = await chrome.storage.local.get(BROWSER_CONTROL_STORAGE_KEY) as Record<string, unknown>;
-  return normalizeBrowserControlSettings(data[BROWSER_CONTROL_STORAGE_KEY]);
+  return normalizeBrowserControlSettings(await readStorageValueWithMigration(
+    chrome.storage.local,
+    BROWSER_CONTROL_STORAGE_KEY,
+    DEPRECATED_BROWSER_CONTROL_STORAGE_KEY,
+  ));
 }
 
 export async function saveBrowserControlSettings(

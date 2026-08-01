@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
+  DEPRECATED_SHELL_MCP_NATIVE_HOST,
   SHELL_MCP_NATIVE_HOST,
   SHELL_MCP_SERVER_NAME,
   createShellMcpPresetInput,
@@ -187,7 +188,8 @@ export default function McpPage() {
     }
     const existing = servers.find((server) =>
       server.displayName === SHELL_MCP_SERVER_NAME ||
-      server.transport.nativeHost === SHELL_MCP_NATIVE_HOST
+      server.transport.nativeHost === SHELL_MCP_NATIVE_HOST ||
+      server.transport.nativeHost === DEPRECATED_SHELL_MCP_NATIVE_HOST
     );
     if (existing) {
       setSelectedId(existing.id);
@@ -1279,7 +1281,9 @@ function statusMeta(status: McpServerStatus, t: Translator) {
 }
 
 function isShellServer(server: McpServerConfig): boolean {
-  return server.displayName === SHELL_MCP_SERVER_NAME || server.transport.nativeHost === SHELL_MCP_NATIVE_HOST;
+  return server.displayName === SHELL_MCP_SERVER_NAME ||
+    server.transport.nativeHost === SHELL_MCP_NATIVE_HOST ||
+    server.transport.nativeHost === DEPRECATED_SHELL_MCP_NATIVE_HOST;
 }
 
 function ShellSetupHint({

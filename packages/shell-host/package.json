@@ -1,11 +1,11 @@
 {
-  "name": "deepseek-pp-shell-host",
+  "name": "doubao-wplus-shell-host",
   "version": "0.7.5",
-  "description": "Native Messaging Shell MCP host installer for DeepSeek++",
+  "description": "Native Messaging Shell MCP host installer for Doubao WPlus",
   "type": "module",
   "private": false,
   "bin": {
-    "deepseek-pp-shell-host": "bin/deepseek-pp-shell-host.mjs"
+    "doubao-wplus-shell-host": "bin/doubao-wplus-shell-host.mjs"
   },
   "files": [
     "bin/",

@@ -1,11 +1,18 @@
 import type { BackgroundConfig } from '../types';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
 import { normalizeBackgroundConfig } from './config';
 
-const STORAGE_KEY = 'deepseek_pp_background';
+const STORAGE_KEY = 'doubao_wplus_background';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_background';
 
 export async function getBackgroundConfig(): Promise<BackgroundConfig | null> {
-  const data = await chrome.storage.local.get(STORAGE_KEY) as Record<string, Partial<BackgroundConfig> | undefined>;
-  return normalizeBackgroundConfig(data[STORAGE_KEY]);
+  const value = await readStorageValueWithMigration<Partial<BackgroundConfig>>(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  );
+  return normalizeBackgroundConfig(value);
 }
 
 export async function saveBackgroundConfig(config: BackgroundConfig): Promise<void> {
@@ -15,5 +22,5 @@ export async function saveBackgroundConfig(config: BackgroundConfig): Promise<vo
 }
 
 export async function clearBackgroundConfig(): Promise<void> {
-  await chrome.storage.local.remove(STORAGE_KEY);
+  await chrome.storage.local.remove([STORAGE_KEY, DEPRECATED_STORAGE_KEY]);
 }

@@ -15,12 +15,12 @@ import { dirname, resolve } from 'node:path';
 import { arch, homedir, platform, tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
-export const HOST_NAME = 'com.deepseek_pp.shell';
+export const HOST_NAME = 'com.doubao_wplus.shell';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = resolve(__dirname, '..');
 const HOST_SOURCE = resolve(PACKAGE_ROOT, 'native', 'shell-mcp-host.mjs');
-const FIREFOX_EXTENSION_ID = 'deepseek-pp@zhu1090093659.github';
+const FIREFOX_EXTENSION_ID = 'doubao-wplus@workbuddy.local';
 const SUPPORTED_BROWSERS = new Set(['chrome', 'chromium', 'edge', 'firefox']);
 const COMMANDS = new Set(['install', 'status', 'uninstall']);
 const OFFICECLI_REPO = 'iOfficeAI/OfficeCLI';
@@ -72,12 +72,12 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`DeepSeek++ Shell Native Host installer
+  console.log(`Doubao WPlus Shell Native Host installer
 
 Usage:
-  deepseek-pp-shell-host install --browser chrome --extension-id <extension-id>
-  deepseek-pp-shell-host status --browser chrome
-  deepseek-pp-shell-host uninstall --browser chrome
+  doubao-wplus-shell-host install --browser chrome --extension-id <extension-id>
+  doubao-wplus-shell-host status --browser chrome
+  doubao-wplus-shell-host uninstall --browser chrome
 
 Commands:
   install              Install the Shell Native Host and OfficeCLI
@@ -92,18 +92,18 @@ Options:
   --help               Show this help
 
 Examples:
-  npx deepseek-pp-shell-host install --browser chrome --extension-id abcdefghijklmnopqrstuvwxyz123456
-  npx deepseek-pp-shell-host install --browser firefox
+  npx doubao-wplus-shell-host install --browser chrome --extension-id abcdefghijklmnopqrstuvwxyz123456
+  npx doubao-wplus-shell-host install --browser firefox
 `);
 }
 
 function getAppDataRoot() {
   const home = homedir();
-  if (platform() === 'darwin') return `${home}/Library/Application Support/DeepSeek++`;
-  if (platform() === 'linux') return `${home}/.local/share/deepseek-pp`;
+  if (platform() === 'darwin') return `${home}/Library/Application Support/Doubao WPlus`;
+  if (platform() === 'linux') return `${home}/.local/share/doubao-wplus`;
   if (platform() === 'win32') {
     const localAppData = process.env.LOCALAPPDATA || resolve(home, 'AppData', 'Local');
-    return resolve(localAppData, 'DeepSeek++');
+    return resolve(localAppData, 'Doubao WPlus');
   }
   throw new Error(`Unsupported platform: ${platform()}`);
 }
@@ -160,7 +160,7 @@ function getRegistryKey(browser) {
 function buildManifest(args, wrapperPath) {
   const manifest = {
     name: HOST_NAME,
-    description: 'DeepSeek++ Shell MCP - General purpose shell execution via Native Messaging',
+    description: 'Doubao WPlus Shell MCP - General purpose shell execution via Native Messaging',
     path: wrapperPath,
     type: 'stdio',
   };
@@ -383,7 +383,7 @@ function getOfficeCliAssetName() {
 
 async function fetchBytes(url) {
   const response = await fetch(url, {
-    headers: { 'user-agent': 'deepseek-pp-officecli-installer' },
+    headers: { 'user-agent': 'doubao-wplus-officecli-installer' },
   });
   if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText}`);
@@ -558,7 +558,7 @@ function status(args) {
   const officeCli = findCompatibleOfficeCli();
   const isReady = Boolean(manifest && existsSync(hostPath) && existsSync(manifest.path ?? wrapperPath));
 
-  console.log('DeepSeek++ Shell Native Host status');
+  console.log('Doubao WPlus Shell Native Host status');
   console.log(`Browser:      ${args.browser}`);
   console.log(`Host name:    ${HOST_NAME}`);
   console.log(`Install dir:  ${installDir}`);

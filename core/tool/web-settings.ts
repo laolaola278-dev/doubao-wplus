@@ -4,8 +4,11 @@
  */
 
 import { WEB_SEARCH_TOOL_NAMES, type WebSearchToolName } from './web-search';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
 
-const STORAGE_KEY = 'deepseek_pp_web_tool_settings';
+const STORAGE_KEY = 'doubao_wplus_web_tool_settings';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_web_tool_settings';
 
 export type WebToolSettings = Record<WebSearchToolName, boolean>;
 
@@ -15,8 +18,11 @@ const DEFAULT_SETTINGS: WebToolSettings = {
 };
 
 export async function getWebToolSettings(): Promise<WebToolSettings> {
-  const data = (await chrome.storage.local.get(STORAGE_KEY)) as Record<string, unknown>;
-  const stored = data[STORAGE_KEY];
+  const stored = await readStorageValueWithMigration<unknown>(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  );
   if (stored && typeof stored === 'object' && !Array.isArray(stored)) {
     return {
       ...DEFAULT_SETTINGS,

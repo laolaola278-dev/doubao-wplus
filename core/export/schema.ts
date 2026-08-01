@@ -1,5 +1,6 @@
 import {
   CONVERSATION_EXPORT_SCHEMA_VERSION,
+  DEPRECATED_CONVERSATION_EXPORT_SCHEMA_VERSION,
   type ConversationExport,
   type ConversationExportFormat,
   type ConversationExportRequest,
@@ -49,7 +50,10 @@ export function normalizeConversationExportRequest(input: unknown): Conversation
 
 export function validateConversationExport(exportData: ConversationExport): ConversationExport {
   if (!isRecord(exportData)) throw new ConversationExportValidationError('Conversation export must be an object.');
-  if (exportData.schemaVersion !== CONVERSATION_EXPORT_SCHEMA_VERSION) {
+  if (
+    exportData.schemaVersion !== CONVERSATION_EXPORT_SCHEMA_VERSION &&
+    exportData.schemaVersion !== DEPRECATED_CONVERSATION_EXPORT_SCHEMA_VERSION
+  ) {
     throw new ConversationExportValidationError(`Unsupported conversation export schema: ${String(exportData.schemaVersion)}`);
   }
   assertNonEmptyString(exportData.exportId, 'exportId');

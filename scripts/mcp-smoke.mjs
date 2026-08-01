@@ -61,7 +61,7 @@ try {
   const initialize = await requestJsonRpc(serverConfig, 'initialize', {
     protocolVersion: MCP_PROTOCOL_VERSION,
     capabilities: { tools: {} },
-    clientInfo: { name: 'DeepSeek++ smoke', version: '0.0.0' },
+    clientInfo: { name: 'Doubao WPlus smoke', version: '0.0.0' },
   });
   assert.equal(initialize.protocolVersion, MCP_PROTOCOL_VERSION);
 
@@ -101,7 +101,7 @@ try {
   assert.deepEqual(emptyBodyCalls[0].payload, {});
   assert.equal(emptyBodyCalls[0].parseError, undefined);
 
-  const badPathText = String.raw`<echo>{"path":"D:\ai project\deepseek-pp-main"}</echo>`;
+  const badPathText = String.raw`<echo>{"path":"D:\ai project\doubao-wplus-main"}</echo>`;
   const badPathCalls = extractToolCalls(badPathText, injectable);
   assert.equal(badPathCalls.length, 1);
   assert.equal(badPathCalls[0].parseError.code, 'tool_call_json_invalid');
@@ -112,7 +112,7 @@ try {
   assert.equal(extractToolCalls(invokeWrapperText, injectable).length, 0);
 
   const genericTools = [
-    createLocalToolDescriptor('memory_save', 'DeepSeek++ Memory'),
+    createLocalToolDescriptor('memory_save', 'Doubao WPlus Memory'),
     ...injectable,
     createLocalToolDescriptor('custom_lookup', 'Custom Tool Provider'),
   ];
@@ -123,7 +123,7 @@ try {
   ].join('\n');
   const genericCalls = extractToolCalls(multiToolText, genericTools);
   assert.deepEqual(genericCalls.map((call) => call.provider.displayName), [
-    'DeepSeek++ Memory',
+    'Doubao WPlus Memory',
     'Mock MCP',
     'Custom Tool Provider',
   ]);

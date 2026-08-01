@@ -72,7 +72,7 @@ export function createSavedItemsJsonArtifact(items: readonly SavedItem[]): Secon
     filename: `deepseek-saved-items-${new Date().toISOString().slice(0, 10)}.json`,
     mimeType: 'application/json;charset=utf-8',
     content: JSON.stringify({
-      schemaVersion: 'deepseek-pp.saved-items-export.v1',
+      schemaVersion: 'doubao-wplus.saved-items-export.v1',
       exportedAt: new Date().toISOString(),
       items,
     }, null, 2),

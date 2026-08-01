@@ -1,11 +1,19 @@
 import type { SystemPromptPreset } from '../types';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
 
-const STORAGE_KEY = 'deepseek_pp_presets';
-const ACTIVE_KEY = 'deepseek_pp_active_preset_id';
+const STORAGE_KEY = 'doubao_wplus_presets';
+const ACTIVE_KEY = 'doubao_wplus_active_preset_id';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_presets';
+// backward compat: old brand
+const DEPRECATED_ACTIVE_KEY = 'deepseek_pp_active_preset_id';
 
 export async function getAllPresets(): Promise<SystemPromptPreset[]> {
-  const data = await chrome.storage.local.get(STORAGE_KEY) as Record<string, unknown>;
-  const presets = data[STORAGE_KEY];
+  const presets = await readStorageValueWithMigration<unknown>(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  );
   return Array.isArray(presets) ? (presets as SystemPromptPreset[]) : [];
 }
 
@@ -32,14 +40,17 @@ export async function deletePreset(id: string): Promise<void> {
 }
 
 export async function getActivePresetId(): Promise<string | null> {
-  const data = await chrome.storage.local.get(ACTIVE_KEY) as Record<string, unknown>;
-  const activeId = data[ACTIVE_KEY];
+  const activeId = await readStorageValueWithMigration<unknown>(
+    chrome.storage.local,
+    ACTIVE_KEY,
+    DEPRECATED_ACTIVE_KEY,
+  );
   return typeof activeId === 'string' ? activeId : null;
 }
 
 export async function setActivePresetId(id: string | null): Promise<void> {
   if (id === null) {
-    await chrome.storage.local.remove(ACTIVE_KEY);
+    await chrome.storage.local.remove([ACTIVE_KEY, DEPRECATED_ACTIVE_KEY]);
   } else {
     await chrome.storage.local.set({ [ACTIVE_KEY]: id });
   }

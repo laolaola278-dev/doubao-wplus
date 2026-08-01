@@ -3,7 +3,7 @@ import { BUILTIN_SKILLS, getLocalizedBuiltinSkills } from '../core/skill/builtin
 import { getAllSkills, setSkillEnabled } from '../core/skill/registry';
 import type { Skill } from '../core/types';
 
-const SKILL_STORAGE_KEY = 'deepseek_pp_skills';
+const SKILL_STORAGE_KEY = 'doubao_wplus_skills';
 
 let storage: Record<string, unknown>;
 

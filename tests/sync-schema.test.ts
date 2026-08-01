@@ -54,7 +54,7 @@ describe('sync schema validators', () => {
   it('validates project context and project conversations at sync boundaries', () => {
     const project = validateProjectContext({
       id: 'project-1',
-      name: 'DeepSeek++',
+      name: 'Doubao WPlus',
       description: '',
       instructions: 'Use project context.',
       createdAt: 1,
@@ -80,7 +80,7 @@ describe('sync schema validators', () => {
       schemaVersion: 2,
       projects: [{
         id: 'project-1',
-        name: 'DeepSeek++',
+        name: 'Doubao WPlus',
         description: '',
         instructions: 'Use project context.',
         createdAt: 1,

@@ -464,7 +464,7 @@ export class DoubaoAdapter implements HostAdapter {
 
   /**
    * 豆包专属 feature flags
-   * 业务层根据这些 flag 决定是否启用。豆包版 DOM 增强 feature 已复刻自 DeepSeek++。
+   * 业务层根据这些 flag 决定是否启用。豆包版 DOM 增强 feature 已复刻自上游实现。
    */
   getFeatures(): HostFeatureFlags {
     return DOUBAO_FEATURES;

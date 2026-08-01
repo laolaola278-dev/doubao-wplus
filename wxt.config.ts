@@ -46,7 +46,7 @@ function createManifest(env: ConfigEnv): UserManifest {
   const isChromiumTarget = CHROMIUM_BROWSERS.has(env.browser);
   const permissions = ['storage', 'alarms', 'nativeMessaging', 'contextMenus'];
   // B-08: `downloads` 让扩展可以调用 `chrome.downloads.download` 把
-  // DeepSeek 网页附件（ref_file_id）写入本机下载目录的 `deepseek-pp/` 子目录。
+  // DeepSeek 网页附件（ref_file_id）写入本机下载目录的 `doubao-wplus/` 子目录。
   // 仅 Chromium 暴露 chrome.downloads，Firefox 用 browser.downloads 走另一套 API，
   // 暂不在 firefox 启用 download_attached_file。
   const chromiumPermissions = [...permissions, 'offscreen', 'debugger', 'tabs', 'downloads'];
@@ -142,18 +142,13 @@ function pyodideAssetsPlugin(): Plugin {
 }
 
 function escapeNonAsciiJavaScript(source: string): string {
-  let escaped = '';
-  for (const char of source) {
+  return source.replace(/[^\x00-\x7f]/gu, (char) => {
     const codePoint = char.codePointAt(0);
-    if (codePoint === undefined || codePoint <= 0x7f) {
-      escaped += char;
-      continue;
-    }
-    escaped += codePoint <= 0xffff
+    if (codePoint === undefined) return char;
+    return codePoint <= 0xffff
       ? `\\u${codePoint.toString(16).padStart(4, '0')}`
       : toSurrogatePairEscape(codePoint);
-  }
-  return escaped;
+  });
 }
 
 function toSurrogatePairEscape(codePoint: number): string {

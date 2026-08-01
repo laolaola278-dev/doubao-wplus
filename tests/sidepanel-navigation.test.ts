@@ -33,8 +33,8 @@ beforeEach(() => {
     storage: {
       local: {
         get: vi.fn(async (key: string) => (
-          key === 'deepseek_pp_chat_enabled'
-            ? { deepseek_pp_chat_enabled: true }
+          key === 'doubao_wplus_chat_enabled'
+            ? { doubao_wplus_chat_enabled: true }
             : {}
         )),
         remove: vi.fn(async () => {}),

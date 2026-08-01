@@ -5,8 +5,8 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import WhatsNewPanel from '../entrypoints/sidepanel/components/WhatsNewPanel';
 
-const LAST_SEEN_VERSION_KEY = 'deepseek_pp_whats_new_dismissed_version';
-const PENDING_UPDATE_VERSION_KEY = 'deepseek_pp_whats_new_pending_version';
+const LAST_SEEN_VERSION_KEY = 'doubao_wplus_whats_new_dismissed_version';
+const PENDING_UPDATE_VERSION_KEY = 'doubao_wplus_whats_new_pending_version';
 
 let container: HTMLDivElement;
 let root: Root | null;

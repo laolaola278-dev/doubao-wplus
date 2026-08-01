@@ -93,7 +93,7 @@ describe('downloadAttachedFile (B-08)', () => {
     vi.restoreAllMocks();
   });
 
-  it('builds the target filename under deepseek-pp/ and sanitizes unsafe characters', () => {
+  it('builds the target filename under doubao-wplus/ and sanitizes unsafe characters', () => {
     expect(buildTargetFilename({
       id: 'file_x',
       fileName: 'Q4: report?.docx',
@@ -139,15 +139,15 @@ describe('downloadAttachedFile (B-08)', () => {
       (url) => url === downloadUrl ? makeBlobResponse('hello world', 'application/octet-stream', 11) : null,
     ]);
     const { api: downloadApi, calls: downloadCalls } = makeDownloadsApi(
-      'deepseek-pp/report.docx',
-      'C:\\Users\\me\\Downloads\\deepseek-pp\\report.docx',
+      'doubao-wplus/report.docx',
+      'C:\\Users\\me\\Downloads\\doubao-wplus\\report.docx',
     );
 
     const result = await downloadAttachedFile({ fileId: 'file_123', fetchImpl: fetchMock, downloadApi });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.localPath).toBe('C:\\Users\\me\\Downloads\\deepseek-pp\\report.docx');
+    expect(result.localPath).toBe('C:\\Users\\me\\Downloads\\doubao-wplus\\report.docx');
     expect(result.fileName).toBe('report.docx');
     expect(result.sizeBytes).toBe(11);
     expect(result.mimeType).toContain('openxmlformats');
@@ -159,7 +159,7 @@ describe('downloadAttachedFile (B-08)', () => {
     expect(calls[1].url).toBe(downloadUrl);
 
     expect(downloadCalls[0].method).toBe('download');
-    expect((downloadCalls[0].payload as { filename: string }).filename).toBe('deepseek-pp/report.docx');
+    expect((downloadCalls[0].payload as { filename: string }).filename).toBe('doubao-wplus/report.docx');
     expect(downloadCalls[1].method).toBe('search');
   });
 
@@ -180,7 +180,7 @@ describe('downloadAttachedFile (B-08)', () => {
       }) : null,
       (url) => url === downloadUrl ? makeBlobResponse('hi', 'text/plain', 2) : null,
     ]);
-    const { api: downloadApi } = makeDownloadsApi('deepseek-pp/notes.txt', '/tmp/notes.txt');
+    const { api: downloadApi } = makeDownloadsApi('doubao-wplus/notes.txt', '/tmp/notes.txt');
 
     const result = await downloadAttachedFile({ fileId: 'file_123', fetchImpl: fetchMock, downloadApi });
     expect(result.ok).toBe(true);
@@ -253,7 +253,7 @@ describe('downloadAttachedFile (B-08)', () => {
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.localPath).toBe('/tmp/deepseek-pp/b.bin');
+    expect(result.localPath).toBe('/tmp/doubao-wplus/b.bin');
   });
 
   it('returns an error when no downloader is available', async () => {

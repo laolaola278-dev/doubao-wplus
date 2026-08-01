@@ -14,7 +14,7 @@
   const runtimeListeners = new Set();
 
   const runtime = {
-    id: "deepseek-pp-android",
+    id: "doubao-wplus-android",
     getURL(path) {
       return bridge.getAssetUrl(String(path || "").replace(/^\/+/, ""));
     },

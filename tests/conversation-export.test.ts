@@ -14,7 +14,12 @@ import {
 import {
   ConversationExportValidationError,
   normalizeConversationExportRequest,
+  validateConversationExport,
 } from '../core/export/schema';
+import {
+  CONVERSATION_EXPORT_SCHEMA_VERSION,
+  DEPRECATED_CONVERSATION_EXPORT_SCHEMA_VERSION,
+} from '../core/export/types';
 import { normalizeDeepSeekHistory } from '../core/export/normalize';
 
 const fixtureDir = resolve(dirname(fileURLToPath(import.meta.url)), 'fixtures/deepseek-export');
@@ -33,6 +38,22 @@ describe('conversation export request schema', () => {
   it('rejects file body export until official download behavior is verified', () => {
     expect(() => normalizeConversationExportRequest({ includeFileBodies: true }))
       .toThrow(ConversationExportValidationError);
+  });
+
+  it('accepts the deprecated conversation export schema for reads', () => {
+    const legacy = {
+      schemaVersion: DEPRECATED_CONVERSATION_EXPORT_SCHEMA_VERSION,
+      exportId: 'legacy-export',
+      createdAt: '2026-08-02T00:00:00.000Z',
+      source: { provider: 'deepseek-official-web', baseUrl: 'https://chat.deepseek.com', endpointVerification: 'static-bundle-and-browser-session', fileBodies: 'unsupported-unverified' },
+      generatedBy: { name: 'WPlus', version: '0.0.0-test' },
+      request: { mode: 'sanitized', formats: ['json'], includeAttachmentMetadata: true, includeFileBodies: false },
+      stats: { sessionCount: 0, messageCount: 0, attachmentCount: 0, failedSessionCount: 0, startedAt: '2026-08-02T00:00:00.000Z', completedAt: '2026-08-02T00:00:00.000Z' },
+      sessions: [],
+      attachments: [],
+      failures: [],
+    };
+    expect(validateConversationExport(legacy as Parameters<typeof validateConversationExport>[0])).toBe(legacy);
   });
 
   it('fails closed for invalid explicit modes and formats', () => {
@@ -122,6 +143,7 @@ describe('DeepSeek conversation export adapter and service', () => {
       ]),
     });
 
+    expect(exportData.schemaVersion).toBe(CONVERSATION_EXPORT_SCHEMA_VERSION);
     expect(exportData.sessions).toHaveLength(1);
     expect(exportData.failures).toHaveLength(1);
     expect(exportData.failures[0].sessionId).toBe('session-beta');
@@ -233,7 +255,7 @@ describe('DeepSeek conversation export adapter and service', () => {
     });
 
     expect(exportData.sessions[0].raw).toBeTruthy();
-    expect(exportData.sessions[0].messages[0].content).toContain('deepseek-pp-visible-user-prompt');
+    expect(exportData.sessions[0].messages[0].content).toContain('doubao-wplus-visible-user-prompt');
     expect(exportData.sessions[0].messages[1].content).toContain('memory_save');
     expect(exportData.attachments[0].signedPath).toBe('https://example.invalid/signed/memo.txt');
     expect(exportData.attachments[0].raw).toBeTruthy();

@@ -77,7 +77,7 @@ doubao-wplus requests these Chrome permissions for the following purposes:
 - `debugger`: attach to a user-selected browser tab only when Browser Control is enabled, so doubao-wplus can read an Accessibility Tree snapshot and perform user-visible browser actions requested through `browser_*` tools.
 - `tabs`: list browser tabs and select the target tab for Browser Control. Tab group names may be shown when the browser exposes them without an additional required permission.
 - `sidePanel`: provide the extension management UI in Chrome's side panel.
-- `downloads`: write files (conversation exports, artifacts, side-panel downloads, and the `download_attached_file` tool that pulls DeepSeek chat attachments into the user's local `Downloads/deepseek-pp/` directory) through the browser's local download flow, so the user can hand them to local CLIs such as `officecli`.
+- `downloads`: write files (conversation exports, artifacts, side-panel downloads, and the `download_attached_file` tool that pulls DeepSeek chat attachments into the user's local `Downloads/doubao-wplus/` directory) through the browser's local download flow, so the user can hand them to local CLIs such as `officecli`.
 - `*://chat.deepseek.com/*`: run on the DeepSeek web app so the extension can apply user-selected context, render tool results, export user-requested conversation history, support local downloads, and support automation inside DeepSeek conversations.
 - `https://api.deepseek.com/*`: send side-panel chat requests to the official DeepSeek API when the user configures an API Key.
 - Optional `http://*/*` and `https://*/*` host permissions: connect to user-configured WebDAV or MCP endpoints. These permissions are requested for specific origins when needed.
@@ -130,7 +130,7 @@ This Privacy Policy may be updated when extension features, permissions, or data
 
 For privacy or support questions, open an issue at:
 
-`https://github.com/zhu1090093659/deepseek-pp/issues`
+`https://github.com/laolaola278-dev/doubao-wplus/issues`
 
 ---
 
@@ -154,7 +154,7 @@ doubao-wplus 只会将数据用于已经披露的功能�?
 ## 4. 本地存储
 
 大多数扩展数据默认通过浏览器扩展存储和 IndexedDB 保存在用户浏览器本地，包括记忆、自定义技能、项目上下文、保存项、预设、设置、自动化任务、MCP 配置、DeepSeek API Key 和工具执行历史�?
-对话导出文件、保存项导出和生成的可下载文件只会在用户主动开始导出或下载后生成，并通过浏览器本地下载流程保存。DeepSeek++ 不会上传导出的文件�?
+对话导出文件、保存项导出和生成的可下载文件只会在用户主动开始导出或下载后生成，并通过浏览器本地下载流程保存。doubao-wplus 不会上传导出的文件�?
 本地数据会保留到用户编辑或删除、清除浏览器扩展数据，或卸载扩展为止�?
 ## 5. 数据传输与共�?
 doubao-wplus 不运营用于收集扩展数据的后台服务。扩展不会出售用户数据�?
@@ -164,7 +164,7 @@ doubao-wplus 不运营用于收集扩展数据的后台服务。扩展不会出�
 ## 6. 权限说明
 
 doubao-wplus 请求以下 Chrome 权限�?
-- `storage`：保存本地记忆、技能、项目上下文、保存项、预设、设置、自动化任务、MCP 配置和工具历史�?- `alarms`：调度和唤醒用户创建的自动化任务�?- `contextMenus`：让用户把网页选中文本发送到侧边栏对话或已配置的右键场景�?- `nativeMessaging`：连接用户配置的本地 MCP/native host�?- `offscreen`：提供不可见的扩展文档，用于�?DeepSeek 页面之外隔离运行 JavaScript、TypeScript、Python �?HTML 沙箱请求，避免沙箱执行阻塞聊天标签页�?- `debugger`：仅在用户启用浏览器控制后附着到用户选择的浏览器标签页，用于读取 Accessibility Tree 快照并执行用户可见的 `browser_*` 工具动作�?- `tabs`：列出浏览器标签页并选择浏览器控制的目标标签页；如果浏览器无需额外必需权限即可提供标签组名称，界面可能显示该信息帮助用户识别目标标签页�?- `sidePanel`：在 Chrome 侧边栏中提供扩展管理界面�?- `downloads`：通过浏览器本地下载流程写入文件（对话导出、产物、侧边栏下载，以�?`download_attached_file` 工具�?DeepSeek 对话里的附件拉到用户本地 `Downloads/deepseek-pp/` 目录），方便用户交给 `officecli` 等本�?CLI 工具处理�?- `*://chat.deepseek.com/*`：在 DeepSeek 网页版中运行，用于应用用户选择的上下文、展示工具结果、导出用户主动请求的对话历史、支持本地下载，并支�?DeepSeek 对话内的自动化�?- `https://api.deepseek.com/*`：当用户配置 API Key 时，将侧边栏对话请求发送到 DeepSeek 官方 API�?- 可选的 `http://*/*` �?`https://*/*` 主机权限：连接用户配置的 WebDAV �?MCP 端点。扩展只会在需要时针对具体来源请求权限�?
+- `storage`：保存本地记忆、技能、项目上下文、保存项、预设、设置、自动化任务、MCP 配置和工具历史�?- `alarms`：调度和唤醒用户创建的自动化任务�?- `contextMenus`：让用户把网页选中文本发送到侧边栏对话或已配置的右键场景�?- `nativeMessaging`：连接用户配置的本地 MCP/native host�?- `offscreen`：提供不可见的扩展文档，用于�?DeepSeek 页面之外隔离运行 JavaScript、TypeScript、Python �?HTML 沙箱请求，避免沙箱执行阻塞聊天标签页�?- `debugger`：仅在用户启用浏览器控制后附着到用户选择的浏览器标签页，用于读取 Accessibility Tree 快照并执行用户可见的 `browser_*` 工具动作�?- `tabs`：列出浏览器标签页并选择浏览器控制的目标标签页；如果浏览器无需额外必需权限即可提供标签组名称，界面可能显示该信息帮助用户识别目标标签页�?- `sidePanel`：在 Chrome 侧边栏中提供扩展管理界面�?- `downloads`：通过浏览器本地下载流程写入文件（对话导出、产物、侧边栏下载，以�?`download_attached_file` 工具�?DeepSeek 对话里的附件拉到用户本地 `Downloads/doubao-wplus/` 目录），方便用户交给 `officecli` 等本�?CLI 工具处理�?- `*://chat.deepseek.com/*`：在 DeepSeek 网页版中运行，用于应用用户选择的上下文、展示工具结果、导出用户主动请求的对话历史、支持本地下载，并支�?DeepSeek 对话内的自动化�?- `https://api.deepseek.com/*`：当用户配置 API Key 时，将侧边栏对话请求发送到 DeepSeek 官方 API�?- 可选的 `http://*/*` �?`https://*/*` 主机权限：连接用户配置的 WebDAV �?MCP 端点。扩展只会在需要时针对具体来源请求权限�?
 ## 7. 用户控制
 
 用户可以�?doubao-wplus 侧边栏中管理扩展数据，包括：
@@ -188,4 +188,4 @@ doubao-wplus 不面向儿童，也不会有意收集儿童个人信息�?
 ## 12. 联系方式
 
 如有隐私或支持问题，请在以下地址提交 issue�?
-`https://github.com/zhu1090093659/deepseek-pp/issues`
+`https://github.com/laolaola278-dev/doubao-wplus/issues`

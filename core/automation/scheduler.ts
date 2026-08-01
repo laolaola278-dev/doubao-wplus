@@ -17,7 +17,9 @@ import type {
   AutomationTrigger,
 } from './types';
 
-export const AUTOMATION_WAKE_ALARM_NAME = 'deepseek_pp_automation_wake';
+export const AUTOMATION_WAKE_ALARM_NAME = 'doubao_wplus_automation_wake';
+// backward compat: old brand
+export const DEPRECATED_AUTOMATION_WAKE_ALARM_NAME = 'deepseek_pp_automation_wake';
 export const AUTOMATION_WAKE_INTERVAL_MINUTES = 1;
 export const AUTOMATION_RUN_TIMEOUT_MS = 180_000;
 export const AUTOMATION_MAX_ATTEMPTS = 2;

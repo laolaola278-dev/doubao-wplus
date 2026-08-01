@@ -1,6 +1,10 @@
 import { executeMcpToolCall, refreshMcpServerDiscovery } from '../mcp/discovery';
 import { getAllMcpServers, updateMcpServer } from '../mcp/store';
-import { SHELL_MCP_NATIVE_HOST, SHELL_MCP_SERVER_NAME } from '../shell';
+import {
+  DEPRECATED_SHELL_MCP_NATIVE_HOST,
+  SHELL_MCP_NATIVE_HOST,
+  SHELL_MCP_SERVER_NAME,
+} from '../shell';
 import type {
   LocalSkillImportRequest,
   LocalSkillImportResult,
@@ -323,7 +327,8 @@ async function getShellMcpServer(): Promise<McpServerConfig> {
   const servers = await getAllMcpServers({ includeSecrets: false });
   let server = servers.find((candidate) =>
     candidate.transport.kind === 'native_messaging' &&
-    candidate.transport.nativeHost === SHELL_MCP_NATIVE_HOST
+    (candidate.transport.nativeHost === SHELL_MCP_NATIVE_HOST ||
+      candidate.transport.nativeHost === DEPRECATED_SHELL_MCP_NATIVE_HOST)
   ) ?? servers.find((candidate) => candidate.displayName === SHELL_MCP_SERVER_NAME);
 
   if (!server) {

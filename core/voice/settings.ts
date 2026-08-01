@@ -17,11 +17,16 @@ export const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
   pitch: 1,
 };
 
-const STORAGE_KEY = 'deepseek_pp_voice_settings';
+const STORAGE_KEY = 'doubao_wplus_voice_settings';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_voice_settings';
 
 export async function getVoiceSettings(): Promise<VoiceSettings> {
-  const data = await chrome.storage.local.get(STORAGE_KEY) as Record<string, unknown>;
-  return normalizeVoiceSettings(data[STORAGE_KEY]);
+  return normalizeVoiceSettings(await readStorageValueWithMigration(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  ));
 }
 
 export async function saveVoiceSettings(settings: Partial<VoiceSettings>): Promise<VoiceSettings> {
@@ -56,3 +61,4 @@ function clampNumber(value: unknown, min: number, max: number, fallback: number)
   if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
   return Math.min(max, Math.max(min, value));
 }
+import { readStorageValueWithMigration } from '../platform/storage-migration';

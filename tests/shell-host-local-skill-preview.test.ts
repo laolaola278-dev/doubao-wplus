@@ -37,7 +37,7 @@ describe('shell native host local_skill_preview', () => {
 });
 
 function createNestedSkillFixture(): string {
-  const root = mkdtempSync(join(tmpdir(), 'deepseek-pp-local-skill-'));
+  const root = mkdtempSync(join(tmpdir(), 'doubao-wplus-local-skill-'));
   tempRoots.push(root);
 
   mkdirSync(join(root, 'references'), { recursive: true });

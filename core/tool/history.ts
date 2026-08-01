@@ -1,6 +1,9 @@
 import type { ToolCall, ToolCallHistoryRecord, ToolExecutionTrigger, ToolResult } from './types';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
 
-const STORAGE_KEY = 'deepseek_pp_tool_history';
+const STORAGE_KEY = 'doubao_wplus_tool_history';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_tool_history';
 const MAX_HISTORY = 200;
 
 export async function appendToolCallHistory(
@@ -23,8 +26,11 @@ export async function appendToolCallHistory(
 }
 
 export async function getToolCallHistory(limit: number = MAX_HISTORY): Promise<ToolCallHistoryRecord[]> {
-  const data = await chrome.storage.local.get(STORAGE_KEY) as Record<string, unknown>;
-  const raw = data[STORAGE_KEY];
+  const raw = await readStorageValueWithMigration<unknown>(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  );
   if (!Array.isArray(raw)) return [];
   return raw
     .filter((item): item is ToolCallHistoryRecord => Boolean(item && typeof item === 'object'))
@@ -33,7 +39,7 @@ export async function getToolCallHistory(limit: number = MAX_HISTORY): Promise<T
 }
 
 export async function clearToolCallHistory(): Promise<void> {
-  await chrome.storage.local.remove(STORAGE_KEY);
+  await chrome.storage.local.remove([STORAGE_KEY, DEPRECATED_STORAGE_KEY]);
 }
 
 function sanitizeCall(call: ToolCall): ToolCall {

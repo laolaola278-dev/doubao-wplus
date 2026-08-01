@@ -1,3 +1,3 @@
--keepclassmembers class com.deepseekpp.android.DeepSeekPlusPlusBridge {
+-keepclassmembers class com.doubao.wplus.android.DoubaoWPlusBridge {
     @android.webkit.JavascriptInterface <methods>;
 }

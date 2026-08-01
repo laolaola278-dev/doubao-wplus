@@ -217,7 +217,7 @@ describe('tool result renderer registry', () => {
       ok: true,
       summary: '已下载到本机',
       output: {
-        localPath: 'C:\\Users\\me\\Downloads\\deepseek-pp\\report.docx',
+        localPath: 'C:\\Users\\me\\Downloads\\doubao-wplus\\report.docx',
         fileName: 'report.docx',
         sizeBytes: 12345,
         mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -231,7 +231,7 @@ describe('tool result renderer registry', () => {
     expect(target.querySelector('.dwplus-download-attached-file-result')).not.toBeNull();
     expect(target.textContent).toContain('report.docx');
     expect(target.textContent).toContain('12.1 KB');
-    expect(target.textContent).toContain('C:\\Users\\me\\Downloads\\deepseek-pp\\report.docx');
+    expect(target.textContent).toContain('C:\\Users\\me\\Downloads\\doubao-wplus\\report.docx');
     const buttons = Array.from(target.querySelectorAll('button'));
     const copyButton = buttons.find((btn) => btn.textContent?.includes('复制路径'));
     const revealButton = buttons.find((btn) => btn.textContent?.includes('打开文件夹'));
@@ -252,7 +252,7 @@ describe('tool result renderer registry', () => {
       ok: true,
       summary: '已下载到本机',
       output: {
-        localPath: '/tmp/deepseek-pp/a.bin',
+        localPath: '/tmp/doubao-wplus/a.bin',
         fileName: 'a.bin',
         sizeBytes: 7,
         mimeType: 'application/octet-stream',

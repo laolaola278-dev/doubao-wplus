@@ -8,8 +8,11 @@ import type {
   ProjectPromptContext,
 } from './types';
 import { PROJECT_CONTEXT_SCHEMA_VERSION } from './types';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
 
-const STORAGE_KEY = 'deepseek_pp_project_context';
+const STORAGE_KEY = 'doubao_wplus_project_context';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_project_context';
 const UNTITLED_CONVERSATION = 'Untitled conversation';
 
 const DEFAULT_STATE: ProjectContextState = {
@@ -20,8 +23,11 @@ const DEFAULT_STATE: ProjectContextState = {
 };
 
 export async function getProjectContextState(): Promise<ProjectContextState> {
-  const data = await chrome.storage.local.get(STORAGE_KEY) as Record<string, unknown>;
-  return normalizeProjectContextState(data[STORAGE_KEY]);
+  return normalizeProjectContextState(await readStorageValueWithMigration(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  ));
 }
 
 export async function saveProjectContextState(state: ProjectContextState): Promise<void> {

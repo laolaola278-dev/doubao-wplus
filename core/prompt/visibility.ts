@@ -1,5 +1,8 @@
-export const VISIBLE_USER_PROMPT_START = '<!-- deepseek-pp-visible-user-prompt:start -->';
-export const VISIBLE_USER_PROMPT_END = '<!-- deepseek-pp-visible-user-prompt:end -->';
+export const VISIBLE_USER_PROMPT_START = '<!-- doubao-wplus-visible-user-prompt:start -->';
+export const VISIBLE_USER_PROMPT_END = '<!-- doubao-wplus-visible-user-prompt:end -->';
+// backward compat: old brand — accepted only when reading prompts produced by older builds.
+export const DEPRECATED_VISIBLE_USER_PROMPT_START = '<!-- deepseek-pp-visible-user-prompt:start -->';
+export const DEPRECATED_VISIBLE_USER_PROMPT_END = '<!-- deepseek-pp-visible-user-prompt:end -->';
 
 const TOOL_REMINDER_HEADING = 'Tool call format reminder:';
 const TOOL_REMINDER_REQUIRED_LINE = 'Available tool tag names:';
@@ -14,19 +17,27 @@ const TOOL_REMINDER_FRAGMENT_PREFIXES = [
   'Do not put executable tool XML',
 ];
 
+const VISIBLE_USER_PROMPT_MARKERS = [
+  { start: VISIBLE_USER_PROMPT_START, end: VISIBLE_USER_PROMPT_END },
+  { start: DEPRECATED_VISIBLE_USER_PROMPT_START, end: DEPRECATED_VISIBLE_USER_PROMPT_END },
+] as const;
+
 export function markVisibleUserPrompt(prompt: string): string {
   return `${VISIBLE_USER_PROMPT_START}\n${prompt}\n${VISIBLE_USER_PROMPT_END}`;
 }
 
 export function extractVisibleUserPrompt(text: string): string | null {
-  const start = text.indexOf(VISIBLE_USER_PROMPT_START);
-  if (start === -1) return null;
+  for (const marker of VISIBLE_USER_PROMPT_MARKERS) {
+    const start = text.indexOf(marker.start);
+    if (start === -1) continue;
 
-  const contentStart = start + VISIBLE_USER_PROMPT_START.length;
-  const end = text.indexOf(VISIBLE_USER_PROMPT_END, contentStart);
-  if (end === -1) return null;
+    const contentStart = start + marker.start.length;
+    const end = text.indexOf(marker.end, contentStart);
+    if (end === -1) continue;
 
-  return trimSingleBoundaryNewline(text.slice(contentStart, end));
+    return trimSingleBoundaryNewline(text.slice(contentStart, end));
+  }
+  return null;
 }
 
 export function sanitizeInternalPromptText(
@@ -46,7 +57,9 @@ export function sanitizeInternalPromptText(
 }
 
 export function containsInternalPromptMarker(text: string): boolean {
-  return text.includes(VISIBLE_USER_PROMPT_START) || containsToolFormatReminder(text) || isToolReminderOnly(text);
+  return VISIBLE_USER_PROMPT_MARKERS.some((marker) => text.includes(marker.start)) ||
+    containsToolFormatReminder(text) ||
+    isToolReminderOnly(text);
 }
 
 function trimSingleBoundaryNewline(text: string): string {

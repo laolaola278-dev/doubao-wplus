@@ -165,7 +165,7 @@ describe('Phase 5 product surface helpers', () => {
   });
 
   it('filters official search results by WPlus history tags', async () => {
-    storage.deepseek_pp_history_organizer = {
+    storage.doubao_wplus_deepseek_history_organizer = {
       tagsBySessionId: {
         'session-one': ['release'],
       },
@@ -196,6 +196,7 @@ describe('Phase 5 product surface helpers', () => {
     }));
 
     try {
+      await Promise.resolve();
       await Promise.resolve();
       const tagInput = document.querySelector<HTMLInputElement>('[data-dwplus-history-tag]');
       tagInput!.value = 'rel';

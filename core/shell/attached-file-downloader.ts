@@ -10,7 +10,7 @@
 //   1) GET https://chat.deepseek.com/api/v0/file/fetch_files?file_ids=<id>
 //      拿到 biz_data.files[0] 的 {file_name, mime_type, file_size, signed_path, ...}
 //   2) GET <signed_path> 拿 bytes (with credentials: include)
-//   3) chrome.downloads.download({ url: blob:, filename: 'deepseek-pp/<file_name>',
+//   3) chrome.downloads.download({ url: blob:, filename: 'doubao-wplus/<file_name>',
 //      saveAs: false, conflictAction: 'uniquify' })
 //   4) chrome.downloads.search({ id }) 拿到最终本地路径
 //
@@ -19,7 +19,7 @@
 import { DEEPSEEK_API_URL } from '../constants';
 
 export const DOWNLOAD_ATTACHED_FILE_TOOL_NAME = 'download_attached_file';
-export const DOWNLOAD_ATTACHED_FILE_TARGET_DIR = 'deepseek-pp';
+export const DOWNLOAD_ATTACHED_FILE_TARGET_DIR = 'doubao-wplus';
 export const DOWNLOAD_ATTACHED_FILE_BYPASS_HEADER = 'X-DWPLUS-Bypass-Hook';
 
 export interface AttachedFileMetadata {

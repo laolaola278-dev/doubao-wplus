@@ -1,6 +1,0 @@
-2026/07/19-10:07:46.328 aaec Reusing MANIFEST F:\xjx\MCP\doubao-wplus\.e2e-profile\Default\IndexedDB\https_www.doubao.com_0.indexeddb.leveldb/MANIFEST-000001
-2026/07/19-10:07:46.328 aaec Recovering log #23
-2026/07/19-10:07:46.332 aaec Reusing old log F:\xjx\MCP\doubao-wplus\.e2e-profile\Default\IndexedDB\https_www.doubao.com_0.indexeddb.leveldb/000023.log 
-2026/07/19-10:08:10.142 d14 Level-0 table #29: started
-2026/07/19-10:08:10.336 d14 Level-0 table #29: 1840363 bytes OK
-2026/07/19-10:08:10.385 d14 Delete type=0 #23

@@ -6,7 +6,7 @@ import {
   reconcileInterruptedChatLoop,
 } from '../core/chat/active-loop';
 
-const STORAGE_KEY = 'deepseek_pp_active_chat_loop';
+const STORAGE_KEY = 'doubao_wplus_active_chat_loop';
 
 function createSessionStorageStub() {
   const storage = new Map<string, unknown>();

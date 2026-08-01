@@ -29,16 +29,18 @@ import { getActiveAdapter } from '../core/hosts/registry';
 // 桥接协议：main-world content ↔ isolated-world content
 // 新值使用 DWPLUS_* 前缀
 
-const DEPRECATED_MAIN_WORLD_SOURCE = 'deepseek-pp-main';
 const MAIN_WORLD_SOURCE = 'dwplus-main';
-const DEPRECATED_CONTENT_SOURCE = 'deepseek-pp-content';
 const CONTENT_SOURCE = 'dwplus-content';
-const DEPRECATED_BRIDGE_REQUEST_TYPE = 'DPP_BRIDGE_REQUEST';
 const BRIDGE_REQUEST_TYPE = 'DWPLUS_BRIDGE_REQUEST';
-const DEPRECATED_BRIDGE_INIT_TYPE = 'DPP_BRIDGE_INIT';
 const BRIDGE_INIT_TYPE = 'DWPLUS_BRIDGE_INIT';
-const DEPRECATED_BRIDGE_READY_TYPE = 'DPP_BRIDGE_READY';
 const BRIDGE_READY_TYPE = 'DWPLUS_BRIDGE_READY';
+
+// backward compat: old brand — receive-only bridge aliases for installed older builds.
+const DEPRECATED_MAIN_WORLD_SOURCE = 'deepseek-pp-main';
+const DEPRECATED_CONTENT_SOURCE = 'deepseek-pp-content';
+const DEPRECATED_BRIDGE_REQUEST_TYPE = 'DPP_BRIDGE_REQUEST';
+const DEPRECATED_BRIDGE_INIT_TYPE = 'DPP_BRIDGE_INIT';
+const DEPRECATED_BRIDGE_READY_TYPE = 'DPP_BRIDGE_READY';
 const REQUEST_TIMEOUT_MS = 8_000;
 const BRIDGE_REQUEST_INTERVAL_MS = 50;
 const BRIDGE_REQUEST_MAX_ATTEMPTS = 100;

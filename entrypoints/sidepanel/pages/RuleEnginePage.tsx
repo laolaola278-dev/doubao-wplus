@@ -26,7 +26,7 @@ const EMPTY_EDITOR: EditorState = {
   priority: '100',
   match: 'all',
   conditionsJson: '[\n  { "kind": "keyword", "keywords": ["Python"] }\n]',
-  actionsJson: '[\n  { "kind": "append-prompt", "position": "after", "text": "请给出可运行的完整代码。" }\n]',
+  actionsJson: '[\n  { "kind": "append-prompt", "position": "after", "text": "Provide complete runnable code." }\n]',
   stopOnMatch: false,
 };
 
@@ -75,7 +75,7 @@ export default function RuleEnginePage() {
       conditions = JSON.parse(editor.conditionsJson);
       actions = JSON.parse(editor.actionsJson);
     } catch (err) {
-      setEditorError(t('sidepanel.ruleEngine.editorInvalid', { errors: `JSON 解析失败：${err instanceof Error ? err.message : String(err)}` }));
+      setEditorError(t('sidepanel.ruleEngine.editorInvalid', { errors: `JSON: ${err instanceof Error ? err.message : String(err)}` }));
       return;
     }
     const existing = editor.id ? config.rules.find((r) => r.id === editor.id) : null;
@@ -196,7 +196,10 @@ export default function RuleEnginePage() {
                     : t('sidepanel.ruleEngine.logNoMatch')}
               </div>
               <div style={{ color: 'var(--ds-text-secondary)' }}>
-                {entry.promptLengthBefore}→{entry.promptLengthAfter} 字符
+                {t('sidepanel.ruleEngine.logPromptLength', {
+                  before: entry.promptLengthBefore,
+                  after: entry.promptLengthAfter,
+                })}
                 {entry.records.filter((r) => r.matched).map((r) => ` · ${r.ruleName}[${r.appliedActions.join(',')}]`).join('')}
                 {entry.records.filter((r) => r.error).map((r) => ` · ⚠${r.ruleName}: ${r.error}`).join('')}
               </div>

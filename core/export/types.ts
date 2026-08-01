@@ -1,6 +1,10 @@
-export const CONVERSATION_EXPORT_SCHEMA_VERSION = 'deepseek-pp.conversation-export.v1' as const;
+export const CONVERSATION_EXPORT_SCHEMA_VERSION = 'doubao-wplus.conversation-export.v1' as const;
+// backward compat: old brand — accepted only when reading an existing export.
+export const DEPRECATED_CONVERSATION_EXPORT_SCHEMA_VERSION = 'deepseek-pp.conversation-export.v1' as const;
 
-export type ConversationExportSchemaVersion = typeof CONVERSATION_EXPORT_SCHEMA_VERSION;
+export type ConversationExportSchemaVersion =
+  | typeof CONVERSATION_EXPORT_SCHEMA_VERSION
+  | typeof DEPRECATED_CONVERSATION_EXPORT_SCHEMA_VERSION;
 
 export type ConversationExportMode = 'raw' | 'sanitized';
 

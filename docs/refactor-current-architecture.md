@@ -4,7 +4,7 @@ This document replaces stale active planning documents. It describes the code th
 
 ## Current Runtime Shape
 
-- `core/automation/*` owns scheduled and manual automation tasks, run storage under `deepseek_pp_automations`, schedule parsing, run locking, retries, timeout handling, and the DeepSeek automation runner.
+- `core/automation/*` owns scheduled and manual automation tasks, run storage under `doubao_wplus_automations`, schedule parsing, run locking, retries, timeout handling, and the DeepSeek automation runner.
 - `core/inline-agent/*` owns the in-chat continuation loop after manual MCP tool calls. It receives a DeepSeek session and parent message, sends continuation/nudge/finalization prompts, streams step UI events, and executes tools through the content bridge.
 - `core/deepseek/adapter.ts` is the shared page-context DeepSeek transport for inline agent work. It handles client headers, PoW, chat session creation, prompt submission, and SSE stream parsing.
 - `core/interceptor/fetch-hook.ts` intercepts DeepSeek chat requests, injects memory/Skill/preset/tool context, strips executable tool XML from visible streams/history/IndexedDB cache, tracks token speed, and reports response-complete metadata.
@@ -13,7 +13,7 @@ This document replaces stale active planning documents. It describes the code th
 ## Refactor Direction
 
 - Prompt output is frozen byte-for-byte. System templates, tool schema rendering, tool reminders, and inline-agent continuation/nudge/finalization prompts must not change.
-- Keep the current product surface and compatibility contracts: automation UI, inline agent, MCP, memory, Skill, preset, settings, `deepseek_pp_automations`, and `DPP_AUTOMATION_*`.
+- Keep the current product surface and compatibility contracts: automation UI, inline agent, MCP, memory, Skill, preset, settings, `doubao_wplus_automations`, and `DPP_AUTOMATION_*`.
 - Remove duplicate DeepSeek transport logic by moving session, PoW, completion, history, and message-id helpers into `core/deepseek/adapter.ts`.
 - Share the tool continuation loop between automation and inline agent while keeping each caller's prompt builders, event callbacks, and UI behavior.
 - Split large entrypoint/interceptor responsibilities into focused modules after behavior is pinned by tests.

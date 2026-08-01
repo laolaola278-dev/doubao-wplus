@@ -14,7 +14,7 @@ Official references:
 
 ## Current Status
 
-- Chrome MV3 package exists at `dist/deepseek-plus-plus-0.7.5-chrome.zip`.
+- Chrome MV3 package exists at `dist/doubao-wplus-0.7.5-chrome.zip`.
 - Package root contains `manifest.json`.
 - Package size is below the Chrome Web Store package limit.
 - Required icon exists at `public/icon/128.png`.
@@ -47,7 +47,7 @@ npm run zip:chrome
 Upload:
 
 ```text
-dist/deepseek-plus-plus-0.7.5-chrome.zip
+dist/doubao-wplus-0.7.5-chrome.zip
 ```
 
 ## Store Listing Fields
@@ -146,7 +146,7 @@ Provides the extension's management UI in Chrome's side panel for memories, skil
 #### `downloads`
 
 ```text
-Writes files through the browser's local download flow for conversation exports, generated artifacts, and side-panel downloads. Also backs the `download_attached_file` tool, which copies a DeepSeek chat attachment (referenced as `ref_file_id` in the chat payload) into the user's `Downloads/deepseek-pp/` directory so it can be handed to local CLIs such as `officecli`. Files are written only when the model (and ultimately the user) requests the download; the extension does not read or modify downloaded files afterwards.
+Writes files through the browser's local download flow for conversation exports, generated artifacts, and side-panel downloads. Also backs the `download_attached_file` tool, which copies a DeepSeek chat attachment (referenced as `ref_file_id` in the chat payload) into the user's `Downloads/doubao-wplus/` directory so it can be handed to local CLIs such as `officecli`. Files are written only when the model (and ultimately the user) requests the download; the extension does not read or modify downloaded files afterwards.
 ```
 
 #### Host permission: `*://chat.deepseek.com/*`

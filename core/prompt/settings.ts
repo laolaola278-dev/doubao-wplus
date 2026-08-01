@@ -1,5 +1,6 @@
 import { PRESET_REINJECTION_INTERVAL } from '../constants';
 import { isSupportedLocale, type SupportedLocale } from '../i18n';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
 
 export type PromptPresetCadence = 'default' | 'first_message' | 'every_message' | 'off';
 export type ForcedResponseLanguage = 'auto' | SupportedLocale;
@@ -18,11 +19,16 @@ export const DEFAULT_PROMPT_INJECTION_SETTINGS: PromptInjectionSettings = {
   forceResponseLanguage: 'auto',
 };
 
-const STORAGE_KEY = 'deepseek_pp_prompt_injection_settings';
+const STORAGE_KEY = 'doubao_wplus_prompt_injection_settings';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_prompt_injection_settings';
 
 export async function getPromptInjectionSettings(): Promise<PromptInjectionSettings> {
-  const data = await chrome.storage.local.get(STORAGE_KEY) as Record<string, unknown>;
-  return normalizePromptInjectionSettings(data[STORAGE_KEY]);
+  return normalizePromptInjectionSettings(await readStorageValueWithMigration(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  ));
 }
 
 export async function savePromptInjectionSettings(

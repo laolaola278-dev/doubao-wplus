@@ -17,7 +17,7 @@ afterEach(() => {
 
 describe('shell native host read_local_file', () => {
   it('reads a real file and returns base64 bytes matching the source', async () => {
-    const root = mkdtempSync(join(tmpdir(), 'deepseek-pp-read-local-'));
+    const root = mkdtempSync(join(tmpdir(), 'doubao-wplus-read-local-'));
     tempRoots.push(root);
     const payload = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x68, 0x65, 0x6c, 0x6c, 0x6f]); // zip 头 + hello
     const file = join(root, 'sample.docx');
@@ -64,7 +64,7 @@ describe('shell native host read_local_file', () => {
   });
 
   it('rejects directories (only regular files allowed)', async () => {
-    const root = mkdtempSync(join(tmpdir(), 'deepseek-pp-read-local-dir-'));
+    const root = mkdtempSync(join(tmpdir(), 'doubao-wplus-read-local-dir-'));
     tempRoots.push(root);
     const response = await callNativeHost({
       method: 'tools/call',
@@ -78,7 +78,7 @@ describe('shell native host read_local_file', () => {
   });
 
   it('honours max_bytes and rejects files that exceed the limit', async () => {
-    const root = mkdtempSync(join(tmpdir(), 'deepseek-pp-read-local-big-'));
+    const root = mkdtempSync(join(tmpdir(), 'doubao-wplus-read-local-big-'));
     tempRoots.push(root);
     const payload = Buffer.alloc(1024, 0x61); // 1KB of 'a'
     const file = join(root, 'big.bin');

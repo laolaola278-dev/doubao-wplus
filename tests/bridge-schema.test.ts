@@ -4,24 +4,30 @@ import { requireBridgeMessage, validateBridgeMessage } from '../core/messaging/s
 describe('bridge message schema', () => {
   it('accepts known bridge messages from the expected source', () => {
     const message = validateBridgeMessage({
-      source: 'deepseek-pp-main',
+      source: 'dwplus-main',
       type: 'AUGMENT_REQUEST_BODY',
       id: 'req-1',
       body: '{"prompt":"hello"}',
-    }, 'deepseek-pp-main');
+    }, 'dwplus-main');
 
     expect(message?.type).toBe('AUGMENT_REQUEST_BODY');
     expect(message?.id).toBe('req-1');
   });
 
+  it('accepts the deprecated ready message during the compatibility window', () => {
+    // backward compat: old brand
+    const message = validateBridgeMessage({ source: 'deepseek-pp-main', type: 'DPP_BRIDGE_READY' });
+    expect(message?.type).toBe('DPP_BRIDGE_READY');
+  });
+
   it('rejects unknown types, source mismatches, and malformed optional fields', () => {
-    expect(validateBridgeMessage({ source: 'deepseek-pp-main', type: 'UNKNOWN' })).toBeNull();
-    expect(validateBridgeMessage({ source: 'other', type: 'DPP_BRIDGE_READY' }, 'deepseek-pp-main')).toBeNull();
-    expect(validateBridgeMessage({ source: 'deepseek-pp-main', type: 'DPP_BRIDGE_READY', ok: 'yes' })).toBeNull();
+    expect(validateBridgeMessage({ source: 'dwplus-main', type: 'UNKNOWN' })).toBeNull();
+    expect(validateBridgeMessage({ source: 'other', type: 'DWPLUS_BRIDGE_READY' }, 'dwplus-main')).toBeNull();
+    expect(validateBridgeMessage({ source: 'dwplus-main', type: 'DWPLUS_BRIDGE_READY', ok: 'yes' })).toBeNull();
   });
 
   it('throws a clear error for required bridge messages', () => {
-    expect(() => requireBridgeMessage({ source: 'deepseek-pp-main', type: 'NOPE' }))
+    expect(() => requireBridgeMessage({ source: 'dwplus-main', type: 'NOPE' }))
       .toThrow('Invalid doubao-wplus bridge message.');
   });
 });

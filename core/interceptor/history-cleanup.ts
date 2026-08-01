@@ -571,7 +571,13 @@ function sanitizeInlineAgentContinuationMessage(msg: any) {
 
 function isInternalManagedAgentContent(content: string): boolean {
   if (content.includes(DWPLUS_MANAGED_AGENT_PROMPT_MARKER)) return true;
-  if (content.includes('DeepSeek++ 托管 Agent Runner') && content.includes('<tool_results>')) return true;
+  const managedRunnerMarker = 'Doubao WPlus 托管 Agent Runner';
+  // backward compat: old brand
+  const DEPRECATED_MANAGED_RUNNER_MARKER = 'DeepSeek++ 托管 Agent Runner';
+  if (
+    (content.includes(managedRunnerMarker) || content.includes(DEPRECATED_MANAGED_RUNNER_MARKER)) &&
+    content.includes('<tool_results>')
+  ) return true;
   if (isInlineAgentContinuationPrompt(content)) return true;
   return content.includes('Tool call format reminder:') &&
     content.includes('Available tool tag names:') &&

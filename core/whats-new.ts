@@ -1,5 +1,6 @@
 import { getExtensionVersion } from './version';
 import type { LocaleMessageKey } from './i18n';
+import { readStorageValueWithMigration } from './platform/storage-migration';
 
 export interface WhatsNewItem {
   id: string;
@@ -19,8 +20,12 @@ export const WHATS_NEW_ITEMS: WhatsNewItem[] = [
   { id: 'third-party-skills', titleKey: 'sidepanel.whatsNew.items.thirdPartySkills' },
 ];
 
-const LAST_SEEN_VERSION_KEY = 'deepseek_pp_whats_new_dismissed_version';
-const PENDING_UPDATE_VERSION_KEY = 'deepseek_pp_whats_new_pending_version';
+const LAST_SEEN_VERSION_KEY = 'doubao_wplus_whats_new_dismissed_version';
+const PENDING_UPDATE_VERSION_KEY = 'doubao_wplus_whats_new_pending_version';
+// backward compat: old brand
+const DEPRECATED_LAST_SEEN_VERSION_KEY = 'deepseek_pp_whats_new_dismissed_version';
+// backward compat: old brand
+const DEPRECATED_PENDING_UPDATE_VERSION_KEY = 'deepseek_pp_whats_new_pending_version';
 
 export async function shouldShowWhatsNew(): Promise<boolean> {
   return (await getWhatsNewState()).visible;
@@ -28,16 +33,24 @@ export async function shouldShowWhatsNew(): Promise<boolean> {
 
 export async function getWhatsNewState(): Promise<WhatsNewState> {
   const version = getExtensionVersion();
-  const data = await chrome.storage.local.get([
-    LAST_SEEN_VERSION_KEY,
-    PENDING_UPDATE_VERSION_KEY,
-  ]) as Record<string, unknown>;
-  const pendingUpdate = data[PENDING_UPDATE_VERSION_KEY] === version;
+  const [lastSeenVersion, pendingVersion] = await Promise.all([
+    readStorageValueWithMigration(
+      chrome.storage.local,
+      LAST_SEEN_VERSION_KEY,
+      DEPRECATED_LAST_SEEN_VERSION_KEY,
+    ),
+    readStorageValueWithMigration(
+      chrome.storage.local,
+      PENDING_UPDATE_VERSION_KEY,
+      DEPRECATED_PENDING_UPDATE_VERSION_KEY,
+    ),
+  ]);
+  const pendingUpdate = pendingVersion === version;
 
   return {
     version,
     pendingUpdate,
-    visible: pendingUpdate || data[LAST_SEEN_VERSION_KEY] !== version,
+    visible: pendingUpdate || lastSeenVersion !== version,
   };
 }
 
@@ -53,5 +66,8 @@ export async function hasPendingWhatsNew(): Promise<boolean> {
 
 export async function dismissWhatsNew(): Promise<void> {
   await chrome.storage.local.set({ [LAST_SEEN_VERSION_KEY]: getExtensionVersion() });
-  await chrome.storage.local.remove(PENDING_UPDATE_VERSION_KEY);
+  await chrome.storage.local.remove([
+    PENDING_UPDATE_VERSION_KEY,
+    DEPRECATED_PENDING_UPDATE_VERSION_KEY,
+  ]);
 }

@@ -98,7 +98,7 @@ export function startDeepSeekProjectSidebarOrganizer(
       applyState(response);
     } catch (error) {
       statusMessage = getLabels().operationFailed(getErrorMessage(error));
-      console.error('DeepSeek++ failed to load project sidebar state', error);
+      console.error('Doubao WPlus failed to load project sidebar state', error);
       schedule();
     }
   };
@@ -223,7 +223,7 @@ export function startDeepSeekProjectSidebarOrganizer(
       await loadState();
     } catch (error) {
       statusMessage = getLabels().operationFailed(getErrorMessage(error));
-      console.error('DeepSeek++ failed to update project sidebar state', error);
+      console.error('Doubao WPlus failed to update project sidebar state', error);
       schedule();
     }
   };
@@ -525,7 +525,7 @@ function ensureProjectSection(
     section = document.createElement('section');
     section.id = PROJECT_SECTION_ID;
     section.className = 'dwplus-project-sidebar';
-    section.setAttribute('aria-label', 'DeepSeek++ projects');
+    section.setAttribute('aria-label', 'Doubao WPlus projects');
   }
 
   if (section.parentElement !== mount.container || section.nextElementSibling !== mount.before) {

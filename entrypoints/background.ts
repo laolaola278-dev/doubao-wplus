@@ -129,7 +129,7 @@ import { getMcpOriginPattern, requestMcpServerOriginPermission } from '../core/m
 import { SHELL_MCP_NATIVE_HOST, SHELL_MCP_SERVER_NAME, createShellMcpPresetInput, getShellNativeHostName } from '../core/shell';
 import { getWebToolSettings, setWebToolEnabled } from '../core/tool/web-settings';
 import { getAllScenarios, applyScenarioTemplate } from '../core/scenario/store';
-import { getChatEnabled } from '../core/chat/store';
+import { CHAT_ENABLED_STORAGE_KEY, getChatEnabled } from '../core/chat/store';
 import {
   markChatLoopFinished,
   markChatLoopStarted,
@@ -163,6 +163,7 @@ import { runDeepSeekAutomation } from '../core/automation/runner';
 import {
   AUTOMATION_WAKE_ALARM_NAME,
   AUTOMATION_WAKE_INTERVAL_MINUTES,
+  DEPRECATED_AUTOMATION_WAKE_ALARM_NAME,
   refreshAutomationNextRunAt,
   runAutomation,
   scanDueAutomations,
@@ -298,7 +299,7 @@ export default defineBackground(() => {
   });
 
   chrome.storage.onChanged.addListener((changes) => {
-    if ('deepseek_pp_chat_enabled' in changes || DOUBAO_API_KEY_STORAGE_KEY in changes) {
+    if (CHAT_ENABLED_STORAGE_KEY in changes || DOUBAO_API_KEY_STORAGE_KEY in changes) {
       createContextMenus().catch(() => {});
       broadcastChatAuthStatus().catch(() => {});
     }
@@ -313,6 +314,7 @@ function registerAutomationAlarmListener() {
 }
 
 async function ensureAutomationWakeAlarm() {
+  await chrome.alarms.clear(DEPRECATED_AUTOMATION_WAKE_ALARM_NAME);
   await chrome.alarms.create(AUTOMATION_WAKE_ALARM_NAME, {
     periodInMinutes: AUTOMATION_WAKE_INTERVAL_MINUTES,
   });

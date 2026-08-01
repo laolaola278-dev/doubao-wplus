@@ -16,7 +16,7 @@ import { getAllMcpServers, updateMcpServer } from '../core/mcp/store';
 import type { McpServerConfig } from '../core/mcp/types';
 import { importLocalSkillSource, pickLocalSkillFolder, previewLocalSkillSource } from '../core/skill/local-importer';
 
-const SKILL_STORAGE_KEY = 'deepseek_pp_skills';
+const SKILL_STORAGE_KEY = 'doubao_wplus_skills';
 
 let storage: Record<string, unknown>;
 

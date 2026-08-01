@@ -6,14 +6,16 @@ import { validateBridgeMessage } from '../../../../core/messaging/schema';
 // ---- Protocol constants ----
 
 export const MAIN_WORLD_SOURCE = 'dwplus-main';
-export const DEPRECATED_MAIN_WORLD_SOURCE = 'deepseek-pp-main';
 export const CONTENT_SOURCE = 'dwplus-content';
-export const DEPRECATED_CONTENT_SOURCE = 'deepseek-pp-content';
 export const BRIDGE_REQUEST_TYPE = 'DWPLUS_BRIDGE_REQUEST';
-export const DEPRECATED_BRIDGE_REQUEST_TYPE = 'DPP_BRIDGE_REQUEST';
 export const BRIDGE_INIT_TYPE = 'DWPLUS_BRIDGE_INIT';
-export const DEPRECATED_BRIDGE_INIT_TYPE = 'DPP_BRIDGE_INIT';
 export const BRIDGE_READY_TYPE = 'DWPLUS_BRIDGE_READY';
+
+// backward compat: old brand — receive-only bridge aliases for installed older builds.
+export const DEPRECATED_MAIN_WORLD_SOURCE = 'deepseek-pp-main';
+export const DEPRECATED_CONTENT_SOURCE = 'deepseek-pp-content';
+export const DEPRECATED_BRIDGE_REQUEST_TYPE = 'DPP_BRIDGE_REQUEST';
+export const DEPRECATED_BRIDGE_INIT_TYPE = 'DPP_BRIDGE_INIT';
 export const DEPRECATED_BRIDGE_READY_TYPE = 'DPP_BRIDGE_READY';
 
 // ---- State ----

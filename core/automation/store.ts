@@ -11,8 +11,11 @@ import type {
   AutomationStatus,
   AutomationUpdateInput,
 } from './types';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
 
-const STORAGE_KEY = 'deepseek_pp_automations';
+const STORAGE_KEY = 'doubao_wplus_automations';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_automations';
 const STORAGE_VERSION = 1;
 const DEFAULT_RUN_HISTORY_LIMIT = 100;
 
@@ -230,8 +233,11 @@ async function patchAutomation(
 }
 
 async function readState(): Promise<AutomationStorageState> {
-  const data = await chrome.storage.local.get(STORAGE_KEY) as Record<string, unknown>;
-  return normalizeState(data[STORAGE_KEY]);
+  return normalizeState(await readStorageValueWithMigration(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  ));
 }
 
 async function writeState(state: AutomationStorageState): Promise<void> {

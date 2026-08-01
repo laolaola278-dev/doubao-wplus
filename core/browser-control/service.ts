@@ -696,7 +696,7 @@ export class BrowserControlService {
       exceptionDetails?: unknown;
     }>('Runtime.evaluate', {
       expression: `document.querySelector(${JSON.stringify(selector)})`,
-      objectGroup: 'deepseek-pp-browser-control',
+      objectGroup: 'doubao-wplus-browser-control',
     });
     if (result.exceptionDetails) {
       throw new BrowserControlError('browser_selector_failed', `Selector failed: ${selector}`);

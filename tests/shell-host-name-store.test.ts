@@ -1,5 +1,10 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest';
-import { SHELL_MCP_NATIVE_HOST } from '../core/shell/contracts';
+import {
+  DEPRECATED_SHELL_MCP_NATIVE_HOST,
+  DEPRECATED_SHELL_MCP_NATIVE_HOST_SETTING_KEY,
+  SHELL_MCP_NATIVE_HOST,
+  SHELL_MCP_NATIVE_HOST_SETTING_KEY,
+} from '../core/shell/contracts';
 import { getShellNativeHostName, setShellNativeHostName } from '../core/shell/host-name-store';
 
 type StorageMock = {
@@ -39,27 +44,35 @@ describe('shell host name store (B-13)', () => {
     globalThis.chrome = { storage: { local: storage } };
   });
 
-  it('falls back to the historical default when nothing is configured', async () => {
+  it('falls back to the Doubao WPlus default when nothing is configured', async () => {
     expect(await getShellNativeHostName()).toBe(SHELL_MCP_NATIVE_HOST);
-    expect(SHELL_MCP_NATIVE_HOST).toBe('com.deepseek_pp.shell');
+    expect(SHELL_MCP_NATIVE_HOST).toBe('com.doubao_wplus.shell');
   });
 
   it('returns the user-configured name when one is set', async () => {
-    storage.data['dpp.shell.nativeHostName'] = 'com.dev_myid.shell';
+    storage.data[SHELL_MCP_NATIVE_HOST_SETTING_KEY] = 'com.dev_myid.shell';
     expect(await getShellNativeHostName()).toBe('com.dev_myid.shell');
+  });
+
+  it('migrates the deprecated storage key', async () => {
+    // backward compat: old brand
+    storage.data[DEPRECATED_SHELL_MCP_NATIVE_HOST_SETTING_KEY] = DEPRECATED_SHELL_MCP_NATIVE_HOST;
+    expect(await getShellNativeHostName()).toBe(DEPRECATED_SHELL_MCP_NATIVE_HOST);
+    expect(storage.data[SHELL_MCP_NATIVE_HOST_SETTING_KEY]).toBe(DEPRECATED_SHELL_MCP_NATIVE_HOST);
+    expect(storage.data[DEPRECATED_SHELL_MCP_NATIVE_HOST_SETTING_KEY]).toBeUndefined();
   });
 
   it('strips whitespace before saving and rejects empty values', async () => {
     await setShellNativeHostName('   com.dev_x.shell   ');
-    expect(storage.data['dpp.shell.nativeHostName']).toBe('com.dev_x.shell');
+    expect(storage.data[SHELL_MCP_NATIVE_HOST_SETTING_KEY]).toBe('com.dev_x.shell');
 
     await setShellNativeHostName('   ');
-    expect(storage.data['dpp.shell.nativeHostName']).toBeUndefined();
+    expect(storage.data[SHELL_MCP_NATIVE_HOST_SETTING_KEY]).toBeUndefined();
   });
 
-  it('removes the setting when the value matches the historical default', async () => {
-    storage.data['dpp.shell.nativeHostName'] = 'com.stale.shell';
+  it('removes the setting when the value matches the current default', async () => {
+    storage.data[SHELL_MCP_NATIVE_HOST_SETTING_KEY] = 'com.stale.shell';
     await setShellNativeHostName(SHELL_MCP_NATIVE_HOST);
-    expect(storage.data['dpp.shell.nativeHostName']).toBeUndefined();
+    expect(storage.data[SHELL_MCP_NATIVE_HOST_SETTING_KEY]).toBeUndefined();
   });
 });

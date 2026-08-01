@@ -7,7 +7,11 @@
 // `chrome.storage.session` is used intentionally — it is cleared when the
 // browser session ends, mirroring the lifetime of an in-flight chat turn.
 
-const SESSION_STORAGE_KEY = 'deepseek_pp_active_chat_loop';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
+
+const SESSION_STORAGE_KEY = 'doubao_wplus_active_chat_loop';
+// backward compat: old brand
+const DEPRECATED_SESSION_STORAGE_KEY = 'deepseek_pp_active_chat_loop';
 const STALE_THRESHOLD_MS = 15_000;
 
 export type ChatLoopProvider = 'web' | 'official-api';
@@ -25,9 +29,11 @@ export interface InterruptedChatLoop {
 }
 
 async function readMarker(): Promise<ActiveChatLoop | null> {
-  const data = await chrome.storage.session
-    .get(SESSION_STORAGE_KEY) as Record<string, unknown>;
-  const value = data[SESSION_STORAGE_KEY];
+  const value = await readStorageValueWithMigration<unknown>(
+    chrome.storage.session,
+    SESSION_STORAGE_KEY,
+    DEPRECATED_SESSION_STORAGE_KEY,
+  );
   if (!value || typeof value !== 'object') return null;
   const marker = value as Partial<ActiveChatLoop>;
   if (marker.active !== true || typeof marker.startedAt !== 'number') return null;
@@ -45,6 +51,7 @@ export async function markChatLoopStarted(provider: ChatLoopProvider): Promise<v
 
 export async function markChatLoopFinished(): Promise<void> {
   await chrome.storage.session.remove(SESSION_STORAGE_KEY);
+  await chrome.storage.session.remove(DEPRECATED_SESSION_STORAGE_KEY);
 }
 
 export async function getActiveChatLoop(): Promise<ActiveChatLoop | null> {

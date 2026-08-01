@@ -688,7 +688,7 @@ export default function SettingsPage() {
             <div className="flex justify-between items-center gap-3">
               <div>
                 <div className="text-xs font-medium" style={{ color: 'var(--ds-text)' }}>
-                  豆包 API Key
+                  {t('sidepanel.settings.apiKeyLabel')}
                 </div>
                 <div className="text-[11px] mt-0.5" style={{ color: 'var(--ds-text-tertiary)' }}>
                   {t('sidepanel.settings.apiKeyDescription')}
@@ -1358,7 +1358,7 @@ export default function SettingsPage() {
               type="text"
               value={repoUrlInput}
               onChange={(e) => setRepoUrlInput(e.target.value)}
-              placeholder="https://github.com/你的仓库地址"
+              placeholder={t('sidepanel.settings.githubPlaceholder')}
               className="flex-1 ds-input rounded-lg px-2 py-1.5 text-xs"
             />
             <button

@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.deepseekpp.android"
+    namespace = "com.doubao.wplus.android"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.deepseekpp.android"
+        applicationId = "com.doubao.wplus.android"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DeepSeekPlusPlusAndroid"
+rootProject.name = "DoubaoWPlusAndroid"
 include(":app")

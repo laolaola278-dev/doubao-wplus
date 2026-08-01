@@ -962,7 +962,7 @@ async function executePythonTool(args) {
     };
   }
 
-  const cwd = mkdtempSync(join(tmpdir(), 'deepseek-pp-python-'));
+  const cwd = mkdtempSync(join(tmpdir(), 'doubao-wplus-python-'));
   try {
     const result = await execPythonProcess(status.command, status.commandArgs ?? [], {
       code,
@@ -1066,8 +1066,11 @@ function getPythonCandidates() {
 }
 
 function getPythonEnvCandidates() {
+  // backward compat: old brand
+  const DEPRECATED_PYTHON_ENV_NAME = 'DEEPSEEK_PP_PYTHON';
   const names = [
-    'DEEPSEEK_PP_PYTHON',
+    'DOUBAO_WPLUS_PYTHON',
+    DEPRECATED_PYTHON_ENV_NAME,
     'PYTHON_EXECUTABLE',
     'PYTHON',
     'PYTHON3',

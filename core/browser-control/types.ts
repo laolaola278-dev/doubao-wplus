@@ -1,6 +1,8 @@
 import type { ToolProviderIdentity } from '../tool/types';
 
-export const BROWSER_CONTROL_STORAGE_KEY = 'deepseek_pp_browser_control_settings';
+export const BROWSER_CONTROL_STORAGE_KEY = 'doubao_wplus_browser_control_settings';
+// backward compat: old brand
+export const DEPRECATED_BROWSER_CONTROL_STORAGE_KEY = 'deepseek_pp_browser_control_settings';
 
 export const BROWSER_CONTROL_TOOL_PROVIDER_ID = 'browser_control';
 

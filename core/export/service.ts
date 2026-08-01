@@ -156,7 +156,7 @@ async function getSessionSummaries(
       modelType: null,
       createdAt: null,
       updatedAt: null,
-      ...(includeRaw ? { raw: { id, source: 'deepseek-pp-requested-session' } } : {}),
+      ...(includeRaw ? { raw: { id, source: 'doubao-wplus-requested-session' } } : {}),
     }));
   }
 

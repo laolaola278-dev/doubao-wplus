@@ -12,7 +12,7 @@
         {
           "message_id": 1001,
           "message_role": "user",
-          "content": "<!-- deepseek-pp-visible-user-prompt:start -->\nPlease summarize the attached memo.\n<!-- deepseek-pp-visible-user-prompt:end -->",
+          "content": "<!-- doubao-wplus-visible-user-prompt:start -->\nPlease summarize the attached memo.\n<!-- doubao-wplus-visible-user-prompt:end -->",
           "created_at": 1760000001,
           "ref_file_ids": ["file-1"],
           "thinking_enabled": false,

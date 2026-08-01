@@ -21,7 +21,7 @@
 
 | 项 | DeepSeek | 豆包 |
 |---|---|---|
-| 关键选择器（inputBox/sendButton/messageList） | ✅ 稳定（deepseek-pp 生产基线） | ⚠️ sendButton 无稳定属性锚点，靠 `.send-btn-wrapper` 父容器，health 在 partial/fallback 震荡 |
+| 关键选择器（inputBox/sendButton/messageList） | ✅ 稳定（doubao-wplus 生产基线） | ⚠️ sendButton 无稳定属性锚点，靠 `.send-btn-wrapper` 父容器，health 在 partial/fallback 震荡 |
 | 辅助选择器（消息气泡/会话列表/主题） | ✅ | ⚠️ userMessage/assistantMessage/conversationList 时常缺失 |
 | DOM 接管类 feature（历史组织/侧边栏/主题同步） | ✅ 全量启用 | ⚠️ 声明启用，实际随 selector health 降级 |
 | 降级行为 | — | ✅ 4 档 health 检查，缺关键元素时降级为「仅记忆/Skill 注入」，不阻断网络层增强 |

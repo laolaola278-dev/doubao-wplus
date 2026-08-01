@@ -12,6 +12,7 @@ node_modules
 dist
 .codegraph/
 .env
+.env.*
 .env.submit
 .env.chrome-web-store
 stats.html
@@ -20,6 +21,12 @@ stats-*.json
 web-ext.config.ts
 native-host/
 .tmp-deepseek-live/
+.e2e-profile/
+playwright-results/
+.trae/
+.workbuddy/
+.claude/
+.vuplog
 
 # Editor directories and files
 .vscode/*
@@ -37,7 +44,3 @@ docs/experience/
 docs/superpowers
 docs/archives/*
 !docs/archives/README.md
-!docs/archives/deepseek-official-conversation-export/
-!docs/archives/deepseek-official-conversation-export/**
-!docs/archives/better-deepseek-capability-adoption/
-!docs/archives/better-deepseek-capability-adoption/**

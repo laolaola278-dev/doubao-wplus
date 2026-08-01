@@ -11,8 +11,11 @@ import type {
   McpServerUpdateInput,
   McpToolCacheEntry,
 } from './types';
+import { readStorageValueWithMigration } from '../platform/storage-migration';
 
-const STORAGE_KEY = 'deepseek_pp_mcp_servers';
+const STORAGE_KEY = 'doubao_wplus_mcp_servers';
+// backward compat: old brand
+const DEPRECATED_STORAGE_KEY = 'deepseek_pp_mcp_servers';
 const STORAGE_VERSION = 1;
 const REDACTED_SECRET_VALUE = '********';
 
@@ -185,8 +188,11 @@ export function buildMcpRequestHeaders(server: McpServerConfig): Record<string, 
 }
 
 async function readState(): Promise<McpServerStorageState> {
-  const data = await chrome.storage.local.get(STORAGE_KEY) as Record<string, unknown>;
-  return normalizeState(data[STORAGE_KEY]);
+  return normalizeState(await readStorageValueWithMigration(
+    chrome.storage.local,
+    STORAGE_KEY,
+    DEPRECATED_STORAGE_KEY,
+  ));
 }
 
 async function writeState(state: McpServerStorageState): Promise<void> {
