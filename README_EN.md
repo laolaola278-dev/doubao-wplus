@@ -1,26 +1,7 @@
-<p align="center">
-  <img src="assets/readme-header.png" width="860" alt="doubao-wplus DeepSeek browser extension and AI agent workspace">
-</p>
-
 <h1 align="center">doubao-wplus</h1>
 
 <p align="center">
   <strong>DeepSeek browser extension for a bilingual AI agent workspace with memory, projects, Skills, MCP tools, browser control, saved snippets, artifact downloads, conversation export, and automation.</strong>
-</p>
-
-<p align="center">
-  <a href="https://github.com/laolaola278-dev/doubao-wplus/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/laolaola278-dev/doubao-wplus?style=flat-square"></a>
-  <a href="https://github.com/laolaola278-dev/doubao-wplus/watchers"><img alt="Watchers" src="https://img.shields.io/github/watchers/laolaola278-dev/doubao-wplus?style=flat-square"></a>
-  <a href="https://github.com/laolaola278-dev/doubao-wplus/network/members"><img alt="Forks" src="https://img.shields.io/github/forks/laolaola278-dev/doubao-wplus?style=flat-square"></a>
-  <a href="https://github.com/laolaola278-dev/doubao-wplus/issues"><img alt="Issues" src="https://img.shields.io/github/issues/laolaola278-dev/doubao-wplus?style=flat-square"></a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/laolaola278-dev/doubao-wplus/releases"><img alt="Release" src="https://img.shields.io/github/v/release/laolaola278-dev/doubao-wplus?style=flat-square&label=release"></a>
-  <a href="https://chromewebstore.google.com/detail/doubao-wplus/kdmpkkahkhdmdhfkdihkopikgcocbpbf?hl=zh-CN"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome%20Web%20Store-available-16a34a?style=flat-square"></a>
-  <a href="#license"><img alt="License" src="https://img.shields.io/badge/license-MIT-2563eb?style=flat-square"></a>
-  <a href="https://chat.deepseek.com"><img alt="DeepSeek" src="https://img.shields.io/badge/DeepSeek-web-4f46e5?style=flat-square"></a>
-  <a href="https://linux.do"><img alt="LINUX DO" src="https://img.shields.io/badge/LINUX-DO-f59e0b?style=flat-square"></a>
 </p>
 
 <p align="center">
@@ -115,10 +96,6 @@ Language can follow the browser or be set to English or Simplified Chinese. doub
 - **Restored after refresh** - Tool execution records can be restored after the conversation page is refreshed.
 - **Output speed indicator** - While a response is streaming, the input area shows live `tok/s` so you can tell whether the conversation is still producing output.
 
-<p align="center">
-  <img src="assets/yuansheng.jpg" width="300" alt="Tool execution display">
-</p>
-
 ### Conversation Export
 
 - **Current conversation export** - Export the current DeepSeek conversation from the same row as the official copy and share actions.
@@ -156,10 +133,6 @@ Language can follow the browser or be set to English or Simplified Chinese. doub
 - **Refresh recovery** - Recent tool execution progress and final status can be restored after the page is refreshed.
 - **Manual stop** - Long-running continuation can be stopped manually.
 
-<p align="center">
-  <img src="assets/screenshot-inline-tools.png" width="720" alt="Tool continuation and speed display">
-</p>
-
 ### Browser Control
 
 - **Opt-in control** - Enable Browser Control from Capabilities > Browser, then select a target tab before browser tools are added to new conversations.
@@ -185,10 +158,6 @@ Language can follow the browser or be set to English or Simplified Chinese. doub
 - **Adjustable appearance** - Configure size, opacity, and floating animation in settings.
 - **Local persistence** - The on/off state, position, and appearance are stored locally in the browser and survive refreshes.
 
-<p align="center">
-  <img src="public/pet/doubao-pet-states.png" width="420" alt="Doubao whale pet states">
-</p>
-
 ### MCP Tool System
 
 - **Flexible connections** - Add remote or local MCP services for browser-side tools, local commands, or team tools.
@@ -197,10 +166,6 @@ Language can follow the browser or be set to English or Simplified Chinese. doub
 - **Results return automatically** - Tool results return to the same conversation so the model can keep generating.
 - **Agentic continuation support** - MCP tool results can feed back into the original conversation, supporting multi-step long-running tasks.
 - **Local security** - MCP configuration and secrets stay in browser-local storage. WebDAV sync does not sync sensitive data.
-
-<p align="center">
-  <img src="assets/screenshot-sidepanel-mcp.png" width="300" alt="MCP management side panel">
-</p>
 
 ### OfficeCLI Document Tools
 
@@ -236,10 +201,6 @@ npm run shell:install -- --browser chrome --extension-id <extension-id>
 - **Side-panel management** - View, edit, pin, delete, filter by type, and manage tags.
 - **Import and export** - Back up and restore memories in JSON format.
 
-<p align="center">
-  <img src="assets/screenshot-sidepanel-memory.png" width="300" alt="Memory management side panel">
-</p>
-
 ### Skill System
 
 - **Built-in Skills** - Includes ready-to-use general collaboration Skills and manually enabled third-party OfficeCLI document Skills.
@@ -250,12 +211,6 @@ npm run shell:install -- --browser chrome --extension-id <extension-id>
 - **Enable control** - Custom, locally imported, and GitHub-imported Skills can be enabled, disabled, or deleted independently without affecting other Skills.
 - **Slash trigger** - Type `/` in the chat box to open autocomplete and inject the selected Skill's system prompt.
 - **Memory integration** - Skills can choose whether to include memory context.
-
-<p align="center">
-  <img src="assets/screenshot-skill-popup.png" width="600" alt="Skill autocomplete popup">
-  <br>
-  <img src="assets/screenshot-sidepanel-skill.png" width="300" alt="Skill management side panel">
-</p>
 
 ### System Prompt Presets
 
@@ -272,10 +227,6 @@ npm run shell:install -- --browser chrome --extension-id <extension-id>
 - **Pause, edit, and delete** - Task cards support pause/enable, prompt and frequency editing, deletion, and opening the linked conversation.
 - **Trackable run status** - Shows next run, previous run, latest status, and error messages.
 - **Reuses the enhanced workflow** - Automation triggers the task; the resulting prompt can still use presets, memory, MCP tools, and agentic continuation.
-
-<p align="center">
-  <img src="assets/screenshot-sidepanel-automation.png" width="300" alt="Automation task side panel">
-</p>
 
 ## 0.7.5 Release Highlights
 
@@ -645,11 +596,6 @@ Thanks to this release's contributors: [@todayzhou](https://github.com/todayzhou
 | Skill and presets | Adds `/skill` autocomplete, built-in and custom Skill management, system prompt presets, preset import, and DeepSeek Expert mode switching. |
 | Sync and personalization | Adds WebDAV sync for memory, Skills, and presets; adds custom DeepSeek page background, dynamic transparency, and blur controls. |
 | Docs and release | Adds side-panel screenshots, MCP instructions, mock validation scripts, TypeScript fixes, release workflow, and build/package flow. |
-
-<p align="center">
-  <img src="assets/screenshot-sidepanel-mcp.png" width="300" alt="MCP management side panel">
-  <img src="assets/screenshot-sidepanel-automation.png" width="300" alt="Automation task side panel">
-</p>
 
 </details>
 

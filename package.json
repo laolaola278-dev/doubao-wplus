@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev": "wxt",
+    "dev:preview": "node scripts/preview-dev.mjs",
     "build": "wxt build",
     "build:chrome": "wxt build --browser chrome",
     "build:edge": "wxt build --browser edge",

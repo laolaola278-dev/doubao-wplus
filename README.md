@@ -5,12 +5,6 @@
 </p>
 
 <p align="center">
-  <a href="#license"><img alt="License" src="https://img.shields.io/badge/license-MIT-2563eb?style=flat-square"></a>
-  <a href="https://www.doubao.com"><img alt="Doubao" src="https://img.shields.io/badge/Doubao-web-4f46e5?style=flat-square"></a>
-  <a href="https://linux.do"><img alt="LINUX DO" src="https://img.shields.io/badge/LINUX-DO-f59e0b?style=flat-square"></a>
-</p>
-
-<p align="center">
   <a href="#产品定位">产品定位</a> ·
   <a href="#功能速览">功能速览</a> ·
   <a href="#适合场景">适合场景</a> ·
@@ -100,10 +94,6 @@ Doubao WPlus 是面向 [豆包](https://www.doubao.com) 网页版的开源浏览
 - **刷新后恢复** — 工具执行记录在刷新会话后仍能恢复展示
 - **速度显示** — 回复生成时在输入框旁显示实时 `tok/s`，便于判断当前会话是否仍在高速输出
 
-<p align="center">
-  <img src="assets/yuansheng.jpg" width="300" alt="工具调用效果">
-</p>
-
 ### 对话导出
 
 - **当前对话导出** — 在回复下方的复制、分享等官方按钮同一排，导出当前对话
@@ -141,10 +131,6 @@ Doubao WPlus 是面向 [豆包](https://www.doubao.com) 网页版的开源浏览
 - **刷新后恢复** — 页面刷新后仍能恢复最近的工具执行过程和最终状态
 - **可手动停止** — 长任务执行中可以直接停止后续续跑
 
-<p align="center">
-  <img src="assets/screenshot-inline-tools.png" width="720" alt="工具续跑与速度显示">
-</p>
-
 ### 浏览器控制
 
 - **按需启用** — 在侧边栏「能力 > 浏览器」中开启，选择目标标签页后才会把浏览器工具加入新会话
@@ -170,10 +156,6 @@ Doubao WPlus 是面向 [豆包](https://www.doubao.com) 网页版的开源浏览
 - **外观可调** — 设置页可调整尺寸、透明度和动态漂浮效果
 - **本地保存** — 开关、位置和外观配置保存在浏览器本地，刷新后继续生效
 
-<p align="center">
-  <img src="public/pet/doubao-pet-states.png" width="420" alt="小鲸鱼状态">
-</p>
-
 ### MCP 工具系统
 
 - **灵活接入** — 可添加远程或本机 MCP 服务，适合连接浏览器侧工具、本机命令和团队已有工具
@@ -182,10 +164,6 @@ Doubao WPlus 是面向 [豆包](https://www.doubao.com) 网页版的开源浏览
 - **结果自动回传** — 工具执行完成后，结果自动发回同一会话继续生成，实现多轮工具调用
 - **支持续跑** — MCP 工具结果可以回传到原会话继续生成，支撑长任务里的多步工具执行
 - **本地安全** — MCP 配置和密钥保存在浏览器本地，WebDAV 同步不会同步敏感信息
-
-<p align="center">
-  <img src="assets/screenshot-sidepanel-mcp.png" width="300" alt="MCP 管理侧边栏">
-</p>
 
 ### OfficeCLI 文档工具
 
@@ -221,10 +199,6 @@ npm run shell:install -- --browser chrome --extension-id <扩展ID>
 - **侧边栏管理** — 查看、编辑、置顶、删除记忆，支持按类型筛选和标签管理
 - **导入/导出** — JSON 格式批量备份和恢复
 
-<p align="center">
-  <img src="assets/screenshot-sidepanel-memory.png" width="300" alt="记忆管理侧边栏">
-</p>
-
 ### Skill 技能系统
 
 - **内置技能** — 预设多组开箱即用的技能，包含通用协作技能和可手动启用的 OfficeCLI 第三方文档技能
@@ -235,12 +209,6 @@ npm run shell:install -- --browser chrome --extension-id <扩展ID>
 - **启用控制** — 自定义、本地导入和 GitHub 导入的 Skill 可以单独启用、停用或删除，不影响其他 Skill
 - **`/` 触发** — 在聊天框输入 `/` 弹出自动补全面板，选择技能后自动注入对应的 system prompt
 - **记忆联动** — 技能可选择是否同时注入记忆上下文
-
-<p align="center">
-  <img src="assets/screenshot-skill-popup.png" width="600" alt="技能自动补全弹窗">
-  <br>
-  <img src="assets/screenshot-sidepanel-skill.png" width="300" alt="技能管理侧边栏">
-</p>
 
 ### 系统提示词预设
 
@@ -257,10 +225,6 @@ npm run shell:install -- --browser chrome --extension-id <扩展ID>
 - **可暂停、编辑和删除** — 任务卡片支持暂停/启用、编辑 prompt 与频率、删除任务，以及打开对应会话
 - **运行状态可追踪** — 展示下次运行、上次运行、最近状态和错误信息
 - **复用增强链路** — 自动化负责触发任务；触发后的 prompt 仍可经过预设、记忆、MCP 工具和续跑链路
-
-<p align="center">
-  <img src="assets/screenshot-sidepanel-automation.png" width="300" alt="自动化任务侧边栏">
-</p>
 
 ## 安装
 
