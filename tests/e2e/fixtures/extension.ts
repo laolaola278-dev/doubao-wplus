@@ -170,8 +170,9 @@ export const test = base.extend<ExtensionFixtures>({
 
 /** 检测当前构建是否启用 diagnostics marker（供 spec 跳过使用） */
 export function isDiagnosticsMarkerExpected(): boolean {
-  // 通过读取 dist/chrome-mv3 下的 manifest.json 推断；或通过 environment 变量
-  return process.env.DOUBAO_WPLUS_E2E_MARKER === 'on';
+  // build-e2e.mjs 设置 DOUBAO_WPLUS_E2E=1；旧文档用 DOUBAO_WPLUS_E2E_MARKER=on。
+  // 两者任一成立即认为 E2E 诊断 marker 已写入 dist。
+  return process.env.DOUBAO_WPLUS_E2E_MARKER === 'on' || process.env.DOUBAO_WPLUS_E2E === '1';
 }
 
 /** 触发一次重新构建并以 E2E 模式输出（仅供本地调试使用） */

@@ -182,8 +182,6 @@ Doubao WPlus 是面向 [豆包](https://www.doubao.com) 网页版的开源浏览
 npx doubao-wplus-shell-host install --browser chrome --extension-id <扩展ID>
 ```
 
-<!-- backward compat: old brand — deprecated npm package name -->
-旧包名 `deepseek-pp-shell-host` 已废弃，请迁移到 `doubao-wplus-shell-host`。侧边栏 `MCP` 页会自动填入当前扩展 ID。这个命令会同时安装 Shell Native Host 和命令版 OfficeCLI；Shell MCP 会启用本机命令执行能力。安装后重启浏览器，然后在侧边栏 `MCP` 页点击 `Shell` 创建预设，点击测试和刷新工具。命令版 OfficeCLI 可继续使用 `create/get/set/view/batch/validate` 等脚本化命令，不走 `new --prompt` 的 hosted 生成额度。
 
 从源码开发时也可以继续使用：
 

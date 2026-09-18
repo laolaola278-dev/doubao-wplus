@@ -14,6 +14,3 @@ Useful commands:
 npx doubao-wplus-shell-host status --browser chrome
 npx doubao-wplus-shell-host uninstall --browser chrome
 ```
-
-<!-- backward compat: old brand — deprecated npm package name -->
-The former `deepseek-pp-shell-host` package name is deprecated. Existing installations should be migrated by installing the new package and registering the new `com.doubao_wplus.shell` host.

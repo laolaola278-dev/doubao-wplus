@@ -44,3 +44,6 @@ docs/experience/
 docs/superpowers
 docs/archives/*
 !docs/archives/README.md
+
+# Local backup artifacts
+*.bak

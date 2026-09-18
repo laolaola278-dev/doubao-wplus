@@ -45,8 +45,8 @@
     "verify:automation": "node scripts/automation-contract-smoke.mjs",
     "verify:mcp:mock": "node scripts/mcp-live-mock.mjs",
     "postinstall": "wxt prepare",
-    "test:e2e": "node scripts/build-e2e.mjs && playwright test",
-    "test:e2e:headed": "node scripts/build-e2e.mjs && playwright test --headed",
+    "test:e2e": "node scripts/run-e2e.mjs",
+    "test:e2e:headed": "node scripts/run-e2e.mjs --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report"
   },
