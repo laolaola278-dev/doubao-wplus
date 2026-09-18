@@ -19,11 +19,18 @@ const output = resolve(distDir, `doubao-wplus-${version}-sources.zip`);
 execFileSync('git', ['rev-parse', '--is-inside-work-tree'], { cwd: root, stdio: 'ignore' });
 
 const status = execFileSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }).trim();
-if (status && process.env.CI === 'true') {
-  throw new Error('Source package requires a clean git tree in CI');
-}
 if (status) {
+  const details = status
+    .split('\n')
+    .map((line) => `  ${line}`)
+    .join('\n');
+  if (process.env.CI === 'true') {
+    console.error('Source package requires a clean git tree in CI. Dirty entries:');
+    console.error(details);
+    throw new Error('Source package requires a clean git tree in CI');
+  }
   console.warn('Source package uses git archive HEAD; uncommitted changes are not included.');
+  console.warn(details);
 }
 
 mkdirSync(distDir, { recursive: true });
