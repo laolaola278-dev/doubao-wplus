@@ -22,6 +22,24 @@ import { getActiveAdapter, setActiveHostId, getActiveHostId } from '../hosts/reg
 import type { HostId } from '../hosts/types';
 import { isFlagEnabled, readBodyField } from '../hosts/shared/body-fields';
 import { captureBorrowableHeaders, getBorrowedHeaders } from './header-borrowing';
+import type { DoubaoWebChatSnapshot } from '../chat/doubao-web';
+
+let lastDoubaoWebChatSnapshot: DoubaoWebChatSnapshot | null = null;
+
+function recordDoubaoWebChatSnapshot(
+  url: string,
+  headers: Record<string, string>,
+  body: string,
+): void {
+  lastDoubaoWebChatSnapshot = { url, headers, body, capturedAt: Date.now() };
+}
+
+/** 豆包网页会话直连快照（仅 MAIN 世界内存持有）。
+ * 不做本地时效剔除：签名实际时效由豆包服务端裁决，过期请求失败时由侧边栏
+ * 给出"在豆包页发一条消息后重试"的明确指引，优于提前拒绝。 */
+export function getDoubaoWebChatSnapshot(): DoubaoWebChatSnapshot | null {
+  return lastDoubaoWebChatSnapshot;
+}
 import {
   isDevDiagnosticsEnabled,
   setLastCapturedRequest,
@@ -189,6 +207,12 @@ function hookFetch() {
 
     if (hasBypassHookHeader(init.headers)) {
       return originalFetch.call(this, input, { ...init, headers: stripBypassHookHeader(init.headers) });
+    }
+
+    // 豆包网页会话直连：记录最近一次真实补全请求快照（URL 含签名 query，供 sidepanel
+    // doubao-web 模式复用；不逆向签名算法，见 core/chat/doubao-web.ts）
+    if (hostId === 'doubao' && typeof init?.body === 'string') {
+      recordDoubaoWebChatSnapshot(url, headersInitToRecord(init.headers) ?? {}, init.body);
     }
 
     await waitForInitialHookState();

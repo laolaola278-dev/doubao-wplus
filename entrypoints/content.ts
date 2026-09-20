@@ -78,7 +78,7 @@ import { startDoubaoHistoryOrganizer } from './content/features/doubao/history-o
 import { startDoubaoProjectSidebarOrganizer } from './content/features/doubao/project-sidebar-organizer';
 import { startDoubaoThemeSync } from './content/features/doubao/theme-sync';
 import { startContentUxPolish, type ContentUxPolishController } from './content/features/shared/ux-polish';
-import { installBridge, setBridgeMessageHandler, postToBridge, MAIN_WORLD_SOURCE, DEPRECATED_MAIN_WORLD_SOURCE } from './content/features/shared/bridge';
+import { installBridge, setBridgeMessageHandler, postToBridge, getBridgeReady, MAIN_WORLD_SOURCE, DEPRECATED_MAIN_WORLD_SOURCE } from './content/features/shared/bridge';
 import { persistDeepSeekClientHeaders, normalizeCapturedClientHeaders } from './content/features/deepseek/auth';
 
 import { getActiveAdapter, getActiveFeatures, getActiveHostId, detectHost, setActiveHostId } from '../core/hosts/registry';
@@ -533,6 +533,24 @@ export default defineContentScript({
             await persistDeepSeekClientHeaders(normalizeCapturedClientHeaders(data.headers));
             break;
           }
+          case 'DOUBAO_WEB_CHAT_CHUNK': {
+            // sidepanel 对话页 doubao-web 模式：MAIN 世界补全增量 → 广播给 sidepanel
+            void sendRuntimeMessage({ type: 'CHAT_STREAM_CHUNK', text: String(data.delta ?? ''), done: false });
+            break;
+          }
+          case 'DOUBAO_WEB_CHAT_DONE': {
+            if (data.ok === true) {
+              void sendRuntimeMessage({ type: 'DOUBAO_WEB_CHAT_RESULT', payload: { conversationId: data.conversationId ?? null } });
+              void sendRuntimeMessage({ type: 'CHAT_STREAM_CHUNK', text: '', done: true });
+            } else {
+              void sendRuntimeMessage({ type: 'CHAT_STREAM_CHUNK', text: '', done: true, error: String(data.error ?? 'doubao_web_failed') });
+            }
+            break;
+          }
+          case 'DOUBAO_WEB_CHAT_READY_RESULT': {
+            resolveDoubaoWebChatReady(data);
+            break;
+          }
           case 'RESPONSE_COMPLETE': {
             // Prompt Inspector：回填最近一条 pending 快照的发送结果（门控关闭为 no-op）
             markSnapshotSendResult('sent');
@@ -690,6 +708,21 @@ export default defineContentScript({
             hasToken: false,
             error: error instanceof Error ? error.message : String(error),
           }));
+        return true;
+      } else if (message.type === 'DOUBAO_WEB_CHAT_READY') {
+        // 后台探测豆包网页会话直连可用性（经桥问 MAIN 世界是否有补全快照）
+        sendDoubaoWebChatReadyRequest()
+          .then((ready) => sendResponse({ ok: true, ready }))
+          .catch(() => sendResponse({ ok: false, ready: false }));
+        return true;
+      } else if (message.type === 'DOUBAO_WEB_CHAT_SUBMIT') {
+        const payload = (message as { payload?: unknown }).payload;
+        postToBridge({
+          type: 'DOUBAO_WEB_CHAT_SUBMIT',
+          id: generateDoubaoWebChatId(),
+          body: typeof payload === 'string' ? payload : JSON.stringify(payload ?? {}),
+        });
+        sendResponse({ ok: true });
         return true;
       } else if (message.type === 'DEEPSEEK_EXPORT_PROGRESS' || message.type === 'EXPORT_PROGRESS') {
         updateConversationExportProgress(message.progress as ConversationExportProgress | undefined);
@@ -1874,6 +1907,48 @@ function addRuntimeMessageListener(
     if (isExtensionInvalidatedError(error)) {
       invalidateExtensionContext();
     }
+  }
+}
+
+// ---- 豆包网页会话直连（doubao-web 模式）content 侧辅助 ----
+
+const DOUBAO_WEB_CHAT_READY_TIMEOUT_MS = 4_000;
+let doubaoWebChatReadyId: string | null = null;
+let doubaoWebChatReadyResolve: ((ready: boolean) => void) | null = null;
+
+function generateDoubaoWebChatId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `dwc_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
+/** 向 MAIN 世界询问补全快照是否可用（带超时；桥未就绪直接 false） */
+function sendDoubaoWebChatReadyRequest(): Promise<boolean> {
+  if (!getBridgeReady()) return Promise.resolve(false);
+  if (doubaoWebChatReadyResolve) return Promise.resolve(false);
+  return new Promise<boolean>((resolve) => {
+    doubaoWebChatReadyId = generateDoubaoWebChatId();
+    doubaoWebChatReadyResolve = resolve;
+    postToBridge({ type: 'DOUBAO_WEB_CHAT_READY', id: doubaoWebChatReadyId });
+    setTimeout(() => {
+      if (doubaoWebChatReadyResolve === resolve) {
+        doubaoWebChatReadyId = null;
+        doubaoWebChatReadyResolve = null;
+        resolve(false);
+      }
+    }, DOUBAO_WEB_CHAT_READY_TIMEOUT_MS);
+  });
+}
+
+/** MAIN 世界回包：按 id 匹配 pending 探测请求 */
+function resolveDoubaoWebChatReady(data: Record<string, unknown>): void {
+  if (doubaoWebChatReadyResolve && data.id === doubaoWebChatReadyId) {
+    const resolve = doubaoWebChatReadyResolve;
+    doubaoWebChatReadyId = null;
+    doubaoWebChatReadyResolve = null;
+    resolve(data.ready === true);
   }
 }
 

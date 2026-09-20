@@ -176,6 +176,11 @@ import {
   loadClientHeadersFromStorage,
 } from '../core/deepseek/adapter';
 import {
+  refreshDoubaoWebChatReady,
+  submitDoubaoWebChat,
+  type DoubaoWebChatSubmitPayload,
+} from '../core/chat/doubao-web-relay';
+import {
   submitOfficialDoubaoStreaming,
   type OfficialDoubaoMessage,
   type OfficialDoubaoTurn,
@@ -225,11 +230,16 @@ import type { ConversationExportProgress, ConversationExportResult } from '../co
 
 const DEEPSEEK_HOME_URL = 'https://chat.deepseek.com/';
 const DEEPSEEK_TAB_URL_PATTERN = '*://chat.deepseek.com/*';
+// sidepanel 对话页 doubao-web 模式：豆包宿主页（网页会话直连的执行环境）
+const DOUBAO_WEB_TAB_URL_PATTERN = '*://*.doubao.com/*';
 const DEPRECATED_REFRESH_AUTH_VALUE = 'REFRESH_DEEPSEEK_AUTH';
 const REFRESH_AUTH_MESSAGE = { type: 'REFRESH_AUTH' } as const;
 let chatSessionId: string | null = null;
 let chatParentMessageId: number | null = null;
 let officialApiChatMessages: OfficialDoubaoMessage[] = [];
+// sidepanel 对话页 doubao-web 模式：豆包网页侧会话状态（由 DOUBAO_WEB_CHAT_RESULT 回填）
+let doubaoWebConversationId: string | null = null;
+let doubaoWebLastMessageIndex: number | null = null;
 const conversationExportControllers = new Map<string, AbortController>();
 let currentBackgroundLocale: SupportedLocale = DEFAULT_LOCALE;
 let currentBackgroundTranslator = createTranslator(DEFAULT_LOCALE);
@@ -1230,7 +1240,21 @@ async function handleMessage(
       chatSessionId = null;
       chatParentMessageId = null;
       officialApiChatMessages = [];
+      doubaoWebConversationId = null;
+      doubaoWebLastMessageIndex = null;
       return { ok: true };
+
+    case 'DOUBAO_WEB_CHAT_RESULT': {
+      // content 侧豆包网页补全完成：回填会话状态供续轮复用
+      const result = message.payload as { conversationId?: string | null } | undefined;
+      if (result?.conversationId) {
+        doubaoWebConversationId = result.conversationId;
+        doubaoWebLastMessageIndex = doubaoWebLastMessageIndex == null
+          ? 0
+          : doubaoWebLastMessageIndex + 1;
+      }
+      return { ok: true };
+    }
 
     case 'GET_AUTH_STATUS': {
       return getChatAuthStatus(sender.tab?.id);
@@ -1524,12 +1548,28 @@ async function getChatAuthStatus(preferredTabId?: number) {
   }
 
   const headers = await loadOrRefreshClientHeaders(preferredTabId);
+  if (headers) {
+    return {
+      ok: true,
+      available: true,
+      provider: 'web' as const,
+      hasApiKey: false,
+      hasToken: true,
+    };
+  }
+
+  // 无 DeepSeek 会话时探测豆包网页会话直连（页面发过补全请求即可复用签名 URL）
+  const doubaoReady = await refreshDoubaoWebChatReady({
+    queryTabs: (query) => chrome.tabs.query(query),
+    sendTabMessage: (tabId, msg) => chrome.tabs.sendMessage(tabId, msg),
+    preferredTabId,
+  });
   return {
     ok: true,
-    available: !!headers,
-    provider: headers ? 'doubao-web' : null,
+    available: doubaoReady,
+    provider: doubaoReady ? 'doubao-web' : null,
     hasApiKey: false,
-    hasToken: !!headers,
+    hasToken: doubaoReady,
   };
 }
 
@@ -2012,7 +2052,20 @@ async function handleChatSubmitPrompt(
 async function handleWebChatSubmitPrompt(prompt: string, excludeTabId?: number) {
   const headers = await loadOrRefreshClientHeaders(excludeTabId);
   if (!headers) {
-    broadcastChatChunk({ text: '', done: true, error: backgroundT('background.auth.missingDoubao') }, excludeTabId);
+    // 无 DeepSeek 会话：走豆包网页会话直连（复用页面补全快照，见 core/chat/doubao-web.ts）
+    const payload: DoubaoWebChatSubmitPayload = {
+      prompt: (await buildSidepanelPrompt(prompt, { lightweight: true })).augmented,
+      conversationId: doubaoWebConversationId,
+      lastMessageIndex: doubaoWebLastMessageIndex,
+    };
+    const accepted = await submitDoubaoWebChat({
+      queryTabs: (query) => chrome.tabs.query(query),
+      sendTabMessage: (tabId, msg) => chrome.tabs.sendMessage(tabId, msg),
+      excludeTabId,
+    }, payload);
+    if (!accepted) {
+      broadcastChatChunk({ text: '', done: true, error: backgroundT('background.auth.missingDoubao') }, excludeTabId);
+    }
     return;
   }
 
@@ -2074,7 +2127,10 @@ async function handleOfficialApiChatSubmitPrompt(
   }
 }
 
-async function buildSidepanelPrompt(prompt: string): Promise<{
+async function buildSidepanelPrompt(
+  prompt: string,
+  options?: { lightweight?: boolean },
+): Promise<{
   augmented: string;
   enabledDescriptors: ToolDescriptor[];
 }> {
@@ -2091,7 +2147,12 @@ async function buildSidepanelPrompt(prompt: string): Promise<{
     cadence: promptSettings.presetCadence,
   });
 
-  const enabledDescriptors = filterSidepanelChatToolDescriptors(toolDescriptors);
+  // 轻量模式（豆包网页会话直连）：不注入工具协议脚手架。
+  // 豆包对大体量系统注入顺应性差，会原样复述工具 schema 污染回复（2026-09-20 真机实测）；
+  // 且豆包侧工具回路本就未验证，此场景第一目标是干净对话。
+  const enabledDescriptors = options?.lightweight
+    ? []
+    : filterSidepanelChatToolDescriptors(toolDescriptors);
   const { augmented } = buildPromptAugmentation(prompt, {
     memories: memories.filter((memory) => memory.scope !== 'project'),
     presetContent: shouldInjectPreset ? activePreset?.content ?? null : null,
@@ -2099,7 +2160,7 @@ async function buildSidepanelPrompt(prompt: string): Promise<{
     thinkingEnabled: false,
     locale: currentBackgroundLocale,
     memoryEnabled: promptSettings.memoryEnabled,
-    systemPromptEnabled: promptSettings.systemPromptEnabled,
+    systemPromptEnabled: options?.lightweight ? false : promptSettings.systemPromptEnabled,
     forceResponseLanguage: promptSettings.forceResponseLanguage === 'auto' ? null : promptSettings.forceResponseLanguage,
   });
 

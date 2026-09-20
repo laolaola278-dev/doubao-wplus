@@ -783,8 +783,10 @@ export const en = {
       },
     },
     chatPage: {
-      authRequired: 'Configure a Doubao API Key, or sign in at chat.doubao.com first',
-      authHint: 'Without an API Key, sidepanel chat depends on the Doubao webpage login session',
+      authRequired: 'Configure a Doubao API Key, or sign in on the Doubao web app and send one message first',
+      authHint: 'Without an API Key, sidepanel chat reuses the Doubao webpage session (a recent chat request from the Doubao page is required)',
+      errNoSnapshot: 'Doubao link is not ready: send any message on the Doubao web page first, then retry in the side panel',
+      errHttpRejected: 'The Doubao server rejected this request (the webpage signature may have expired): send a message on the Doubao page and retry',
       title: 'Chat',
       description: 'Start tasks from the side panel with memory, presets, Skills, and enabled tools available.',
       apiDescription: 'Official API mode with model and thinking controls.',

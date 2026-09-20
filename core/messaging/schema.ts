@@ -12,6 +12,13 @@ export type BridgeMessageType =
   | 'SELF_CHECK_REPORT'
   // dev-only：Prompt Inspector 快照的脱敏摘要（无 prompt 全文），同上转发写入 __DWPLUS_DIAG__
   | 'PROMPT_SNAPSHOT_SUMMARY'
+  // sidepanel 对话页 doubao-web 模式：经 content 中继到 MAIN 世界执行网页补全
+  | 'DOUBAO_WEB_CHAT_SUBMIT'
+  | 'DOUBAO_WEB_CHAT_CHUNK'
+  | 'DOUBAO_WEB_CHAT_DONE'
+  // 后台探测豆包页是否具备网页会话直连条件（有真实补全快照即可复用）
+  | 'DOUBAO_WEB_CHAT_READY'
+  | 'DOUBAO_WEB_CHAT_READY_RESULT'
   | 'DWPLUS_BRIDGE_READY'
   | 'DPP_BRIDGE_READY';
 
@@ -37,6 +44,11 @@ const BRIDGE_TYPES = new Set<string>([
   'HEADERS_CAPTURED',
   'SELF_CHECK_REPORT',
   'PROMPT_SNAPSHOT_SUMMARY',
+  'DOUBAO_WEB_CHAT_SUBMIT',
+  'DOUBAO_WEB_CHAT_CHUNK',
+  'DOUBAO_WEB_CHAT_DONE',
+  'DOUBAO_WEB_CHAT_READY',
+  'DOUBAO_WEB_CHAT_READY_RESULT',
   'DWPLUS_BRIDGE_READY',
   'DPP_BRIDGE_READY',
 ]);

@@ -363,7 +363,7 @@ export default function ChatPage() {
         ))}
 
         {error && (
-          <div className="ds-chat-error">{error}</div>
+          <div className="ds-chat-error">{friendlyChatError(error, t)}</div>
         )}
       </div>
 
@@ -437,6 +437,17 @@ function ProviderBadge({ provider }: { provider: ChatProvider }) {
     ? t('sidepanel.chatPage.apiProvider')
     : t('sidepanel.chatPage.webProvider');
   return <span className="ds-chat-provider-badge">{label}</span>;
+}
+
+/** 将豆包网页会话直连的内部错误码映射为用户可操作的提示 */
+function friendlyChatError(error: string, t: ReturnType<typeof useI18n>['t']): string {
+  if (error === 'doubao_web_no_snapshot' || error === 'doubao_web_bad_payload') {
+    return t('sidepanel.chatPage.errNoSnapshot');
+  }
+  if (error.startsWith('doubao_web_chat_http_')) {
+    return t('sidepanel.chatPage.errHttpRejected');
+  }
+  return error;
 }
 
 function getConfigLabel(

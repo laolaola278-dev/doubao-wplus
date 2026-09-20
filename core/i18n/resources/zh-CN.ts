@@ -783,8 +783,10 @@ export const zhCN = {
       },
     },
     chatPage: {
-      authRequired: '请配置 豆包 API Key，或先登录 chat.doubao.com',
-      authHint: '未配置 Key 时，侧边栏对话依赖 豆包 网页登录态',
+      authRequired: '请配置 豆包 API Key，或在豆包网页登录并任发一条消息后重试',
+      authHint: '未配置 Key 时，侧边栏对话复用 豆包 网页登录态（需豆包页面最近发起过对话请求）',
+      errNoSnapshot: '豆包连接未就绪：请先在豆包网页里发送一条消息，再回到侧边栏对话',
+      errHttpRejected: '豆包服务端拒绝了本次请求（网页签名可能已失效）：请在豆包网页里发送一条消息后重试',
       title: '对话',
       description: '直接在侧边栏发起任务，可复用记忆、预设、Skill 和已启用工具。',
       apiDescription: '使用官方 API，可选择模型和思考强度。',

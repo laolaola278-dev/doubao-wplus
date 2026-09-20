@@ -24,6 +24,11 @@ import {
 } from '../core/diagnostics/dev-diagnostics';
 import { installDiagnosticsExport } from '../core/diagnostics/diagnostics-export';
 import { getActiveAdapter } from '../core/hosts/registry';
+import { getDoubaoWebChatSnapshot } from '../core/interceptor/fetch-hook';
+import {
+  runDoubaoWebChatTurn,
+  type DoubaoWebChatSubmitPayload,
+} from '../core/chat/doubao-web';
 
 // ---- Bridge protocol constants ----
 // 桥接协议：main-world content ↔ isolated-world content
@@ -211,6 +216,59 @@ function handlePortMessage(data: unknown): void {
       }
       break;
     }
+    case 'DOUBAO_WEB_CHAT_READY': {
+      // sidepanel 对话页（doubao-web 模式）可用性探测：页面发过补全请求即具备复用条件
+      postToContent({
+        type: 'DOUBAO_WEB_CHAT_READY_RESULT',
+        id: message.id,
+        ready: getDoubaoWebChatSnapshot() != null,
+      });
+      break;
+    }
+    case 'DOUBAO_WEB_CHAT_SUBMIT': {
+      void runDoubaoWebChatRelay(message);
+      break;
+    }
+  }
+}
+
+/** 执行一轮豆包网页补全并把增量/结束经桥回传 content → runtime 广播 */
+async function runDoubaoWebChatRelay(message: { id?: string; body?: string }): Promise<void> {
+  const id = message.id ?? '';
+  const snapshot = getDoubaoWebChatSnapshot();
+  if (!snapshot) {
+    postToContent({ type: 'DOUBAO_WEB_CHAT_DONE', id, ok: false, error: 'doubao_web_no_snapshot' });
+    return;
+  }
+  let payload: DoubaoWebChatSubmitPayload;
+  try {
+    payload = JSON.parse(String(message.body ?? '')) as DoubaoWebChatSubmitPayload;
+  } catch {
+    postToContent({ type: 'DOUBAO_WEB_CHAT_DONE', id, ok: false, error: 'doubao_web_bad_payload' });
+    return;
+  }
+  try {
+    const result = await runDoubaoWebChatTurn({
+      snapshot,
+      payload,
+      onChunk: (delta) => {
+        if (delta) postToContent({ type: 'DOUBAO_WEB_CHAT_CHUNK', id, delta });
+      },
+    });
+    postToContent({
+      type: 'DOUBAO_WEB_CHAT_DONE',
+      id,
+      ok: true,
+      text: result.text,
+      conversationId: result.conversationId,
+    });
+  } catch (error) {
+    postToContent({
+      type: 'DOUBAO_WEB_CHAT_DONE',
+      id,
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
