@@ -10,14 +10,17 @@ const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 // intentionally reworded during the Doubao WPlus rebrand, so the three affected
 // hashes (promptAugmentationBuild, promptLocaleResourcesEn, promptLocaleResourcesZhCN)
 // were re-frozen against the current sources.
+// Re-frozen again 2026-09-20 after anchoring the locale-resource slices to the
+// top-level `prompt` key — the previous range started at a nested `prompt: {`
+// inside `sidepanel`, so unrelated copy edits kept tripping the gate.
 const EXPECTED_HASHES = {
   systemTemplateChat: '5bca8e90d23381c9605cbfebf7ecb91f28f4010ddbc2a6ccc291fa046fcd6eec',
   systemTemplateThinking: 'fa31e863e5f54f7a4e48cffdbae0e543028de4a565f77504e66edd707c73b5f3',
   memoryToolSchemas: 'a64e0a8874552177eba10089d5acfdc2996d0b703f83b1a57e9d76c733da9a7b',
   promptAugmentationBuild: 'e2465202245a77e7231d7f1735b22cbc76d981fef711ea19d92588306e99edca',
   promptToolSchemaRenderer: 'ff753dde88e3e3e91b5374c2ab7e7cc944771d68f8df90583d7027ba3c3435f9',
-  promptLocaleResourcesEn: 'eb914147d8255faa22cb27d182441cfd7411d013e245e62fa0e2310808207039',
-  promptLocaleResourcesZhCN: '1594c1afb704bac7b52e7d92f6e91b2af157709c1a9a48781f2904d9be12eb5f',
+  promptLocaleResourcesEn: '1c81b9c144580fbdac3bdbff4cc0d5ce5230db486aa1f7b1693b974af1a168d2',
+  promptLocaleResourcesZhCN: '062bc0f18fd48d462c5e54f905e0175056d48f77d59ce15a11fd719e7276e6c2',
   inlineAgentContinuationPrompt: 'c7c6d857cd4c14015329bccd7ce2e551b0f3490593e89c163db713e842cbfc22',
   inlineAgentNudgePrompt: '4717a41143efacf66a2554c8d7d72c08f7192c0b0b93105a869f0638bd7ba4ea',
   inlineAgentFinalizationPrompt: '7586a53173b5843865119a1e3ab266353baefcddc86f2f97e165a8e5303b6b01',
@@ -59,15 +62,18 @@ const cases = {
     extractFunction('createExamplePayload', sources.augmentation),
     extractFunction('exampleValue', sources.augmentation),
   ].join('\n\n'),
+  // Anchored to the top-level key: without `^` the pattern matched a nested
+  // `prompt: {` inside `sidepanel` (line ~320) and swallowed every top-level
+  // block up to `pet`, so unrelated side-panel copy changes tripped the freeze.
   promptLocaleResourcesEn: extractRegex(
     'prompt locale resources en',
     sources.enResource,
-    /  prompt: \{[\s\S]*?\n  pet: \{/,
+    /^  prompt: \{[\s\S]*?\n  pet: \{/m,
   ),
   promptLocaleResourcesZhCN: extractRegex(
     'prompt locale resources zh-CN',
     sources.zhCNResource,
-    /  prompt: \{[\s\S]*?\n  pet: \{/,
+    /^  prompt: \{[\s\S]*?\n  pet: \{/m,
   ),
   inlineAgentContinuationPrompt: extractFunction('buildContinuationPrompt', sources.inlinePrompt),
   inlineAgentNudgePrompt: extractFunction('buildNudgePrompt', sources.inlinePrompt),
